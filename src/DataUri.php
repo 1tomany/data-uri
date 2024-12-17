@@ -62,7 +62,7 @@ final readonly class DataUri implements \Stringable
         return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->data));
     }
 
-    public static function parseOrNull(?string $data, bool $deleteOriginal = false): ?self
+    public static function parseOrNull(?string $data, bool $deleteOriginal = true): ?self
     {
         try {
             return self::parse($data, $deleteOriginal);
@@ -71,7 +71,7 @@ final readonly class DataUri implements \Stringable
         return null;
     }
 
-    public static function parse(?string $data, bool $deleteOriginal = false): self
+    public static function parse(?string $data, bool $deleteOriginal = true): self
     {
         $data = trim((string)$data);
 
