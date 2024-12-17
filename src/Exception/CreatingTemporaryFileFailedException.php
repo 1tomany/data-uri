@@ -4,7 +4,7 @@ namespace OneToMany\DataUri\Exception;
 
 use function sprintf;
 
-final class CreatingTemporaryFileFailedException extends \InvalidArgumentException implements ExceptionInterface
+final class CreatingTemporaryFileFailedException extends \RuntimeException implements ExceptionInterface
 {
 
     public function __construct(string $tmpdir)

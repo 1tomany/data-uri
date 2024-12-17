@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Exception;
 
-final class WritingTemporaryFileFailedException extends \InvalidArgumentException implements ExceptionInterface
+final class WritingTemporaryFileFailedException extends \RuntimeException implements ExceptionInterface
 {
 
     public function __construct(string $pathname)

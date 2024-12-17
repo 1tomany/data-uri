@@ -5,18 +5,17 @@ namespace OneToMany\DataUri;
 use finfo;
 use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\DecodingDataFailedException;
-use OneToMany\DataUri\Exception\NullBytesException;
+use OneToMany\DataUri\Exception\ExceptionInterface;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
 use function base64_decode;
 use function explode;
 use function file_get_contents;
 use function file_put_contents;
-// use function filesize;
+use function filesize;
 use function is_file;
 use function is_readable;
-// use function mime_content_type;
-// use function sha1_file;
+use function sha1_file;
 use function substr;
 use function sys_get_temp_dir;
 use function unlink;
@@ -37,13 +36,18 @@ final readonly class DataUri
     {
     }
 
+    public static function parseOrNull(?string $data): ?self
+    {
+        try {
+            return self::parse($data);
+        } catch (ExceptionInterface $e) { }
+
+        return null;
+    }
+
     public static function parse(?string $data): self
     {
-        if (null === $data) {
-            throw new \InvalidArgumentException('null file');
-        }
-
-        $bytes = null;
+        $data = trim((string)$data);
 
         if (is_file($data) && is_readable($data)) {
             $bytes = @file_get_contents($data);
@@ -59,7 +63,7 @@ final readonly class DataUri
             }
         }
 
-        if (!is_string($bytes)) {
+        if (!isset($bytes) || !is_string($bytes)) {
             throw new DecodingDataFailedException();
         }
 
