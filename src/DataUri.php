@@ -84,12 +84,14 @@ final readonly class DataUri implements \Stringable
         $pathname = null;
 
         try {
+            // Create Temporary File
             $pathname = @tempnam(sys_get_temp_dir(), '__1n__datauri_');
 
             if (false === $pathname || !is_file($pathname)) {
                 throw new CreatingTemporaryFileFailedException(sys_get_temp_dir());
             }
 
+            // Write Raw Bytes to Temporary File
             $written = @file_put_contents($pathname, $bytes);
 
             if (false === $written) {
@@ -124,11 +126,15 @@ final readonly class DataUri implements \Stringable
             ]);
 
             // Generate File Hash
+            clearstatcache(false, $pathname);
+
             if (false === $hash = @sha1_file($pathname)) {
                 throw new GeneratingHashFailedException();
             }
 
             // Calculate File Size
+            clearstatcache(false, $pathname);
+
             if (false === $size = @filesize($pathname)) {
                 throw new GeneratingSizeFailedException();
             }
