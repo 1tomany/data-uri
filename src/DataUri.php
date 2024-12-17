@@ -50,21 +50,30 @@ final readonly class DataUri implements \Stringable
         return $this->path;
     }
 
-    public static function parseOrNull(?string $data): ?self
+    public function toUri(): string
+    {
+        return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->data));
+    }
+
+    public static function parseOrNull(?string $data, bool $deleteOriginal = false): ?self
     {
         try {
-            return self::parse($data);
+            return self::parse($data, $deleteOriginal);
         } catch (ExceptionInterface $e) { }
 
         return null;
     }
 
-    public static function parse(?string $data): self
+    public static function parse(?string $data, bool $deleteOriginal = false): self
     {
         $data = trim((string)$data);
 
         if (is_file($data) && is_readable($data)) {
             $bytes = @file_get_contents($data);
+
+            if ($deleteOriginal) {
+                @unlink($data);
+            }
         }
 
         if (str_starts_with($data, 'data:')) {
