@@ -13,16 +13,20 @@ use OneToMany\DataUri\Exception\GeneratingSizeFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
 use function base64_decode;
+use function bin2hex;
 use function explode;
 use function file_get_contents;
 use function file_put_contents;
 use function filesize;
 use function is_file;
 use function is_readable;
+use function random_bytes;
 use function sha1_file;
 use function substr;
 use function sys_get_temp_dir;
+use function trim;
 use function unlink;
+use function vsprintf;
 use const FILEINFO_EXTENSION;
 use const FILEINFO_MIME_TYPE;
 
@@ -84,7 +88,7 @@ final readonly class DataUri
             $written = @file_put_contents($pathname, $bytes);
 
             if (false === $written) {
-                throw new WritingTemporaryFileFailedException($pathname);
+                throw new WritingTemporaryFileFailedException();
             }
 
             $info = new finfo();

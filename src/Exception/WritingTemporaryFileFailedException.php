@@ -5,9 +5,9 @@ namespace OneToMany\DataUri\Exception;
 final class WritingTemporaryFileFailedException extends \RuntimeException implements ExceptionInterface
 {
 
-    public function __construct(string $pathname)
+    public function __construct()
     {
-        parent::__construct(sprintf('Failed to write the decoded data to the temporary file. Either the disk is full or the file "%s" is not writable.', $pathname));
+        parent::__construct('Failed to write the decoded data to the temporary file. Either the disk is full or the temporary file is no longer available.');
     }
 
 }
