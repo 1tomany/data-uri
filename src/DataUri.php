@@ -45,6 +45,13 @@ final readonly class DataUri implements \Stringable
     {
     }
 
+    public function __destruct()
+    {
+        if (is_file($this->path)) {
+            @unlink($this->path);
+        }
+    }
+
     public function __toString(): string
     {
         return $this->path;
