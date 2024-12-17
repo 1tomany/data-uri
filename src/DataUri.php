@@ -30,7 +30,7 @@ use function vsprintf;
 use const FILEINFO_EXTENSION;
 use const FILEINFO_MIME_TYPE;
 
-final readonly class DataUri
+final readonly class DataUri implements \Stringable
 {
 
     private function __construct(
@@ -42,6 +42,11 @@ final readonly class DataUri
         public int $size,
     )
     {
+    }
+
+    public function __toString(): string
+    {
+        return $this->path;
     }
 
     public static function parseOrNull(?string $data): ?self
