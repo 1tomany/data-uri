@@ -3,6 +3,10 @@
 namespace OneToMany\DataUri;
 
 use finfo;
+use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
+use OneToMany\DataUri\Exception\DecodingDataFailedException;
+use OneToMany\DataUri\Exception\NullBytesException;
+use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
 use function base64_decode;
 use function explode;
@@ -56,7 +60,7 @@ final readonly class DataUri
         }
 
         if (!is_string($bytes)) {
-            throw new \InvalidArgumentException('cant get bytes');
+            throw new DecodingDataFailedException();
         }
 
         $pathname = null;
@@ -65,13 +69,13 @@ final readonly class DataUri
             $pathname = @tempnam(sys_get_temp_dir(), '__1n__datauri_');
 
             if (false === $pathname || !is_file($pathname)) {
-                throw new \RuntimeException('no path');
+                throw new CreatingTemporaryFileFailedException(sys_get_temp_dir());
             }
 
             $written = @file_put_contents($pathname, $bytes);
 
             if (false === $written) {
-                throw new \RuntimeException('no bytes written');
+                throw new WritingTemporaryFileFailedException($pathname);
             }
 
             $info = new finfo();
