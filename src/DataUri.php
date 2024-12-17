@@ -36,11 +36,10 @@ final readonly class DataUri
     private function __construct(
         public string $data,
         public string $hash,
-        public string $mimeType,
-        public string $filename,
-        public string $pathname,
-        public ?string $extension = null,
-        public int $size = 0,
+        public string $type,
+        public string $name,
+        public string $path,
+        public int $size,
     )
     {
     }
@@ -93,32 +92,37 @@ final readonly class DataUri
 
             $info = new finfo();
 
-            if (false === $mimeType = $info->file($pathname, FILEINFO_MIME_TYPE)) {
+            // Generate File MIME Type
+            if (false === $type = $info->file($pathname, FILEINFO_MIME_TYPE)) {
                 throw new GeneratingMimeTypeFailedException();
             }
 
+            // Generate File Extension
             if (false === $extension = $info->file($pathname, FILEINFO_EXTENSION)) {
                 throw new GeneratingExtensionFailedException();
             }
 
+            // Resolve File Extension
             $extension = explode('/', $extension)[0];
 
             if ('???' === $extension) {
-                $extension = null;
+                $extension = 'file';
             }
 
-            $filename = bin2hex(random_bytes(24));
+            // Generate Random Name
+            $prefix = random_bytes(24);
+            $prefix = bin2hex($prefix);
 
-            if (null !== $extension) {
-                $filename = vsprintf('%s.%s', [
-                    $filename, $extension
-                ]);
-            }
+            $name = vsprintf('%s.%s', [
+                $prefix, $extension
+            ]);
 
+            // Generate File Hash
             if (false === $hash = @sha1_file($pathname)) {
                 throw new GeneratingHashFailedException();
             }
 
+            // Calculate File Size
             if (false === $size = @filesize($pathname)) {
                 throw new GeneratingSizeFailedException();
             }
@@ -130,7 +134,7 @@ final readonly class DataUri
             throw $e;
         }
 
-        return new self($bytes, $hash, $mimeType, $filename, $pathname, $extension, $size);
+        return new self($bytes, $hash, $type, $name, $pathname, $size);
     }
 
 }
