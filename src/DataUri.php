@@ -8,11 +8,11 @@ use function base64_decode;
 use function explode;
 use function file_get_contents;
 use function file_put_contents;
-use function filesize;
+// use function filesize;
 use function is_file;
 use function is_readable;
-use function mime_content_type;
-use function sha1_file;
+// use function mime_content_type;
+// use function sha1_file;
 use function substr;
 use function sys_get_temp_dir;
 use function unlink;
@@ -66,9 +66,9 @@ final readonly class DataUri
                 throw new \RuntimeException('no path');
             }
 
-            $bytes = file_put_contents($pathname, $bytes);
+            $written = @file_put_contents($pathname, $bytes);
 
-            if (false === $bytes) {
+            if (false === $written) {
                 throw new \RuntimeException('no bytes written');
             }
 
@@ -84,13 +84,36 @@ final readonly class DataUri
                 throw new \RuntimeException('no extension found');
             }
 
+            $extension = explode('/', $extension)[0];
+
+            if ('???' === $extension) {
+                $extension = null;
+            }
+
+            $filename = bin2hex(random_bytes(24));
+
+            if (null !== $extension) {
+                $filename = vsprintf('%s.%s', [
+                    $filename, $extension
+                ]);
+            }
+
+            if (false === $hash = @sha1_file($pathname)) {
+                throw new \RuntimeException('no hash');
+            }
+
+            if (false === $size = @filesize($pathname)) {
+                throw new \RuntimeException('no filesize');
+            }
         } catch (\Throwable $e) {
-            if (is_file($pathname)) {
+            if (is_string($pathname)) {
                 @unlink($pathname);
             }
 
             throw $e;
         }
+
+        return new self($bytes, $hash, $mimeType, $filename, $extension, $size);
     }
 
 }
