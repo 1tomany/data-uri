@@ -40,6 +40,7 @@ final readonly class DataUri implements \Stringable
         public string $name,
         public string $path,
         public int $size,
+        public string $bucket,
     )
     {
     }
@@ -131,6 +132,14 @@ final readonly class DataUri implements \Stringable
             if (false === $size = @filesize($pathname)) {
                 throw new GeneratingSizeFailedException();
             }
+
+            // Generate the Remote Bucket
+            $prefix1 = substr($hash, 0, 2);
+            $prefix2 = substr($hash, 2, 2);
+
+            $bucket = implode('/', array_filter([
+                $prefix1, $prefix2, $name
+            ]));
         } catch (\Throwable $e) {
             if (is_file((string)$pathname)) {
                 @unlink((string)$pathname);
@@ -139,7 +148,7 @@ final readonly class DataUri implements \Stringable
             throw $e;
         }
 
-        return new self($bytes, $hash, $type, $name, $pathname, $size);
+        return new self($bytes, $hash, $type, $name, $pathname, $size, $bucket);
     }
 
 }
