@@ -74,8 +74,6 @@ final readonly class DataUri
                 throw new \RuntimeException('no bytes written');
             }
 
-            // $size = strlen($bytes);
-            // $hash = sha1($bytes);
             $info = new finfo();
 
             if (false === $mimeType = $info->file($pathname, FILEINFO_MIME_TYPE)) {

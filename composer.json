@@ -1,6 +1,6 @@
 {
     "name": "1tomany/php-data-uri",
-    "description": "A simple library to work with encoded Data URI strings.",
+    "description": "A simple, dependency-free library to work with URI encoded data.",
     "type": "library",
     "license": "MIT",
     "authors": [
