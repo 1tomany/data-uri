@@ -126,8 +126,6 @@ final readonly class DataUri implements \Stringable
             ]);
 
             // Generate File Hash
-            clearstatcache(false, $pathname);
-
             if (false === $hash = @sha1_file($pathname)) {
                 throw new GeneratingHashFailedException();
             }
