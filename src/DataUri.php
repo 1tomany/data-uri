@@ -59,6 +59,8 @@ final readonly class DataUri
             throw new \InvalidArgumentException('cant get bytes');
         }
 
+        $pathname = null;
+
         try {
             $pathname = @tempnam(sys_get_temp_dir(), '__1n__datauri_');
 
@@ -106,8 +108,8 @@ final readonly class DataUri
                 throw new \RuntimeException('no filesize');
             }
         } catch (\Throwable $e) {
-            if (is_string($pathname)) {
-                @unlink($pathname);
+            if (is_file((string)$pathname)) {
+                @unlink((string)$pathname);
             }
 
             throw $e;
