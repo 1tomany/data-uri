@@ -6,6 +6,10 @@ use finfo;
 use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\DecodingDataFailedException;
 use OneToMany\DataUri\Exception\ExceptionInterface;
+use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
+use OneToMany\DataUri\Exception\GeneratingHashFailedException;
+use OneToMany\DataUri\Exception\GeneratingMimeTypeFailedException;
+use OneToMany\DataUri\Exception\GeneratingSizeFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
 use function base64_decode;
@@ -30,6 +34,7 @@ final readonly class DataUri
         public string $hash,
         public string $mimeType,
         public string $filename,
+        public string $pathname,
         public ?string $extension = null,
         public int $size = 0,
     )
@@ -85,11 +90,11 @@ final readonly class DataUri
             $info = new finfo();
 
             if (false === $mimeType = $info->file($pathname, FILEINFO_MIME_TYPE)) {
-                throw new \RuntimeException('no mime type');
+                throw new GeneratingMimeTypeFailedException();
             }
 
             if (false === $extension = $info->file($pathname, FILEINFO_EXTENSION)) {
-                throw new \RuntimeException('no extension found');
+                throw new GeneratingExtensionFailedException();
             }
 
             $extension = explode('/', $extension)[0];
@@ -107,11 +112,11 @@ final readonly class DataUri
             }
 
             if (false === $hash = @sha1_file($pathname)) {
-                throw new \RuntimeException('no hash');
+                throw new GeneratingHashFailedException();
             }
 
             if (false === $size = @filesize($pathname)) {
-                throw new \RuntimeException('no filesize');
+                throw new GeneratingSizeFailedException();
             }
         } catch (\Throwable $e) {
             if (is_file((string)$pathname)) {
@@ -121,7 +126,7 @@ final readonly class DataUri
             throw $e;
         }
 
-        return new self($bytes, $hash, $mimeType, $filename, $extension, $size);
+        return new self($bytes, $hash, $mimeType, $filename, $pathname, $extension, $size);
     }
 
 }
