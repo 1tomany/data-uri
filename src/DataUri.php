@@ -29,7 +29,6 @@ use function sys_get_temp_dir;
 use function trim;
 use function unlink;
 use const FILEINFO_EXTENSION;
-use const FILEINFO_MIME_TYPE;
 
 final readonly class DataUri implements \Stringable
 {
@@ -41,8 +40,7 @@ final readonly class DataUri implements \Stringable
         public string $path,
         public int $size,
         public string $type,
-        public string $extension,
-        public string $remoteName,
+        public string $mime,
     )
     {
     }
@@ -115,42 +113,29 @@ final readonly class DataUri implements \Stringable
             }
 
             // Write Raw Bytes to Temporary File
-            $written = @file_put_contents($path, $bytes);
-
-            if (false === $written) {
+            if (false === @file_put_contents($path, $bytes)) {
                 throw new WritingTemporaryFileFailedException();
             }
 
-            $info = new \finfo();
-
-            // Generate File MIME Type
-            if (false === $type = $info->file($path, FILEINFO_MIME_TYPE)) {
-                throw new GeneratingMimeTypeFailedException();
-            }
-
-            // Generate File Extension
-            if (false === $extension = $info->file($path, FILEINFO_EXTENSION)) {
+            // Resolve File Extension
+            if (false === $type = new \finfo(FILEINFO_EXTENSION)->file($path)) {
                 throw new GeneratingExtensionFailedException();
             }
 
-            // Resolve File Extension
-            $extension = explode('/', $extension);
-            $extension = strtolower($extension[0]);
+            // Resolve Exact Extension
+            $type = strtolower(explode('/', $type)[0]);
 
-            if (in_array($extension, ['', '???'])) {
-                $extension = 'unknown';
+            // Ensure the Extension is Alphanumeric
+            if (!preg_match('/^[a-z0-9]+$/', $type)) {
+                $type = 'unknown';
             }
 
-            // Generate Random File Name
-            $name = bin2hex(random_bytes(24));
-
-            if (48 !== strlen($name)) {
-                throw new GeneratingRandomFileNameFailedException();
+            // Resolve MIME Type
+            if (false === $mime = mime_content_type($path)) {
+                throw new GeneratingMimeTypeFailedException();
             }
 
-            $filename = implode('.', [
-                $name, $extension,
-            ]);
+            $mime = trim(strtolower($mime));
 
             // Generate File Hash
             if (false === $hash = @sha1_file($path)) {
@@ -164,12 +149,17 @@ final readonly class DataUri implements \Stringable
                 throw new GeneratingSizeFailedException();
             }
 
-            // Generate Remote Name
-            $dir1 = substr($hash, 0, 2);
-            $dir2 = substr($hash, 2, 2);
+            // Generate Random File Name
+            $name = self::generateName($hash, $type);
 
-            $remoteName = implode('/', [
-                $dir1, $dir2, $filename,
+            return new self(...[
+                'bytes' => $bytes,
+                'hash' => $hash,
+                'name' => $name,
+                'path' => $path,
+                'size' => $size,
+                'type' => $type,
+                'mime' => $mime,
             ]);
         } catch (\Throwable $e) {
             if (is_file(strval($path))) {
@@ -178,8 +168,13 @@ final readonly class DataUri implements \Stringable
 
             throw $e;
         }
+    }
 
-        return new self($bytes, $hash, $name, $path, $size, $type, $extension, $remoteName);
+    private static function generateName(string $hash, string $type): string
+    {
+        $name = bin2hex(random_bytes(24)) . ".{$type}";
+
+        return implode('/', [substr($hash, 0, 2), substr($hash, 2, 2), $name]);
     }
 
 }
