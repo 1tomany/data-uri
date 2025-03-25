@@ -34,13 +34,14 @@ final readonly class DataUri implements \Stringable
 {
 
     private function __construct(
-        public string $data,
+        public string $bytes,
         public string $hash,
-        public string $type,
         public string $name,
         public string $path,
         public int $size,
-        public string $bucket,
+        public string $mimeType,
+        public string $extension,
+        public string $uri,
     )
     {
     }
@@ -48,7 +49,7 @@ final readonly class DataUri implements \Stringable
     public function __destruct()
     {
         if (is_file($this->path)) {
-            @unlink($this->path);
+            unlink($this->path);
         }
     }
 
@@ -59,7 +60,7 @@ final readonly class DataUri implements \Stringable
 
     public function toUri(): string
     {
-        return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->data));
+        return sprintf('data:%s;base64,%s', $this->mimeType, base64_encode($this->bytes));
     }
 
     public static function parseOrNull(?string $data, bool $deleteOriginal = true): ?self
@@ -73,13 +74,13 @@ final readonly class DataUri implements \Stringable
 
     public static function parse(?string $data, bool $deleteOriginal = true): self
     {
-        $data = trim((string)$data);
+        $data = trim(strval($data));
 
         if (is_file($data) && is_readable($data)) {
-            $bytes = @file_get_contents($data);
+            $bytes = file_get_contents($data);
 
             if ($deleteOriginal) {
-                @unlink($data);
+                unlink($data);
             }
         }
 
@@ -97,18 +98,18 @@ final readonly class DataUri implements \Stringable
             throw new DecodingDataFailedException();
         }
 
-        $pathname = null;
+        $path = null;
 
         try {
             // Create Temporary File
-            $pathname = @tempnam(sys_get_temp_dir(), '__1n__datauri_');
+            $path = @tempnam(sys_get_temp_dir(), '__1n__datauri_');
 
-            if (false === $pathname || !is_file($pathname)) {
+            if (false === $path || !is_file($path)) {
                 throw new CreatingTemporaryFileFailedException(sys_get_temp_dir());
             }
 
             // Write Raw Bytes to Temporary File
-            $written = @file_put_contents($pathname, $bytes);
+            $written = @file_put_contents($path, $bytes);
 
             if (false === $written) {
                 throw new WritingTemporaryFileFailedException();
@@ -117,58 +118,57 @@ final readonly class DataUri implements \Stringable
             $info = new finfo();
 
             // Generate File MIME Type
-            if (false === $type = $info->file($pathname, FILEINFO_MIME_TYPE)) {
+            if (false === $mimeType = $info->file($path, FILEINFO_MIME_TYPE)) {
                 throw new GeneratingMimeTypeFailedException();
             }
 
             // Generate File Extension
-            if (false === $extension = $info->file($pathname, FILEINFO_EXTENSION)) {
+            if (false === $extension = $info->file($path, FILEINFO_EXTENSION)) {
                 throw new GeneratingExtensionFailedException();
             }
 
             // Resolve File Extension
             $extension = explode('/', $extension)[0];
 
-            if ('???' === $extension) {
-                $extension = 'file';
+            if (in_array($extension, ['', '???'])) {
+                $extension = 'bin';
             }
 
-            // Generate Random Name
-            $prefix = random_bytes(24);
-            $prefix = bin2hex($prefix);
+            // Generate Random File Name
+            $prefix = bin2hex(random_bytes(24));
 
-            $name = vsprintf('%s.%s', [
-                $prefix, $extension
-            ]);
+            if (48 !== strlen($prefix)) {
+                throw new \Exception('something here');
+            }
+
+            $name = implode('.', [$prefix, $extension]);
 
             // Generate File Hash
-            if (false === $hash = @sha1_file($pathname)) {
+            if (false === $hash = @sha1_file($path)) {
                 throw new GeneratingHashFailedException();
             }
 
             // Calculate File Size
-            clearstatcache(false, $pathname);
+            clearstatcache(false, $path);
 
-            if (false === $size = @filesize($pathname)) {
+            if (false === $size = @filesize($path)) {
                 throw new GeneratingSizeFailedException();
             }
 
-            // Generate the Remote Bucket
-            $prefix1 = substr($hash, 0, 2);
-            $prefix2 = substr($hash, 2, 2);
+            // Generate the Bucketed URI
+            $dir1 = substr($hash, 0, 2);
+            $dir2 = substr($hash, 2, 2);
 
-            $bucket = implode('/', array_filter([
-                $prefix1, $prefix2, $name
-            ]));
+            $uri = implode('/', [$dir1, $dir2, $name]);
         } catch (\Throwable $e) {
-            if (is_file((string)$pathname)) {
-                @unlink((string)$pathname);
+            if (is_file(strval($path))) {
+                unlink(strval($path));
             }
 
             throw $e;
         }
 
-        return new self($bytes, $hash, $type, $name, $pathname, $size, $bucket);
+        return new self($bytes, $hash, $name, $path, $size, $mimeType, $extension, $uri);
     }
 
 }
