@@ -1,17 +1,9 @@
 {
     "name": "1tomany/php-data-uri",
     "description": "A simple, dependency-free library to work with URI encoded data.",
-    "type": "library",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "Vic Cherubini",
-            "email": "vic@1tomany.com"
-        }
-    ],
-    "config": {
-        "sort-packages": true
-    },
+    "type": "library",
+    "minimum-stability": "stable",
     "keywords": [
         "datauri",
         "data uri",
@@ -24,7 +16,7 @@
         "ext-fileinfo": "*"
     },
     "require-dev": {
-        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5"
     },
     "autoload": {
@@ -39,5 +31,14 @@
         "psr-4": {
             "OneToMany\\DataUri\\Tests\\": "tests/"
         }
+    },
+    "authors": [
+        {
+            "name": "Vic Cherubini",
+            "email": "vcherubini@gmail.com"
+        }
+    ],
+    "config": {
+        "sort-packages": true
     }
 }
