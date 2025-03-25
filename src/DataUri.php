@@ -23,6 +23,7 @@ use function is_file;
 use function is_readable;
 use function random_bytes;
 use function sha1_file;
+use function strval;
 use function substr;
 use function sys_get_temp_dir;
 use function trim;
@@ -39,9 +40,9 @@ final readonly class DataUri implements \Stringable
         public string $name,
         public string $path,
         public int $size,
-        public string $mimeType,
+        public string $type,
         public string $extension,
-        public string $uri,
+        public string $remoteName,
     )
     {
     }
@@ -60,7 +61,7 @@ final readonly class DataUri implements \Stringable
 
     public function toUri(): string
     {
-        return sprintf('data:%s;base64,%s', $this->mimeType, base64_encode($this->bytes));
+        return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->bytes));
     }
 
     public function toFile(): \SplFileInfo
@@ -72,7 +73,7 @@ final readonly class DataUri implements \Stringable
     {
         try {
             return self::parse($data, $deleteOriginal);
-        } catch (ExceptionInterface $e) { }
+        } catch (ExceptionInterface $e) {}
 
         return null;
     }
@@ -123,7 +124,7 @@ final readonly class DataUri implements \Stringable
             $info = new \finfo();
 
             // Generate File MIME Type
-            if (false === $mimeType = $info->file($path, FILEINFO_MIME_TYPE)) {
+            if (false === $type = $info->file($path, FILEINFO_MIME_TYPE)) {
                 throw new GeneratingMimeTypeFailedException();
             }
 
@@ -133,20 +134,23 @@ final readonly class DataUri implements \Stringable
             }
 
             // Resolve File Extension
-            $extension = explode('/', $extension)[0];
+            $extension = explode('/', $extension);
+            $extension = strtolower($extension[0]);
 
             if (in_array($extension, ['', '???'])) {
-                $extension = 'bin';
+                $extension = 'unknown';
             }
 
             // Generate Random File Name
-            $prefix = bin2hex(random_bytes(24));
+            $name = bin2hex(random_bytes(24));
 
-            if (48 !== strlen($prefix)) {
+            if (48 !== strlen($name)) {
                 throw new GeneratingRandomFileNameFailedException();
             }
 
-            $name = implode('.', [$prefix, $extension]);
+            $filename = implode('.', [
+                $name, $extension,
+            ]);
 
             // Generate File Hash
             if (false === $hash = @sha1_file($path)) {
@@ -160,20 +164,22 @@ final readonly class DataUri implements \Stringable
                 throw new GeneratingSizeFailedException();
             }
 
-            // Generate the Bucketed URI
+            // Generate Remote Name
             $dir1 = substr($hash, 0, 2);
             $dir2 = substr($hash, 2, 2);
 
-            $uri = implode('/', [$dir1, $dir2, $name]);
+            $remoteName = implode('/', [
+                $dir1, $dir2, $filename,
+            ]);
         } catch (\Throwable $e) {
             if (is_file(strval($path))) {
-                unlink(strval($path));
+                @unlink(strval($path));
             }
 
             throw $e;
         }
 
-        return new self($bytes, $hash, $name, $path, $size, $mimeType, $extension, $uri);
+        return new self($bytes, $hash, $name, $path, $size, $type, $extension, $remoteName);
     }
 
 }
