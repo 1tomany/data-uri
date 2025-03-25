@@ -2,13 +2,13 @@
 
 namespace OneToMany\DataUri;
 
-use finfo;
 use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\DecodingDataFailedException;
 use OneToMany\DataUri\Exception\ExceptionInterface;
 use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
 use OneToMany\DataUri\Exception\GeneratingHashFailedException;
 use OneToMany\DataUri\Exception\GeneratingMimeTypeFailedException;
+use OneToMany\DataUri\Exception\GeneratingRandomFileNameFailedException;
 use OneToMany\DataUri\Exception\GeneratingSizeFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
@@ -18,6 +18,7 @@ use function explode;
 use function file_get_contents;
 use function file_put_contents;
 use function filesize;
+use function implode;
 use function is_file;
 use function is_readable;
 use function random_bytes;
@@ -26,7 +27,6 @@ use function substr;
 use function sys_get_temp_dir;
 use function trim;
 use function unlink;
-use function vsprintf;
 use const FILEINFO_EXTENSION;
 use const FILEINFO_MIME_TYPE;
 
@@ -61,6 +61,11 @@ final readonly class DataUri implements \Stringable
     public function toUri(): string
     {
         return sprintf('data:%s;base64,%s', $this->mimeType, base64_encode($this->bytes));
+    }
+
+    public function toFile(): \SplFileInfo
+    {
+        return new \SplFileInfo($this->path);
     }
 
     public static function parseOrNull(?string $data, bool $deleteOriginal = true): ?self
@@ -115,7 +120,7 @@ final readonly class DataUri implements \Stringable
                 throw new WritingTemporaryFileFailedException();
             }
 
-            $info = new finfo();
+            $info = new \finfo();
 
             // Generate File MIME Type
             if (false === $mimeType = $info->file($path, FILEINFO_MIME_TYPE)) {
@@ -138,7 +143,7 @@ final readonly class DataUri implements \Stringable
             $prefix = bin2hex(random_bytes(24));
 
             if (48 !== strlen($prefix)) {
-                throw new \Exception('something here');
+                throw new GeneratingRandomFileNameFailedException();
             }
 
             $name = implode('.', [$prefix, $extension]);
