@@ -8,11 +8,11 @@ use OneToMany\DataUri\Exception\ExceptionInterface;
 use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
 use OneToMany\DataUri\Exception\GeneratingHashFailedException;
 use OneToMany\DataUri\Exception\GeneratingMimeTypeFailedException;
-use OneToMany\DataUri\Exception\GeneratingRandomFileNameFailedException;
 use OneToMany\DataUri\Exception\GeneratingSizeFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
 use function base64_decode;
+use function base64_encode;
 use function bin2hex;
 use function explode;
 use function file_get_contents;
@@ -59,7 +59,7 @@ final readonly class DataUri implements \Stringable
 
     public function toUri(): string
     {
-        return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->bytes));
+        return file_to_uri($this->mime, $this->path);
     }
 
     public function toFile(): \SplFileInfo
@@ -170,11 +170,23 @@ final readonly class DataUri implements \Stringable
         }
     }
 
-    private static function generateName(string $hash, string $type): string
+    private static function generateName(string $hash, string $extension): string
     {
-        $name = bin2hex(random_bytes(24)) . ".{$type}";
+        $nameParts = [];
 
-        return implode('/', [substr($hash, 0, 2), substr($hash, 2, 2), $name]);
+        if ($directory = substr($hash, 0, 2)) {
+            array_push($nameParts, $directory);
+        }
+
+        if ($directory = substr($hash, 2, 2)) {
+            array_push($nameParts, $directory);
+        }
+
+        $nameParts[] = implode('.', array_filter([
+            bin2hex(random_bytes(24)), $extension,
+        ]));
+
+        return implode('/', $nameParts);
     }
 
 }
