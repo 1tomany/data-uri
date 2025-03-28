@@ -39,17 +39,17 @@ final readonly class DataUri implements \Stringable
         public string $name,
         public string $path,
         public int $size,
-        public string $type,
-        public string $mime,
+        public string $extension,
+        public string $mimeType,
     )
     {
     }
 
     public function __destruct()
     {
-        if (is_file($this->path)) {
-            unlink($this->path);
-        }
+        // if (is_file($this->path)) {
+        //     unlink($this->path);
+        // }
     }
 
     public function __toString(): string
@@ -59,7 +59,7 @@ final readonly class DataUri implements \Stringable
 
     public function toUri(): string
     {
-        return file_to_uri($this->mime, $this->path);
+        return sprintf('data:%s;base64,%s', $this->mimeType, base64_encode($this->bytes));
     }
 
     public function toFile(): \SplFileInfo
@@ -71,7 +71,7 @@ final readonly class DataUri implements \Stringable
     {
         try {
             return self::parse($data, $deleteOriginal);
-        } catch (ExceptionInterface $e) {}
+        } catch (ExceptionInterface $e) { }
 
         return null;
     }
@@ -81,11 +81,11 @@ final readonly class DataUri implements \Stringable
         $data = trim(strval($data));
 
         if (is_file($data) && is_readable($data)) {
-            $bytes = file_get_contents($data);
+            $bytes = @file_get_contents($data, false);
 
-            if ($deleteOriginal) {
-                unlink($data);
-            }
+            // if ($deleteOriginal) {
+            //     unlink($data);
+            // }
         }
 
         if (str_starts_with($data, 'data:')) {
@@ -106,36 +106,43 @@ final readonly class DataUri implements \Stringable
 
         try {
             // Create Temporary File
-            $path = @tempnam(sys_get_temp_dir(), '__1n__datauri_');
+            $tempPath = @tempnam(sys_get_temp_dir(), '__1n__datauri_');
 
-            if (false === $path || !is_file($path)) {
+            if (false === $tempPath || !@is_file($tempPath)) {
                 throw new CreatingTemporaryFileFailedException(sys_get_temp_dir());
             }
 
             // Write Raw Bytes to Temporary File
-            if (false === @file_put_contents($path, $bytes)) {
+            if (false === @file_put_contents($tempPath, $bytes)) {
                 throw new WritingTemporaryFileFailedException();
             }
 
             // Resolve File Extension
-            if (false === $type = new \finfo(FILEINFO_EXTENSION)->file($path)) {
+            if (false === $extension = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
                 throw new GeneratingExtensionFailedException();
             }
 
             // Resolve Exact Extension
-            $type = strtolower(explode('/', $type)[0]);
-
-            // Ensure the Extension is Alphanumeric
-            if (!preg_match('/^[a-z0-9]+$/', $type)) {
-                $type = 'unknown';
-            }
+            $extension = explode('/', $extension)[0];
 
             // Resolve MIME Type
-            if (false === $mime = mime_content_type($path)) {
+            if (false === $mimeType = mime_content_type($tempPath)) {
                 throw new GeneratingMimeTypeFailedException();
             }
 
-            $mime = trim(strtolower($mime));
+            $mimeType = trim(strtolower($mimeType));
+
+            // Ensure the File Has an Extension
+            if (in_array($extension, ['', '???'])) {
+                $extension = explode('/', $mimeType)[1] ?? 'bin';
+            }
+
+            // Rename File With Extension
+            $path = $tempPath . '.' . $extension;
+
+            if (false === rename($tempPath, $path)) {
+                throw new \Exception('no rename');
+            }
 
             // Generate File Hash
             if (false === $hash = @sha1_file($path)) {
@@ -150,7 +157,7 @@ final readonly class DataUri implements \Stringable
             }
 
             // Generate Random File Name
-            $name = self::generateName($hash, $type);
+            $name = self::generateName($hash, $extension);
 
             return new self(...[
                 'bytes' => $bytes,
@@ -158,13 +165,11 @@ final readonly class DataUri implements \Stringable
                 'name' => $name,
                 'path' => $path,
                 'size' => $size,
-                'type' => $type,
-                'mime' => $mime,
+                'extension' => $extension,
+                'mimeType' => $mimeType,
             ]);
         } catch (\Throwable $e) {
-            if (is_file(strval($path))) {
-                @unlink(strval($path));
-            }
+            self::cleanup($path);
 
             throw $e;
         }
@@ -187,6 +192,17 @@ final readonly class DataUri implements \Stringable
         ]));
 
         return implode('/', $nameParts);
+    }
+
+    private static function cleanup(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        if (is_file($path)) {
+            @unlink($path);
+        }
     }
 
 }

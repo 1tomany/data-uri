@@ -1,6 +1,6 @@
 {
     "name": "1tomany/php-data-uri",
-    "description": "A simple, dependency-free library to work with URI encoded data.",
+    "description": "A simple, dependency-free library to work with URI encoded data",
     "license": "MIT",
     "type": "library",
     "minimum-stability": "stable",
@@ -23,9 +23,6 @@
         "psr-4": {
             "OneToMany\\DataUri\\": "src/"
         },
-        "files": [
-            "src/file_to_uri.php"
-        ],
         "exclude-from-classmap": [
             "/Tests/"
         ]
