@@ -2,12 +2,14 @@
 
 namespace OneToMany\DataUri\Exception;
 
+use function sprintf;
+
 final class GeneratingMimeTypeFailedException extends \RuntimeException implements ExceptionInterface
 {
 
-    public function __construct()
+    public function __construct(string $path)
     {
-        parent::__construct('A MIME type for the data could not be generated.');
+        parent::__construct(sprintf('The MIME type for the file "%s" could not be generated.', $path));
     }
 
 }

@@ -9,7 +9,7 @@ final class CreatingTemporaryFileFailedException extends \RuntimeException imple
 
     public function __construct(string $tmpdir)
     {
-        parent::__construct(sprintf('Failed to create a file to temporarily store the decoded data. Either the disk is full or the directory "%s" is not writable.', $tmpdir));
+        parent::__construct(sprintf('An error occurred when attempting to create a temporary file. Either the disk is full or the directory "%s" is not writable.', $tmpdir));
     }
 
 }

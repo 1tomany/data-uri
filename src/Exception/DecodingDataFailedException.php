@@ -7,7 +7,7 @@ final class DecodingDataFailedException extends \InvalidArgumentException implem
 
     public function __construct()
     {
-        parent::__construct('Parsing the data provided failed: either the value was not a valid file path or not encoded correctly.');
+        parent::__construct('Parsing the data provided failed: either the value was not a valid file path or it was not encoded correctly.');
     }
 
 }

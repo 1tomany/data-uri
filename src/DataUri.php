@@ -9,6 +9,7 @@ use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
 use OneToMany\DataUri\Exception\GeneratingHashFailedException;
 use OneToMany\DataUri\Exception\GeneratingMimeTypeFailedException;
 use OneToMany\DataUri\Exception\GeneratingSizeFailedException;
+use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
 use function base64_decode;
@@ -114,12 +115,12 @@ final readonly class DataUri implements \Stringable
 
             // Write Raw Bytes to Temporary File
             if (false === @file_put_contents($tempPath, $bytes)) {
-                throw new WritingTemporaryFileFailedException();
+                throw new WritingTemporaryFileFailedException($tempPath);
             }
 
             // Resolve File Extension
             if (false === $extension = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
-                throw new GeneratingExtensionFailedException();
+                throw new GeneratingExtensionFailedException($tempPath);
             }
 
             // Resolve Exact Extension
@@ -127,7 +128,7 @@ final readonly class DataUri implements \Stringable
 
             // Resolve MIME Type
             if (false === $mimeType = mime_content_type($tempPath)) {
-                throw new GeneratingMimeTypeFailedException();
+                throw new GeneratingMimeTypeFailedException($tempPath);
             }
 
             $mimeType = trim(strtolower($mimeType));
@@ -141,19 +142,19 @@ final readonly class DataUri implements \Stringable
             $path = $tempPath . '.' . $extension;
 
             if (false === rename($tempPath, $path)) {
-                throw new \Exception('no rename');
+                throw new RenamingTemporaryFileFailedException($tempPath, $path);
             }
 
             // Generate File Hash
             if (false === $hash = @sha1_file($path)) {
-                throw new GeneratingHashFailedException();
+                throw new GeneratingHashFailedException($path);
             }
 
             // Calculate File Size
             clearstatcache(false, $path);
 
             if (false === $size = @filesize($path)) {
-                throw new GeneratingSizeFailedException();
+                throw new GeneratingSizeFailedException($path);
             }
 
             // Generate Random File Name
