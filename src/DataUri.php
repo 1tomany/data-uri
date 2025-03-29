@@ -13,36 +13,36 @@ final readonly class DataUri implements \Stringable
 {
 
     public function __construct(
-        public string $fingerprint,
-        public string $mediaType,
-        public int $byteCount,
-        public string $fileName,
-        public string $filePath,
-        public string $extension,
-        public string $remoteKey,
+        public string $hash,
+        public string $media,
+        public int $size,
+        public string $name,
+        public string $path,
+        public string $ext,
+        public string $key,
     )
     {
     }
 
     public function __destruct()
     {
-        if (is_file($this->filePath)) {
-            @unlink($this->filePath);
+        if (is_file($this->path)) {
+            @unlink($this->path);
         }
     }
 
     public function __toString(): string
     {
-        return $this->filePath;
+        return $this->path;
     }
 
     public function asUri(): string
     {
-        if (false === $contents = @file_get_contents($this->filePath)) {
-            throw new EncodingDataFailedException($this->filePath);
+        if (false === $contents = @file_get_contents($this->path)) {
+            throw new EncodingDataFailedException($this->path);
         }
 
-        return sprintf('data:%s;base64,%s', $this->mediaType, base64_encode($contents));
+        return sprintf('data:%s;base64,%s', $this->media, base64_encode($contents));
     }
 
 }

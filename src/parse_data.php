@@ -59,105 +59,97 @@ namespace OneToMany\DataUri
                 throw new DecodingDataFailedException();
             }
 
-            $filePath = $tempPath = null;
+            $tempDir ??= sys_get_temp_dir();
+
+            // Create Temporary File
+            if (false === $tempPath = @tempnam($tempDir, '__1n__datauri_')) {
+                throw new CreatingTemporaryFileFailedException(sys_get_temp_dir());
+            }
 
             try {
-                $tempDir ??= sys_get_temp_dir();
-
-                // Create Temporary File
-                $tempPath = @tempnam($tempDir, '__1n__datauri_');
-
-                if (false === $tempPath || !is_file($tempPath)) {
-                    throw new CreatingTemporaryFileFailedException($tempDir);
-                }
-
                 // Write Raw Bytes to Temporary File
                 if (false === @file_put_contents($tempPath, $bytes)) {
                     throw new WritingTemporaryFileFailedException($tempPath);
                 }
 
                 // Resolve File Extension
-                if (false === $extension = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
+                if (false === $ext = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
                     throw new GeneratingExtensionFailedException($tempPath);
                 }
 
                 // Resolve Exact Extension
-                if (str_contains($extension, '/')) {
+                if (str_contains($ext, '/')) {
                     /** @var list<non-empty-string> */
                     $extensionBits = array_filter(
-                        explode('/', $extension)
+                        explode('/', $ext)
                     );
 
-                    /** @var non-empty-string $extension */
-                    $extension = array_shift($extensionBits);
+                    /** @var non-empty-string $ext */
+                    $ext = array_shift($extensionBits);
                 }
 
                 // Resolve Media Type
-                if (false === $mediaType = @mime_content_type($tempPath)) {
-                    $mediaType = 'application/octet-stream';
+                if (false === $media = @mime_content_type($tempPath)) {
+                    $media = 'application/octet-stream';
                 }
 
-                if ('???' === $extension) {
-                    $extension = 'data';
+                if ('???' === $ext) {
+                    $ext = 'data';
                 }
 
                 // Rename File With Extension
-                $filePath = $tempPath . '.' . $extension;
+                $filePath = $tempPath . '.' . $ext;
 
                 if (false === rename($tempPath, $filePath)) {
                     throw new RenamingTemporaryFileFailedException($tempPath, $filePath);
                 }
+            } catch (\Throwable $e) {
+                if (is_file($tempPath)) {
+                    @unlink($tempPath);
+                }
 
+                throw $e;
+            }
+
+            try {
                 // Generate SHA1 File Hash As Unique Fingerprint
-                if (false === $fingerprint = @sha1_file($filePath)) {
+                if (false === $hash = @sha1_file($filePath)) {
                     throw new GeneratingHashFailedException($filePath);
                 }
 
                 // Calculate File Size in Bytes
                 clearstatcache(false, $filePath);
 
-                if (false === $byteCount = @filesize($filePath)) {
+                if (false === $size = @filesize($filePath)) {
                     throw new GeneratingByteCountFailedException($filePath);
                 }
 
-                // Resolve Base File Name
-                $fileName = basename($filePath);
+                // Resolve File Name
+                $name = basename($filePath);
 
                 // Generate Bucketed Remote File Key
                 $randomBytes = bin2hex(random_bytes(16));
 
-                $remoteKey = implode('.', [
-                    $randomBytes, $extension
+                $key = implode('.', [
+                    $randomBytes, $ext
                 ]);
 
-                if (!empty($prefix = substr($fingerprint, 2, 2))) {
-                    $remoteKey = $prefix . '/' . $remoteKey;
+                if (!empty($prefix = substr($hash, 2, 2))) {
+                    $key = $prefix . '/' . $key;
                 }
 
-                if (!empty($prefix = substr($fingerprint, 0, 2))) {
-                    $remoteKey = $prefix . '/' . $remoteKey;
+                if (!empty($prefix = substr($hash, 0, 2))) {
+                    $key = $prefix . '/' . $key;
                 }
-
-                return new DataUri(...[
-                    'fingerprint' => $fingerprint,
-                    'mediaType' => $mediaType,
-                    'byteCount' => $byteCount,
-                    'fileName' => $fileName,
-                    'filePath' => $filePath,
-                    'extension' => $extension,
-                    'remoteKey' => $remoteKey,
-                ]);
             } catch (\Throwable $e) {
-                if (is_string($filePath)) {
+                if (is_file($filePath)) {
                     @unlink($filePath);
-                }
-
-                if (is_string($tempPath)) {
-                    @unlink($tempPath);
                 }
 
                 throw $e;
             }
+
+            return new DataUri($hash, $media, $size, $name, $filePath, $ext, $key);
         }
     }
 
