@@ -23,6 +23,9 @@
         "psr-4": {
             "OneToMany\\DataUri\\": "src/"
         },
+        "files": [
+            "src/parse_data.php"
+        ],
         "exclude-from-classmap": [
             "/Tests/"
         ]
