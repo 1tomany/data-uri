@@ -13,7 +13,7 @@ final readonly class DataUri implements \Stringable
 {
 
     public function __construct(
-        public string $fileHash,
+        public string $fingerprint,
         public string $mediaType,
         public int $byteCount,
         public string $fileName,

@@ -11,8 +11,11 @@ namespace OneToMany\DataUri
     use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
     use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 
+    use function array_filter;
+    use function array_shift;
     use function base64_decode;
     use function bin2hex;
+    use function clearstatcache;
     use function explode;
     use function file_get_contents;
     use function file_put_contents;
@@ -20,6 +23,8 @@ namespace OneToMany\DataUri
     use function implode;
     use function is_file;
     use function is_readable;
+    use function is_string;
+    use function mime_content_type;
     use function random_bytes;
     use function sha1_file;
     use function str_starts_with;
@@ -103,8 +108,8 @@ namespace OneToMany\DataUri
                     throw new RenamingTemporaryFileFailedException($tempPath, $filePath);
                 }
 
-                // Generate SHA1 File Hash
-                if (false === $fileHash = @sha1_file($filePath)) {
+                // Generate SHA1 File Hash As Unique Fingerprint
+                if (false === $fingerprint = @sha1_file($filePath)) {
                     throw new GeneratingHashFailedException($filePath);
                 }
 
@@ -118,23 +123,23 @@ namespace OneToMany\DataUri
                 // Resolve Base File Name
                 $fileName = basename($filePath);
 
-                // Generate Random Bucketed File Key
+                // Generate Bucketed Remote File Key
                 $randomBytes = bin2hex(random_bytes(16));
 
                 $remoteKey = implode('.', [
                     $randomBytes, $extension
                 ]);
 
-                if (!empty($prefix = substr($fileHash, 2, 2))) {
+                if (!empty($prefix = substr($fingerprint, 2, 2))) {
                     $remoteKey = $prefix . '/' . $remoteKey;
                 }
 
-                if (!empty($prefix = substr($fileHash, 0, 2))) {
+                if (!empty($prefix = substr($fingerprint, 0, 2))) {
                     $remoteKey = $prefix . '/' . $remoteKey;
                 }
 
                 return new DataUri(...[
-                    'fileHash' => $fileHash,
+                    'fingerprint' => $fingerprint,
                     'mediaType' => $mediaType,
                     'byteCount' => $byteCount,
                     'fileName' => $fileName,
