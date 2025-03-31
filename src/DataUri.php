@@ -24,7 +24,8 @@ final readonly class DataUri implements \Stringable
     {
         try {
             new Filesystem()->remove($this->path);
-        } catch (IOExceptionInterface $e) { }
+        } catch (IOExceptionInterface $e) {
+        }
     }
 
     public function __toString(): string
