@@ -1,6 +1,6 @@
 {
     "name": "1tomany/php-data-uri",
-    "description": "A simple, dependency-lite library to work with RFC 2397 data URIs",
+    "description": "A simple, low dependency library to work with RFC 2397 data URIs",
     "license": "MIT",
     "type": "library",
     "minimum-stability": "stable",
