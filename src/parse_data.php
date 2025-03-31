@@ -18,7 +18,7 @@ namespace OneToMany\DataUri
     function parse_data(
         ?string $data,
         ?string $tempDir = null,
-        string $hashAlgorithm = 'sha1',
+        string $hashAlgorithm = 'sha256',
         ?Filesystem $filesystem = null,
     ): DataUri
     {
@@ -59,6 +59,8 @@ namespace OneToMany\DataUri
         $filesystem ??= new Filesystem();
 
         try {
+            // If the data was not encoded as a URI, check
+            // to see if it is a path to an existing file.
             if (empty($bytes) && $filesystem->exists($data)) {
                 $bytes = $filesystem->readFile($data);
             }
@@ -71,12 +73,12 @@ namespace OneToMany\DataUri
         }
 
         try {
-            // Create Temporary File
             $tempDir ??= sys_get_temp_dir();
 
-            $tempPath = $filesystem->tempnam(
-                $tempDir, '__1n__datauri_'
-            );
+            // Regardless of the data source, attempt to create a temp
+            // file to store the raw data. This allows us to inspect the
+            // file itself determine actual the extension and media type.
+            $tempPath = $filesystem->tempnam($tempDir, '__1n__datauri_');
         } catch (IOExceptionInterface $e) {
             throw new CreatingTemporaryFileFailedException($tempDir, $e);
         }
@@ -99,14 +101,14 @@ namespace OneToMany\DataUri
             }
 
             // Use Fileinfo to inspect the actual file to determine the extension
-            if (false === $extension = new \finfo(\FILEINFO_EXTENSION)->file($tempPath)) {
+            if (false === $ext = new \finfo(\FILEINFO_EXTENSION)->file($tempPath)) {
                 throw new GeneratingExtensionFailedException($tempPath);
             }
 
             // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
-            if (true === \str_contains($extension, '/')) {
-                $extension = \explode('/', $extension)[0];
-            } else {
+            $extension = \explode('/', \strtolower($ext))[0];
+
+            if (\str_contains($extension, '?')) {
                 $extension = 'bin';
             }
 
@@ -143,17 +145,13 @@ namespace OneToMany\DataUri
                 throw new GeneratingHashFailedException($filePath, $hashAlgorithm, $e);
             }
 
-            // Calculate File Size in Bytes
+            // Calculate the filesize in bytes
             if (false === $size = \filesize($filePath)) {
                 throw new CalculatingFileSizeFailedException($filePath);
             }
 
-            // Generate Bucketed Remote File Key
-            $randomBytes = \bin2hex(\random_bytes(16));
-
-            $key = \implode('.', [
-                $randomBytes, $extension
-            ]);
+            // Generate a random name for the Generate Bucketed Remote File Key
+            $key = \bin2hex(\random_bytes(16)) . '.' . $extension;
 
             if (!empty($prefix = \substr($hash, 2, 2))) {
                 $key = $prefix . '/' . $key;
