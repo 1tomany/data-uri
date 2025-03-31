@@ -9,7 +9,7 @@ composer require 1tomany/php-data-uri
 ```
 
 ## Example
-See the [`examples/parse_example.php`](https://github.com/1tomany/php-data-uri/blob/main/examples/parse_example.php) file for examples on how to use the `parse_data()` method.
+See the [`parse_example.php`](https://github.com/1tomany/php-data-uri/blob/main/examples/parse_example.php) file for examples on how to use the `parse_data()` method.
 
 ## Credits
 - [Vic Cherubini](https://github.com/viccherubini), [1:N Labs, LLC](https://1tomany.com)
