@@ -1,7 +1,7 @@
 # Data URI Parser for PHP
 This simple library exposes a single method, `\OneToMany\DataUri\parse_data()` that allows you to easily parse base64 encoded data URIs or valid file paths. During parsing, a temporary, uniquely named file will be created and an immutable value object of type `\OneToMany\DataUri\DataUri` will be returned.
 
-Instances of the `DataUri` object will attempt to cleanup by deleting the temporary file it references upon destruction.
+Instances of the `DataUri` object will attempt delete temporary file it references upon object destruction.
 
 ## Installation
 ```
