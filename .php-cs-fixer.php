@@ -1,38 +1,36 @@
 <?php
 
-use PhpCsFixer\Config;
-use PhpCsFixer\Finder;
+// use PhpCsFixer\Config;
+// use PhpCsFixer\Finder;
 
-$finder = PhpCsFixer\Finder::create()->in('./src');
+$finder = \PhpCsFixer\Finder::create()->in(['./src', './tests']);
 
-return (new PhpCsFixer\Config())
-    ->setRules([
-        '@Symfony' => true,
-        'class_attributes_separation' => [
-            'elements' => [
-                'case' => 'none',
-                'const' => 'one',
-                'property' => 'one',
-                'trait_import' => 'none',
-            ],
+return new \PhpCsFixer\Config()->setFinder($finder)->setRules([
+    '@Symfony' => true,
+    'class_attributes_separation' => [
+        'elements' => [
+            'case' => 'none',
+            'const' => 'one',
+            'property' => 'one',
+            'trait_import' => 'none',
         ],
-        'no_blank_lines_after_class_opening' => false,
-        'no_extra_blank_lines' => [
-            'tokens' => [
-                'attribute',
-                'case',
-                'continue',
-                'default',
-                'extra',
-                'parenthesis_brace_block',
-                'square_brace_block',
-                'switch',
-                'throw',
-                'use',
-            ],
+    ],
+    'no_blank_lines_after_class_opening' => false,
+    'no_extra_blank_lines' => [
+        'tokens' => [
+            'attribute',
+            'case',
+            'continue',
+            'default',
+            'extra',
+            'parenthesis_brace_block',
+            'square_brace_block',
+            'switch',
+            'throw',
+            'use',
         ],
-        'ordered_types' => [
-            'null_adjustment' => 'always_first',
-        ],
-    ])
-    ->setFinder($finder);
+    ],
+    'ordered_types' => [
+        'null_adjustment' => 'always_first',
+    ],
+]);

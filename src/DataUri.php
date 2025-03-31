@@ -3,11 +3,8 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Exception\EncodingDataFailedException;
-
-use function base64_encode;
-use function file_get_contents;
-use function is_file;
-use function unlink;
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use Symfony\Component\Filesystem\Filesystem;
 
 final readonly class DataUri implements \Stringable
 {
@@ -20,15 +17,14 @@ final readonly class DataUri implements \Stringable
         public string $path,
         public string $ext,
         public string $key,
-    )
-    {
+    ) {
     }
 
     public function __destruct()
     {
-        if (is_file($this->path)) {
-            @unlink($this->path);
-        }
+        try {
+            new Filesystem()->remove($this->path);
+        } catch (IOExceptionInterface $e) { }
     }
 
     public function __toString(): string
@@ -38,11 +34,13 @@ final readonly class DataUri implements \Stringable
 
     public function asUri(): string
     {
-        if (false === $contents = @file_get_contents($this->path)) {
-            throw new EncodingDataFailedException($this->path);
+        try {
+            $contents = new Filesystem()->readFile($this->path);
+        } catch (IOExceptionInterface $e) {
+            throw new EncodingDataFailedException($this->path, $e);
         }
 
-        return sprintf('data:%s;base64,%s', $this->media, base64_encode($contents));
+        return sprintf('data:%s;base64,%s', $this->media, \base64_encode($contents));
     }
 
 }
