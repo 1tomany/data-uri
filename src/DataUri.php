@@ -57,9 +57,4 @@ final readonly class DataUri implements \Stringable
         return false;
     }
 
-    public function exists(): bool
-    {
-        return \file_exists($this->path);
-    }
-
 }
