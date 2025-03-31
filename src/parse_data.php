@@ -41,6 +41,12 @@ namespace OneToMany\DataUri
         {
             $data = trim(strval($data));
 
+            if (empty($data)) {
+                throw new DecodingDataFailedException();
+            }
+
+            $bytes = null;
+
             if (is_file($data) && is_readable($data)) {
                 $bytes = @file_get_contents($data, false);
             }
@@ -55,14 +61,14 @@ namespace OneToMany\DataUri
                 }
             }
 
-            if (!isset($bytes) || !is_string($bytes)) {
+            if (!is_string($bytes) || empty($bytes)) {
                 throw new DecodingDataFailedException();
             }
 
             $tempDir ??= sys_get_temp_dir();
 
             // Create Temporary File
-            if (false === $tempPath = @tempnam($tempDir, '__1n__datauri_')) {
+            if (false === $tempPath = tempnam($tempDir, '__1n__datauri_')) {
                 throw new CreatingTemporaryFileFailedException(sys_get_temp_dir());
             }
 
