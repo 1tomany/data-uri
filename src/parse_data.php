@@ -111,6 +111,11 @@ function parse_data(
             $extension = 'bin';
         }
 
+        // Determine the actual media type of the file
+        if (false === $media = \mime_content_type($tempPath)) {
+            $media = 'application/octet-stream';
+        }
+
         try {
             // Generate path with the extension
             $filePath = Path::changeExtension(
@@ -127,10 +132,6 @@ function parse_data(
     }
 
     try {
-        // Determine the actual media type of the file
-        if (false === $media = \mime_content_type($tempPath)) {
-            $media = 'application/octet-stream';
-        }
 
         try {
             // Generate a hash of the raw bytes so the

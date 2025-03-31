@@ -44,4 +44,22 @@ final readonly class DataUri implements \Stringable
         return sprintf('data:%s;base64,%s', $this->media, \base64_encode($contents));
     }
 
+    public function equals(self $data, bool $strict = false): bool
+    {
+        if ($this->hash === $data->hash) {
+            if (false === $strict) {
+                return true;
+            }
+
+            return ($this->path === $data->path);
+        }
+
+        return false;
+    }
+
+    public function exists(): bool
+    {
+        return \file_exists($this->path);
+    }
+
 }
