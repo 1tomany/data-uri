@@ -1,47 +1,20 @@
-# PHP Data URI Manipulator
-This simple library allows you to manipulate base64 encoded
-files (generally) following the specifications laid out in
-RFC 2397. Additionally, this library uses only functions and
-classes in the PHP Standard Library and Fileinfo extension.
+# Data URI Parser for PHP
+This simple library exposes a single method, `parse_data()` that
+allows you to easily parse base64 encoded data URIs or valid file
+paths. If valid, a temporary, uniquely named file will be created
+and an immutable value object named `DataUri` will be returned.
+
+Instances of the `DataUri` object will attempt to cleanup by
+deleting the temporary file it references upon destruction.
 
 ## Installation
 ```
 composer require 1tomany/php-data-uri
 ```
 
-## Parsing Data
-The simplest usage of the library allows you to parse a base64
-encoded data URI string with the `parse_data()` function. This
-function returns a `DataUri` object and also creates a temporary
-file on the filesystem for you to handle. The `DataUri` class also
-has a destructor that automatically deletes the temporary file
-when the object is destructed.
-
-```php
-<?php
-
-$dataUri = \OneToMany\DataUri\parse_data(
-    'data:image/png;base64;MXRvbWFueS5jb20='
-);
-```
-
-The `DataUri` class also implements the `\Stringable` interface, and
-casting it to a string will return the path to the temporary file.
-
-Finally, the `DataUri` class has a method named `asUri()` that will
-convert the file back to a base64 encoded data URI.
-
-## Parsing Files
-You can also pass a file path to the `parse_data()` function and, assuming
-the file exists and is readable, the same `DataUri` object will be returned.
-
-```php
-<?php
-
-$dataUri = \OneToMany\DataUri\parse_data(
-    '/home/vic/downloads/hey_man_nice_shot.jpeg'
-);
-```
+## Example
+See the [`examples/parse_example.php`](https://github.com)
+file for examples on how to use the `parse_data()` method.
 
 ## Credits
 - [Vic Cherubini](https://github.com/viccherubini), [1:N Labs, LLC](https://1tomany.com)

@@ -51,6 +51,10 @@ function parse_data(
 
         if ($isBase64Encoded && !empty($bytes)) {
             $bytes = \base64_decode($bytes);
+
+            if (false === $bytes || empty($bytes)) {
+                throw new DecodingDataFailedException();
+            }
         }
     }
 
@@ -132,7 +136,6 @@ function parse_data(
     }
 
     try {
-
         try {
             // Generate a hash of the raw bytes so the
             // end user can easily use it to determine
