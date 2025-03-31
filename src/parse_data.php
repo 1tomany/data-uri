@@ -3,41 +3,20 @@
 namespace OneToMany\DataUri
 {
 
+    use OneToMany\DataUri\Exception\CalculatingFileSizeFailedException;
     use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
     use OneToMany\DataUri\Exception\DecodingDataFailedException;
     use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
     use OneToMany\DataUri\Exception\GeneratingHashFailedException;
-    use OneToMany\DataUri\Exception\GeneratingByteCountFailedException;
     use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
     use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
+    use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+    use Symfony\Component\Filesystem\Filesystem;
+    use Symfony\Component\Filesystem\Path;
 
-    use function array_filter;
-    use function array_shift;
-    use function base64_decode;
-    use function bin2hex;
-    use function clearstatcache;
-    use function explode;
-    use function file_get_contents;
-    use function file_put_contents;
-    use function filesize;
-    use function implode;
-    use function is_file;
-    use function is_readable;
-    use function is_string;
-    use function mime_content_type;
-    use function random_bytes;
-    use function sha1_file;
-    use function str_starts_with;
-    use function substr;
-    use function sys_get_temp_dir;
-    use function tempnam;
-    use function trim;
-    use function unlink;
-    use const FILEINFO_EXTENSION;
-
-    function parse_data(?string $data, ?string $tempDir = null): DataUri
+    function parse_data(?string $data, ?string $tempDir = null, ?Filesystem $filesystem = null): DataUri
     {
-        $data = is_string($data) ? trim($data) : null;
+        $data = \is_string($data) ? \trim($data) : null;
 
         if (empty($data)) {
             throw new DecodingDataFailedException();
@@ -45,97 +24,121 @@ namespace OneToMany\DataUri
 
         $bytes = null;
 
-        if (is_file($data) && is_readable($data)) {
-            $bytes = @file_get_contents($data, false);
-        }
+        if (\preg_match('/^(data:)(.+)?,(.+)$/i', $data, $matches)) {
+            $isBase64Encoded = false;
+            // $dataMediaType = 'text/plain';
 
-        if (str_starts_with($data, 'data:')) {
-            // Remove 'data:' Prefix and Break Apart
-            $bits = explode(',', substr($data, 5), 2);
+            if (!empty($matches[2])) {
+                $mediaTypeBits = \explode(';', \strtolower($matches[2]));
 
-            // Decode to Binary Representation
-            if (null !== ($bits[1] ?? null)) {
-                $bytes = base64_decode($bits[1]);
+                // $type = \array_shift($mediaTypeBits);
+                // if (preg_match('/^[a-z]+\/[a-z0-9\-\.\+]+$/i', $type)) {
+                    // $dataMediaType = \strtolower(\trim($type));
+                // }
+
+                /** @var ?non-empty-string $encodingType */
+                $encodingType = \array_pop($mediaTypeBits);
+
+                if ('base64' === $encodingType) {
+                    $isBase64Encoded = true;
+                }
+            }
+
+            $bytes = \trim($matches[3]);
+
+            if ($isBase64Encoded && !empty($bytes)) {
+                $bytes = \base64_decode($bytes);
             }
         }
 
-        if (!is_string($bytes) || empty($bytes)) {
-            throw new DecodingDataFailedException();
+        $filesystem ??= new Filesystem();
+
+        try {
+            if (empty($bytes) && $filesystem->exists($data)) {
+                $bytes = $filesystem->readFile($data);
+            }
+
+            if (!is_string($bytes) || empty($bytes)) {
+                throw new DecodingDataFailedException();
+            }
+        } catch (IOExceptionInterface $e) {
+            throw new DecodingDataFailedException($e);
         }
 
-        $tempDir ??= sys_get_temp_dir();
+        $cleanupSafely = function(?string $path) use($filesystem): void {
+            try {
+                if ($path && $filesystem->exists($path)) {
+                    $filesystem->remove($path);
+                }
+            } catch (IOExceptionInterface $e) {}
+        };
 
-        // Create Temporary File
-        if (false === $tempPath = tempnam($tempDir, '__1n__datauri_')) {
-            throw new CreatingTemporaryFileFailedException(sys_get_temp_dir());
+        try {
+            // Create Temporary File
+            $tempDir ??= sys_get_temp_dir();
+
+            $tempPath = $filesystem->tempnam(
+                $tempDir, '__1n__datauri_'
+            );
+        } catch (IOExceptionInterface $e) {
+            throw new CreatingTemporaryFileFailedException($tempDir, $e);
         }
 
         try {
-            // Write Raw Bytes to Temporary File
-            if (false === @file_put_contents($tempPath, $bytes)) {
-                throw new WritingTemporaryFileFailedException($tempPath);
+            try {
+                // Write Raw Bytes to Temporary File
+                $filesystem->dumpFile($tempPath, $bytes);
+            } catch (IOExceptionInterface $e) {
+                throw new WritingTemporaryFileFailedException($tempPath, $e);
             }
 
             // Resolve File Extension
-            if (false === $ext = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
+            if (false === $extension = new \finfo(\FILEINFO_EXTENSION)->file($tempPath)) {
                 throw new GeneratingExtensionFailedException($tempPath);
             }
 
             // Resolve Exact Extension
-            if (str_contains($ext, '/')) {
-                /** @var list<non-empty-string> */
-                $extensionBits = array_filter(
-                    explode('/', $ext)
+            if (true === \str_contains($extension, '/')) {
+                $extension = \explode('/', $extension)[0];
+            } else {
+                $extension = 'bin';
+            }
+
+            try {
+                // Rename File With Extension
+                $filePath = Path::changeExtension(
+                    $tempPath, $extension
                 );
 
-                /** @var non-empty-string $ext */
-                $ext = array_shift($extensionBits);
+                $filesystem->rename($tempPath, $filePath, true);
+            } catch (IOExceptionInterface $e) {
+                throw new RenamingTemporaryFileFailedException($tempPath, $filePath, $e);
             }
-
-            // Resolve Media Type
-            if (false === $media = @mime_content_type($tempPath)) {
-                $media = 'application/octet-stream';
-            }
-
-            if ('???' === $ext) {
-                $ext = 'data';
-            }
-
-            // Rename File With Extension
-            $filePath = $tempPath . '.' . $ext;
-
-            if (false === rename($tempPath, $filePath)) {
-                throw new RenamingTemporaryFileFailedException($tempPath, $filePath);
-            }
-        } catch (\Throwable $e) {
-            if (is_file($tempPath)) {
-                @unlink($tempPath);
-            }
-
-            throw $e;
+        } finally {
+            $cleanupSafely($tempPath);
         }
 
         try {
-            // Generate SHA1 File Hash As Unique Fingerprint
-            if (false === $hash = @sha1_file($filePath)) {
+            // Resolve Media Type
+            if (false === $media = \mime_content_type($tempPath)) {
+                $media = 'application/octet-stream';
+            }
+
+            // Generate SHA1 File Hash
+            if (false === $hash = \sha1_file($filePath)) {
                 throw new GeneratingHashFailedException($filePath);
             }
 
             // Calculate File Size in Bytes
-            clearstatcache(false, $filePath);
-
-            if (false === $size = @filesize($filePath)) {
-                throw new GeneratingByteCountFailedException($filePath);
+            if (false === $size = \filesize($filePath)) {
+                throw new CalculatingFileSizeFailedException($filePath);
             }
-
-            // Resolve File Name
-            $name = basename($filePath);
 
             // Generate Bucketed Remote File Key
             $randomBytes = bin2hex(random_bytes(16));
 
             $key = implode('.', [
-                $randomBytes, $ext
+                $randomBytes, $extension
             ]);
 
             if (!empty($prefix = substr($hash, 2, 2))) {
@@ -146,14 +149,12 @@ namespace OneToMany\DataUri
                 $key = $prefix . '/' . $key;
             }
         } catch (\Throwable $e) {
-            if (is_file($filePath)) {
-                @unlink($filePath);
-            }
+            $cleanupSafely($filePath);
 
             throw $e;
         }
 
-        return new DataUri($hash, $media, $size, $name, $filePath, $ext, $key);
+        return new DataUri($hash, $media, $size, \basename($filePath), $filePath, $extension, $key);
     }
 
 }
