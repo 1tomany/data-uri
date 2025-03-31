@@ -1,9 +1,9 @@
 <?php
 
-// use PhpCsFixer\Config;
-// use PhpCsFixer\Finder;
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
 
-$finder = \PhpCsFixer\Finder::create()->in(['./src', './tests']);
+$finder = \PhpCsFixer\Finder::create()->in(['./examples', './src', './tests']);
 
 return new \PhpCsFixer\Config()->setFinder($finder)->setRules([
     '@Symfony' => true,

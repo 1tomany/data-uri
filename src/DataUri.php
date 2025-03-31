@@ -51,7 +51,7 @@ final readonly class DataUri implements \Stringable
                 return true;
             }
 
-            return ($this->path === $data->path);
+            return $this->path === $data->path;
         }
 
         return false;
