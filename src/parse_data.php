@@ -24,17 +24,12 @@ namespace OneToMany\DataUri
 
         $bytes = null;
 
+        // Loosely attempt to match on the RFC 2937 Data URI scheme
         if (\preg_match('/^(data:)(.+)?,(.+)$/i', $data, $matches)) {
             $isBase64Encoded = false;
-            // $dataMediaType = 'text/plain';
 
-            if (!empty($matches[2])) {
+            if (!empty($matches[2]) && \str_contains($matches[2], ';')) {
                 $mediaTypeBits = \explode(';', \strtolower($matches[2]));
-
-                // $type = \array_shift($mediaTypeBits);
-                // if (preg_match('/^[a-z]+\/[a-z0-9\-\.\+]+$/i', $type)) {
-                    // $dataMediaType = \strtolower(\trim($type));
-                // }
 
                 /** @var ?non-empty-string $encodingType */
                 $encodingType = \array_pop($mediaTypeBits);
@@ -57,18 +52,18 @@ namespace OneToMany\DataUri
             if (empty($bytes) && $filesystem->exists($data)) {
                 $bytes = $filesystem->readFile($data);
             }
-
-            if (!is_string($bytes) || empty($bytes)) {
-                throw new DecodingDataFailedException();
-            }
         } catch (IOExceptionInterface $e) {
             throw new DecodingDataFailedException($e);
         }
 
-        $cleanupSafely = function(?string $path) use($filesystem): void {
+        if (empty($bytes)) {
+            throw new DecodingDataFailedException();
+        }
+
+        $cleanupSafely = function(?string $path): void {
             try {
-                if ($path && $filesystem->exists($path)) {
-                    $filesystem->remove($path);
+                if ($path && \file_exists($path)) {
+                    new Filesystem()->remove($path);
                 }
             } catch (IOExceptionInterface $e) {}
         };
@@ -135,17 +130,17 @@ namespace OneToMany\DataUri
             }
 
             // Generate Bucketed Remote File Key
-            $randomBytes = bin2hex(random_bytes(16));
+            $randomBytes = \bin2hex(\random_bytes(16));
 
-            $key = implode('.', [
+            $key = \implode('.', [
                 $randomBytes, $extension
             ]);
 
-            if (!empty($prefix = substr($hash, 2, 2))) {
+            if (!empty($prefix = \substr($hash, 2, 2))) {
                 $key = $prefix . '/' . $key;
             }
 
-            if (!empty($prefix = substr($hash, 0, 2))) {
+            if (!empty($prefix = \substr($hash, 0, 2))) {
                 $key = $prefix . '/' . $key;
             }
         } catch (\Throwable $e) {
