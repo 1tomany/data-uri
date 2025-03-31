@@ -8,18 +8,28 @@ namespace OneToMany\DataUri
     use OneToMany\DataUri\Exception\DecodingDataFailedException;
     use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
     use OneToMany\DataUri\Exception\GeneratingHashFailedException;
+    use OneToMany\DataUri\Exception\InvalidHashAlgorithmException;
     use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
     use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
     use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
     use Symfony\Component\Filesystem\Filesystem;
     use Symfony\Component\Filesystem\Path;
 
-    function parse_data(?string $data, ?string $tempDir = null, ?Filesystem $filesystem = null): DataUri
+    function parse_data(
+        ?string $data,
+        ?string $tempDir = null,
+        string $hashAlgorithm = 'sha1',
+        ?Filesystem $filesystem = null,
+    ): DataUri
     {
         $data = \is_string($data) ? \trim($data) : null;
 
         if (empty($data)) {
             throw new DecodingDataFailedException();
+        }
+
+        if (!\in_array($hashAlgorithm, \hash_algos())) {
+            throw new InvalidHashAlgorithmException($hashAlgorithm);
         }
 
         $bytes = null;
@@ -60,14 +70,6 @@ namespace OneToMany\DataUri
             throw new DecodingDataFailedException();
         }
 
-        $cleanupSafely = function(?string $path): void {
-            try {
-                if ($path && \file_exists($path)) {
-                    new Filesystem()->remove($path);
-                }
-            } catch (IOExceptionInterface $e) {}
-        };
-
         try {
             // Create Temporary File
             $tempDir ??= sys_get_temp_dir();
@@ -79,20 +81,29 @@ namespace OneToMany\DataUri
             throw new CreatingTemporaryFileFailedException($tempDir, $e);
         }
 
+        // Allows files to be deleted without error
+        $cleanupSafely = function(?string $path): void {
+            try {
+                if ($path && \file_exists($path)) {
+                    new Filesystem()->remove($path);
+                }
+            } catch (IOExceptionInterface $e) {}
+        };
+
         try {
             try {
-                // Write Raw Bytes to Temporary File
+                // Write the bytes to the temporary file
                 $filesystem->dumpFile($tempPath, $bytes);
             } catch (IOExceptionInterface $e) {
                 throw new WritingTemporaryFileFailedException($tempPath, $e);
             }
 
-            // Resolve File Extension
+            // Use Fileinfo to inspect the actual file to determine the extension
             if (false === $extension = new \finfo(\FILEINFO_EXTENSION)->file($tempPath)) {
                 throw new GeneratingExtensionFailedException($tempPath);
             }
 
-            // Resolve Exact Extension
+            // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
             if (true === \str_contains($extension, '/')) {
                 $extension = \explode('/', $extension)[0];
             } else {
@@ -100,11 +111,12 @@ namespace OneToMany\DataUri
             }
 
             try {
-                // Rename File With Extension
+                // Generate path with the extension
                 $filePath = Path::changeExtension(
                     $tempPath, $extension
                 );
 
+                // Rename the temporary file with the extension
                 $filesystem->rename($tempPath, $filePath, true);
             } catch (IOExceptionInterface $e) {
                 throw new RenamingTemporaryFileFailedException($tempPath, $filePath, $e);
@@ -114,14 +126,21 @@ namespace OneToMany\DataUri
         }
 
         try {
-            // Resolve Media Type
+            // Determine the actual media type of the file
             if (false === $media = \mime_content_type($tempPath)) {
                 $media = 'application/octet-stream';
             }
 
-            // Generate SHA1 File Hash
-            if (false === $hash = \sha1_file($filePath)) {
-                throw new GeneratingHashFailedException($filePath);
+            try {
+                // Generate a hash of the raw bytes so the
+                // end user can easily use it to determine
+                // if this file exists in their system. The
+                // hash will also be used to generate a
+                // bucketed remote key so the file can be saved
+                // on a remote filesystem like Amazon S3.
+                $hash = hash($hashAlgorithm, $bytes, false);
+            } catch (\ValueError $e) {
+                throw new GeneratingHashFailedException($filePath, $hashAlgorithm, $e);
             }
 
             // Calculate File Size in Bytes
