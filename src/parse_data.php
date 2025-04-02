@@ -30,7 +30,7 @@ function parse_data(
         throw new InvalidHashAlgorithmException($hashAlgorithm);
     }
 
-    $bytes = null;
+    $fileBytes = null;
 
     // Loosely attempt to match on the RFC 2937 Data URI scheme
     if (\preg_match('/^(data:)(.+)?,(.+)$/i', $data, $matches)) {
@@ -47,12 +47,12 @@ function parse_data(
             }
         }
 
-        $bytes = \trim($matches[3]);
+        $fileBytes = \trim($matches[3]);
 
-        if ($isBase64Encoded && !empty($bytes)) {
-            $bytes = \base64_decode($bytes);
+        if ($isBase64Encoded && !empty($fileBytes)) {
+            $fileBytes = \base64_decode($fileBytes);
 
-            if (false === $bytes || empty($bytes)) {
+            if (false === $fileBytes || empty($fileBytes)) {
                 throw new DecodingDataFailedException();
             }
         }
@@ -63,14 +63,14 @@ function parse_data(
     try {
         // If the data was not encoded as a URI, check
         // to see if it is a path to an existing file.
-        if (empty($bytes) && $filesystem->exists($data)) {
-            $bytes = $filesystem->readFile($data);
+        if (empty($fileBytes) && $filesystem->exists($data)) {
+            $fileBytes = $filesystem->readFile($data);
         }
     } catch (IOExceptionInterface $e) {
         throw new DecodingDataFailedException($e);
     }
 
-    if (empty($bytes)) {
+    if (empty($fileBytes)) {
         throw new DecodingDataFailedException();
     }
 
@@ -85,89 +85,74 @@ function parse_data(
         throw new CreatingTemporaryFileFailedException($tempDir, $e);
     }
 
-    // Allows files to be deleted without error
-    $cleanupSafely = function (?string $path): void {
-        try {
-            if ($path && \file_exists($path)) {
-                new Filesystem()->remove($path);
-            }
-        } catch (IOExceptionInterface $e) {
-        }
-    };
-
     try {
-        try {
-            // Write the bytes to the temporary file
-            $filesystem->dumpFile($tempPath, $bytes);
-        } catch (IOExceptionInterface $e) {
-            throw new WritingTemporaryFileFailedException($tempPath, $e);
-        }
+        // Write the bytes to the temporary file
+        $filesystem->dumpFile($tempPath, $fileBytes);
+    } catch (IOExceptionInterface $e) {
+        _cleanup_safely($tempPath, new WritingTemporaryFileFailedException($tempPath, $e));
+    }
 
-        // Use Fileinfo to inspect the actual file to determine the extension
-        if (false === $ext = new \finfo(\FILEINFO_EXTENSION)->file($tempPath)) {
-            throw new GeneratingExtensionFailedException($tempPath);
-        }
+    // Use Fileinfo to inspect the actual file to determine the extension
+    if (!$tempExtension = new \finfo(\FILEINFO_EXTENSION)->file($tempPath)) {
+        _cleanup_safely($tempPath, new GeneratingExtensionFailedException($tempPath));
+    }
 
-        // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
-        $extension = \explode('/', \strtolower($ext))[0];
+    // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
+    $extension = \explode('/', \strtolower($tempExtension))[0];
 
-        if (\str_contains($extension, '?')) {
-            $extension = 'bin';
-        }
+    if (\str_contains($extension, '?')) {
+        $extension = 'bin';
+    }
 
-        // Determine the actual media type of the file
-        if (false === $media = \mime_content_type($tempPath)) {
-            $media = 'application/octet-stream';
-        }
-
-        try {
-            // Generate path with the extension
-            $filePath = Path::changeExtension(
-                $tempPath, $extension
-            );
-
-            // Rename the temporary file with the extension
-            $filesystem->rename($tempPath, $filePath, true);
-        } catch (IOExceptionInterface $e) {
-            throw new RenamingTemporaryFileFailedException($tempPath, $filePath, $e);
-        }
-    } finally {
-        $cleanupSafely($tempPath);
+    // Determine the actual media type of the file
+    if (false === $mediaType = \mime_content_type($tempPath)) {
+        $mediaType = 'application/octet-stream';
     }
 
     try {
-        try {
-            // Generate a hash of the raw bytes so the
-            // end user can easily use it to determine
-            // if this file exists in their system. The
-            // hash will also be used to generate a
-            // bucketed remote key so the file can be saved
-            // on a remote filesystem like Amazon S3.
-            $hash = hash($hashAlgorithm, $bytes, false);
-        } catch (\ValueError $e) {
-            throw new GeneratingHashFailedException($filePath, $hashAlgorithm, $e);
-        }
+        // Generate path with the extension
+        $filePath = Path::changeExtension(
+            $tempPath, $extension
+        );
 
-        // Calculate the filesize in bytes
-        if (false === $size = \filesize($filePath)) {
-            throw new CalculatingFileSizeFailedException($filePath);
-        }
-
-        // Generate a random name for the Generate Bucketed Remote File Key
-        $key = \bin2hex(\random_bytes(16)).'.'.$extension;
-
-        if (!empty($prefix = \substr($hash, 2, 2))) {
-            $key = $prefix.'/'.$key;
-        }
-
-        if (!empty($prefix = \substr($hash, 0, 2))) {
-            $key = $prefix.'/'.$key;
-        }
-    } catch (\Throwable $e) {
-        $cleanupSafely($filePath);
-
-        throw $e;
+        // Rename the temporary file with the extension
+        $filesystem->rename($tempPath, $filePath, true);
+    } catch (IOExceptionInterface $e) {
+        _cleanup_safely($tempPath, new RenamingTemporaryFileFailedException($tempPath, $filePath, $e));
     }
 
-    return new DataUri($hash, $media, $size, \basename($filePath), $filePath, $extension, $key);
+    try {
+        // Generate a hash to allow the user to
+        // determine if this file is unique or not
+        $hash = hash($hashAlgorithm, $fileBytes, false);
+    } catch (\ValueError $e) {
+        _cleanup_safely($filePath, new GeneratingHashFailedException($filePath, $hashAlgorithm, $e));
+    }
+
+    // Calculate the filesize in bytes
+    if (false === $byteCount = \filesize($filePath)) {
+        _cleanup_safely($filePath, new CalculatingFileSizeFailedException($filePath));
+    }
+
+    // Generate a random name for the remote key
+    $remoteKey = \bin2hex(\random_bytes(16)).'.'.$extension;
+
+    if (!empty($prefix = \substr($hash, 2, 2))) {
+        $remoteKey = $prefix.'/'.$remoteKey;
+    }
+
+    if (!empty($prefix = \substr($hash, 0, 2))) {
+        $remoteKey = $prefix.'/'.$remoteKey;
+    }
+
+    return new DataUri($hash, $mediaType, $byteCount, \basename($filePath), $filePath, $extension, $remoteKey);
+}
+
+function _cleanup_safely(string $filePath, \Throwable $exception): never
+{
+    if (\file_exists($filePath)) {
+        @\unlink($filePath);
+    }
+
+    throw $exception;
 }

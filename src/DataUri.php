@@ -11,37 +11,37 @@ final readonly class DataUri implements \Stringable
 
     public function __construct(
         public string $hash,
-        public string $media,
-        public int $size,
-        public string $name,
-        public string $path,
-        public string $ext,
-        public string $key,
+        public string $mediaType,
+        public int $byteCount,
+        public string $fileName,
+        public string $filePath,
+        public string $extension,
+        public string $remoteKey,
     ) {
     }
 
     public function __destruct()
     {
         try {
-            new Filesystem()->remove($this->path);
+            new Filesystem()->remove($this->filePath);
         } catch (IOExceptionInterface $e) {
         }
     }
 
     public function __toString(): string
     {
-        return $this->path;
+        return $this->filePath;
     }
 
     public function asUri(): string
     {
         try {
-            $contents = new Filesystem()->readFile($this->path);
+            $contents = new Filesystem()->readFile($this->filePath);
         } catch (IOExceptionInterface $e) {
-            throw new EncodingDataFailedException($this->path, $e);
+            throw new EncodingDataFailedException($this->filePath, $e);
         }
 
-        return sprintf('data:%s;base64,%s', $this->media, \base64_encode($contents));
+        return sprintf('data:%s;base64,%s', $this->mediaType, \base64_encode($contents));
     }
 
     public function equals(self $data, bool $strict = false): bool
@@ -51,7 +51,7 @@ final readonly class DataUri implements \Stringable
                 return true;
             }
 
-            return $this->path === $data->path;
+            return $this->filePath === $data->filePath;
         }
 
         return false;
