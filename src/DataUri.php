@@ -8,7 +8,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 final readonly class DataUri implements \Stringable
 {
-
     public function __construct(
         public string $hash,
         public string $mediaType,
@@ -56,5 +55,4 @@ final readonly class DataUri implements \Stringable
 
         return false;
     }
-
 }

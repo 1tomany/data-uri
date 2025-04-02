@@ -10,7 +10,6 @@ use PHPUnit\Framework\TestCase;
 #[Group('UnitTests')]
 final class DataUriTest extends TestCase
 {
-
     public function testDestructorDeletesFile(): void
     {
         $path = \tempnam(\sys_get_temp_dir(), '__1n__test_');
@@ -55,5 +54,4 @@ final class DataUriTest extends TestCase
         $this->assertTrue($data1->equals($data2, true));
         $this->assertTrue($data2->equals($data1, true));
     }
-
 }

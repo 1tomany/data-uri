@@ -12,7 +12,6 @@ use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
 function parse_data(
     ?string $data,
@@ -100,7 +99,7 @@ function parse_data(
     // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
     $extension = \explode('/', \strtolower($tempExtension))[0];
 
-    if (\str_contains($extension, '?')) {
+    if ('???' === $extension) {
         $extension = 'bin';
     }
 
@@ -111,9 +110,7 @@ function parse_data(
 
     try {
         // Generate path with the extension
-        $filePath = Path::changeExtension(
-            $tempPath, $extension
-        );
+        $filePath = $tempPath.'.'.$extension;
 
         // Rename the temporary file with the extension
         $filesystem->rename($tempPath, $filePath, true);
