@@ -4,52 +4,76 @@ namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\DataUri;
 use OneToMany\DataUri\Exception\EncodingDataFailedException;
+use OneToMany\DataUri\Exception\ExceptionInterface;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+
+use function OneToMany\DataUri\parse_data;
 
 #[Group('UnitTests')]
 final class DataUriTest extends TestCase
 {
-    public function testDestructorDeletesFile(): void
+    public function testDestructorDeletesTemporaryFile(): void
     {
-        $path = \tempnam(\sys_get_temp_dir(), '__1n__test_');
-        $data = new DataUri('', '', 0, $path, $path, '', '');
+        $dataUri = parse_data(__DIR__.'/data/php-logo.png');
+        $filePath = $dataUri->filePath;
 
-        $this->assertFileExists($path);
+        $this->assertFileExists($filePath);
 
-        unset($data);
-        $this->assertFileDoesNotExist($path);
+        unset($dataUri);
+        $this->assertFileDoesNotExist($filePath);
     }
 
-    public function testAsUriRequiresPathToExist(): void
+    public function testGettingPropertyRequiresPropertyToExist(): void
+    {
+        $this->expectException(ExceptionInterface::class);
+        $this->expectExceptionMessage('The property "name" is invalid.');
+
+        // @phpstan-ignore-next-line
+        parse_data(__DIR__.'/data/php-logo.png')->name;
+    }
+
+    public function testToStringReturnsFilePath(): void
+    {
+        $dataUri = parse_data(__DIR__.'/data/php-logo.png');
+        $this->assertEquals($dataUri->filePath, strval($dataUri));
+    }
+
+    public function testGettingFileNameProperty(): void
+    {
+        $dataUri = parse_data(__DIR__.'/data/php-logo.png');
+        $this->assertEquals(\basename($dataUri->filePath), $dataUri->fileName);
+    }
+
+    public function testToDataUriRequiresPathToExist(): void
     {
         $this->expectException(EncodingDataFailedException::class);
 
-        new DataUri('hash1', '', 1, '', '/invalid/path/1.txt', 'txt', '')->asUri();
+        new DataUri('fingerprint1', '', 1, '/invalid/path/1.txt', 'txt', '')->toDataUri();
     }
 
-    public function testObjectsWithDifferentHashesAreNotEqual(): void
+    public function testObjectsWithDifferentFingerprintsAreNotEqual(): void
     {
-        $data1 = new DataUri('hash1', '', 1, '', '1.txt', 'txt', '');
-        $data2 = new DataUri('hash2', '', 1, '', '2.txt', 'txt', '');
+        $data1 = new DataUri('fingerprint1', '', 1, '1.txt', 'txt', '');
+        $data2 = new DataUri('fingerprint2', '', 1, '2.txt', 'txt', '');
 
         $this->assertFalse($data1->equals($data2));
         $this->assertFalse($data2->equals($data1));
     }
 
-    public function testObjectsWithIdenticalHashesAreLooselyEqual(): void
+    public function testObjectsWithIdenticalFingerprintsAreLooselyEqual(): void
     {
-        $data1 = new DataUri('hash1', '', 1, '', '1.txt', 'txt', '');
-        $data2 = new DataUri('hash1', '', 1, '', '2.txt', 'txt', '');
+        $data1 = new DataUri('fingerprint1', '', 1, '1.txt', 'txt', '');
+        $data2 = new DataUri('fingerprint1', '', 1, '2.txt', 'txt', '');
 
         $this->assertTrue($data1->equals($data2));
         $this->assertTrue($data2->equals($data1));
     }
 
-    public function testObjectsWithIdenticalHashesAndPathsAreStrictlyEqual(): void
+    public function testObjectsWithIdenticalFingerprintsAndPathsAreStrictlyEqual(): void
     {
-        $data1 = new DataUri('hash1', '', 1, '', '1.txt', 'txt', '');
-        $data2 = new DataUri('hash1', '', 1, '', '1.txt', 'txt', '');
+        $data1 = new DataUri('fingerprint1', '', 1, '1.txt', 'txt', '');
+        $data2 = new DataUri('fingerprint1', '', 1, '1.txt', 'txt', '');
 
         $this->assertTrue($data1->equals($data2, true));
         $this->assertTrue($data2->equals($data1, true));

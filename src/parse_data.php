@@ -12,6 +12,7 @@ use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 function parse_data(
     ?string $data,
@@ -111,6 +112,7 @@ function parse_data(
     try {
         // Generate path with the extension
         $filePath = $tempPath.'.'.$extension;
+        // $fileName = \basename($filePath);
 
         // Rename the temporary file with the extension
         $filesystem->rename($tempPath, $filePath, true);
@@ -119,9 +121,9 @@ function parse_data(
     }
 
     try {
-        // Generate a hash to allow the user to
-        // determine if this file is unique or not
-        $hash = hash($hashAlgorithm, $fileBytes, false);
+        // Generate a hash (or fingerprint) to allow the
+        // user to determine if this file is unique or not
+        $fingerprint = hash($hashAlgorithm, $fileBytes, false);
     } catch (\ValueError $e) {
         _cleanup_safely($filePath, new GeneratingHashFailedException($filePath, $hashAlgorithm, $e));
     }
@@ -134,15 +136,15 @@ function parse_data(
     // Generate a random name for the remote key
     $remoteKey = \bin2hex(\random_bytes(16)).'.'.$extension;
 
-    if (!empty($prefix = \substr($hash, 2, 2))) {
+    if (!empty($prefix = \substr($fingerprint, 2, 2))) {
         $remoteKey = $prefix.'/'.$remoteKey;
     }
 
-    if (!empty($prefix = \substr($hash, 0, 2))) {
+    if (!empty($prefix = \substr($fingerprint, 0, 2))) {
         $remoteKey = $prefix.'/'.$remoteKey;
     }
 
-    return new DataUri($hash, $mediaType, $byteCount, \basename($filePath), $filePath, $extension, $remoteKey);
+    return new DataUri($fingerprint, $mediaType, $byteCount, $filePath, $extension, $remoteKey);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
