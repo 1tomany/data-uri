@@ -3,7 +3,7 @@
 namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\DataUri;
-use OneToMany\DataUri\Exception\EncodingDataFailedException;
+use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -38,7 +38,7 @@ final class DataUriTest extends TestCase
 
     public function testToDataUriRequiresPathToExist(): void
     {
-        $this->expectException(EncodingDataFailedException::class);
+        $this->expectException(EncodingFailedInvalidFilePathException::class);
 
         new DataUri('fingerprint1', '', 1, '/invalid/path/1.txt', '1.txt', 'txt', '')->toDataUri();
     }

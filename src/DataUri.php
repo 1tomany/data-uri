@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Exception\EncodingDataFailedException;
+use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -40,7 +40,7 @@ final readonly class DataUri implements \Stringable
         try {
             $contents = new Filesystem()->readFile($this->filePath);
         } catch (IOExceptionInterface $e) {
-            throw new EncodingDataFailedException($this->filePath, $e);
+            throw new EncodingFailedInvalidFilePathException($this->filePath, $e);
         }
 
         return sprintf('data:%s;base64,%s', $this->mediaType, base64_encode($contents));
