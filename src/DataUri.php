@@ -3,13 +3,12 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Exception\EncodingDataFailedException;
-use OneToMany\DataUri\Exception\ExceptionInterface;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
-/**
- * @property string $fileName
- */
+use function base64_encode;
+use function sprintf;
+
 final readonly class DataUri implements \Stringable
 {
     public function __construct(
@@ -17,6 +16,7 @@ final readonly class DataUri implements \Stringable
         public string $mediaType,
         public int $byteCount,
         public string $filePath,
+        public string $fileName,
         public string $extension,
         public string $remoteKey,
     ) {
@@ -28,15 +28,6 @@ final readonly class DataUri implements \Stringable
             new Filesystem()->remove($this->filePath);
         } catch (IOExceptionInterface $e) {
         }
-    }
-
-    public function __get(string $name): string
-    {
-        if (\in_array($name, ['fileName'])) {
-            return \basename($this->filePath);
-        }
-
-        throw new class(\sprintf('The property "%s" is invalid.', $name)) extends \InvalidArgumentException implements ExceptionInterface {};
     }
 
     public function __toString(): string
@@ -52,7 +43,7 @@ final readonly class DataUri implements \Stringable
             throw new EncodingDataFailedException($this->filePath, $e);
         }
 
-        return \sprintf('data:%s;base64,%s', $this->mediaType, \base64_encode($contents));
+        return sprintf('data:%s;base64,%s', $this->mediaType, base64_encode($contents));
     }
 
     public function equals(self $data, bool $strict = false): bool

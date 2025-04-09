@@ -2,7 +2,6 @@
 
 namespace OneToMany\DataUri;
 
-use finfo;
 use OneToMany\DataUri\Exception\CalculatingFileSizeFailedException;
 use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\DecodingDataFailedException;
@@ -17,11 +16,10 @@ use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Throwable;
-use ValueError;
 
 use function array_shift;
 use function base64_decode;
+use function basename;
 use function bin2hex;
 use function count;
 use function explode;
@@ -117,7 +115,7 @@ function parse_data(
     }
 
     // Use Fileinfo to inspect the actual file to determine the extension
-    if (!$tempExtension = new finfo(FILEINFO_EXTENSION)->file($tempPath)) {
+    if (!$tempExtension = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
         _cleanup_safely($tempPath, new GeneratingExtensionFailedException($tempPath));
     }
 
@@ -147,7 +145,7 @@ function parse_data(
         // Generate a hash (or fingerprint) to allow the
         // user to determine if this file is unique or not
         $fingerprint = hash($hashAlgorithm, $fileBytes, false);
-    } catch (ValueError $e) {
+    } catch (\ValueError $e) {
         _cleanup_safely($filePath, new GeneratingHashFailedException($filePath, $hashAlgorithm, $e));
     }
 
@@ -167,10 +165,10 @@ function parse_data(
         $remoteKey = $prefix.'/'.$remoteKey;
     }
 
-    return new DataUri($fingerprint, $mediaType, $byteCount, $filePath, $extension, $remoteKey);
+    return new DataUri($fingerprint, $mediaType, $byteCount, $filePath, basename($filePath), $extension, $remoteKey);
 }
 
-function _cleanup_safely(string $filePath, Throwable $exception): never
+function _cleanup_safely(string $filePath, \Throwable $exception): never
 {
     if (file_exists($filePath)) {
         @unlink($filePath);
