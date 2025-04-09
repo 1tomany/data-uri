@@ -2,18 +2,18 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Exception\CalculatingFileSizeFailedException;
-use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
-use OneToMany\DataUri\Exception\DecodingDataFailedException;
-use OneToMany\DataUri\Exception\EmptyDataProvidedException;
-use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
-use OneToMany\DataUri\Exception\GeneratingHashFailedException;
-use OneToMany\DataUri\Exception\InvalidBase64EncodedDataUriException;
-use OneToMany\DataUri\Exception\InvalidFilePathException;
-use OneToMany\DataUri\Exception\InvalidHashAlgorithmException;
-use OneToMany\DataUri\Exception\InvalidRfc2397EncodedDataUriException;
-use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
-use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedCalculatingFileSizeFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
+use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
+use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
+use OneToMany\DataUri\Exception\ProcessingFailedGeneratingExtensionFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedGeneratingHashFailedException;
+use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
+use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
+use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
+use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
+use OneToMany\DataUri\Exception\ProcessingFailedRenamingTemporaryFileFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -43,14 +43,14 @@ function parse_data(
     string $hashAlgorithm = 'sha256',
     ?Filesystem $filesystem = null,
 ): DataUri {
+    if (!in_array($hashAlgorithm, hash_algos())) {
+        throw new ParsingFailedInvalidHashAlgorithmProvidedException($hashAlgorithm);
+    }
+
     $data = trim((string) $data);
 
     if (empty($data)) {
-        throw new EmptyDataProvidedException();
-    }
-
-    if (!in_array($hashAlgorithm, hash_algos())) {
-        throw new InvalidHashAlgorithmException($hashAlgorithm);
+        throw new ParsingFailedEmptyDataProvidedException();
     }
 
     $fileBytes = null;
@@ -61,7 +61,7 @@ function parse_data(
         $bits = explode(',', substr($data, 5));
 
         if (2 !== count($bits)) {
-            throw new InvalidRfc2397EncodedDataUriException();
+            throw new ParsingFailedInvalidRfc2397EncodedDataException();
         }
 
         $mediaType = strtolower(
@@ -75,7 +75,7 @@ function parse_data(
             $fileBytes = base64_decode($fileBytes);
 
             if (!$fileBytes) {
-                throw new InvalidBase64EncodedDataUriException();
+                throw new ParsingFailedInvalidBase64EncodedDataException();
             }
         }
     }
@@ -89,11 +89,11 @@ function parse_data(
             $fileBytes = $filesystem->readFile($data);
         }
     } catch (IOExceptionInterface $e) {
-        throw new InvalidFilePathException($e);
+        throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
     }
 
     if (empty($fileBytes)) {
-        throw new DecodingDataFailedException();
+        throw new ParsingFailedInvalidDataProvidedException();
     }
 
     try {
@@ -104,19 +104,19 @@ function parse_data(
         // file itself determine actual the extension and media type.
         $tempPath = $filesystem->tempnam($tempDir, '__1n__datauri_');
     } catch (IOExceptionInterface $e) {
-        throw new CreatingTemporaryFileFailedException($tempDir, $e);
+        throw new ProcessingFailedTemporaryFileNotWrittenException($tempDir, $e);
     }
 
     try {
         // Write the bytes to the temporary file
         $filesystem->dumpFile($tempPath, $fileBytes);
     } catch (IOExceptionInterface $e) {
-        _cleanup_safely($tempPath, new WritingTemporaryFileFailedException($tempPath, $e));
+        _cleanup_safely($tempPath, new ProcessingFailedWritingTemporaryFileFailedException($tempPath, $e));
     }
 
     // Use Fileinfo to inspect the actual file to determine the extension
     if (!$tempExtension = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
-        _cleanup_safely($tempPath, new GeneratingExtensionFailedException($tempPath));
+        _cleanup_safely($tempPath, new ProcessingFailedGeneratingExtensionFailedException($tempPath));
     }
 
     // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
@@ -138,7 +138,7 @@ function parse_data(
         // Rename the temporary file with the extension
         $filesystem->rename($tempPath, $filePath, true);
     } catch (IOExceptionInterface $e) {
-        _cleanup_safely($tempPath, new RenamingTemporaryFileFailedException($tempPath, $filePath, $e));
+        _cleanup_safely($tempPath, new ProcessingFailedRenamingTemporaryFileFailedException($tempPath, $filePath, $e));
     }
 
     try {
@@ -146,12 +146,12 @@ function parse_data(
         // user to determine if this file is unique or not
         $fingerprint = hash($hashAlgorithm, $fileBytes, false);
     } catch (\ValueError $e) {
-        _cleanup_safely($filePath, new GeneratingHashFailedException($filePath, $hashAlgorithm, $e));
+        _cleanup_safely($filePath, new ProcessingFailedGeneratingHashFailedException($filePath, $hashAlgorithm, $e));
     }
 
     // Calculate the filesize in bytes
     if (false === $byteCount = filesize($filePath)) {
-        _cleanup_safely($filePath, new CalculatingFileSizeFailedException($filePath));
+        _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
     // Generate a random name for the remote key
@@ -170,8 +170,10 @@ function parse_data(
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
 {
-    if (file_exists($filePath)) {
-        @unlink($filePath);
+    if (\strlen($filePath) <= \PHP_MAXPATHLEN) {
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+        }
     }
 
     throw $exception;
