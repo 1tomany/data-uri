@@ -4,15 +4,18 @@ namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Exception\CalculatingFileSizeFailedException;
 use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
+use OneToMany\DataUri\Exception\InvalidBase64EncodedDataUriException;
 use OneToMany\DataUri\Exception\DecodingDataFailedException;
+use OneToMany\DataUri\Exception\EmptyDataProvidedException;
 use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
 use OneToMany\DataUri\Exception\GeneratingHashFailedException;
+use OneToMany\DataUri\Exception\InvalidFilePathException;
+use OneToMany\DataUri\Exception\InvalidRfc2397EncodedDataUriException;
 use OneToMany\DataUri\Exception\InvalidHashAlgorithmException;
 use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
 function parse_data(
     ?string $data,
@@ -20,10 +23,10 @@ function parse_data(
     string $hashAlgorithm = 'sha256',
     ?Filesystem $filesystem = null,
 ): DataUri {
-    $data = \is_string($data) ? \trim($data) : null;
+    $data = \trim((string) $data);
 
     if (empty($data)) {
-        throw new DecodingDataFailedException();
+        throw new EmptyDataProvidedException();
     }
 
     if (!\in_array($hashAlgorithm, \hash_algos())) {
@@ -32,28 +35,29 @@ function parse_data(
 
     $fileBytes = null;
 
-    // Loosely attempt to match on the RFC 2937 Data URI scheme
-    if (\preg_match('/^(data:)(.+)?,(.+)$/i', $data, $matches)) {
-        $isBase64Encoded = false;
+    // Attempt to match on RFC2397 scheme
+    $isLikelyRfc2397EncodedDataUri = (
+        0 === \stripos($data, 'data:') &&
+        1 === \substr_count($data, ',')
+    );
 
-        if (!empty($matches[2]) && \str_contains($matches[2], ';')) {
-            $mediaTypeBits = \explode(';', \strtolower($matches[2]));
+    if (true === $isLikelyRfc2397EncodedDataUri) {
+        // Trim the prefix and split on the comma
+        $bits = \explode(',', \substr($data, 5));
 
-            /** @var ?non-empty-string $encodingType */
-            $encodingType = \array_pop($mediaTypeBits);
-
-            if ('base64' === $encodingType) {
-                $isBase64Encoded = true;
-            }
+        if (2 !== \count($bits)) {
+            throw new InvalidRfc2397EncodedDataUriException();
         }
 
-        $fileBytes = \trim($matches[3]);
+        $mediaType = \trim($bits[0]);
+        $fileBytes = \trim($bits[1]);
 
-        if ($isBase64Encoded && !empty($fileBytes)) {
+        // Attempt to decode the string with base64
+        if (\str_ends_with($mediaType, ';base64')) {
             $fileBytes = \base64_decode($fileBytes);
 
-            if (false === $fileBytes || empty($fileBytes)) {
-                throw new DecodingDataFailedException();
+            if (false === $fileBytes) {
+                throw new InvalidBase64EncodedDataUriException();
             }
         }
     }
@@ -67,7 +71,7 @@ function parse_data(
             $fileBytes = $filesystem->readFile($data);
         }
     } catch (IOExceptionInterface $e) {
-        throw new DecodingDataFailedException($e);
+        throw new InvalidFilePathException($e);
     }
 
     if (empty($fileBytes)) {

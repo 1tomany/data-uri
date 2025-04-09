@@ -6,6 +6,6 @@ final class InvalidHashAlgorithmException extends \RuntimeException implements E
 {
     public function __construct(string $hashAlgorithm)
     {
-        parent::__construct(\sprintf('The hash algorithm "%s" is not valid and can not be used.', $hashAlgorithm));
+        parent::__construct(\sprintf('The hash algorithm "%s" is not valid.', $hashAlgorithm));
     }
 }
