@@ -36,7 +36,7 @@ final readonly class DataUri implements \Stringable
             return \basename($this->filePath);
         }
 
-        throw new class(\sprintf('The property "%s" is invalid.', $name)) extends \InvalidArgumentException implements ExceptionInterface { };
+        throw new class(\sprintf('The property "%s" is invalid.', $name)) extends \InvalidArgumentException implements ExceptionInterface {};
     }
 
     public function __toString(): string
