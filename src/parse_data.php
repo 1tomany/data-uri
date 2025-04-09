@@ -54,7 +54,7 @@ function parse_data(
         if (\str_ends_with($mediaType, ';base64')) {
             $fileBytes = \base64_decode($fileBytes);
 
-            if (false === $fileBytes) {
+            if (!$fileBytes) {
                 throw new InvalidBase64EncodedDataUriException();
             }
         }
