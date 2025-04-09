@@ -35,7 +35,7 @@ function parse_data(
 
     $fileBytes = null;
 
-    // Attempt to match on RFC2397 scheme
+    // Match on the RFC2397 data URL scheme
     if (0 === \stripos($data, 'data:')) {
         // Trim the prefix and split on the comma
         $bits = \explode(',', \substr($data, 5));
@@ -44,8 +44,11 @@ function parse_data(
             throw new InvalidRfc2397EncodedDataUriException();
         }
 
-        $mediaType = \trim($bits[0]);
-        $fileBytes = \trim($bits[1]);
+        $mediaType = \strtolower(
+            \trim(\array_shift($bits))
+        );
+
+        $fileBytes = \trim(\array_shift($bits));
 
         // Attempt to decode the string with base64
         if (\str_ends_with($mediaType, ';base64')) {
