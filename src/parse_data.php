@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri;
 
+use finfo;
 use OneToMany\DataUri\Exception\CalculatingFileSizeFailedException;
 use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\DecodingDataFailedException;
@@ -16,6 +17,27 @@ use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Throwable;
+use ValueError;
+
+use function array_shift;
+use function base64_decode;
+use function bin2hex;
+use function count;
+use function explode;
+use function file_exists;
+use function filesize;
+use function hash_algos;
+use function in_array;
+use function mime_content_type;
+use function random_bytes;
+use function str_ends_with;
+use function stripos;
+use function strtolower;
+use function substr;
+use function trim;
+
+use const FILEINFO_EXTENSION;
 
 function parse_data(
     ?string $data,
@@ -23,36 +45,36 @@ function parse_data(
     string $hashAlgorithm = 'sha256',
     ?Filesystem $filesystem = null,
 ): DataUri {
-    $data = \trim((string) $data);
+    $data = trim((string) $data);
 
     if (empty($data)) {
         throw new EmptyDataProvidedException();
     }
 
-    if (!\in_array($hashAlgorithm, \hash_algos())) {
+    if (!in_array($hashAlgorithm, hash_algos())) {
         throw new InvalidHashAlgorithmException($hashAlgorithm);
     }
 
     $fileBytes = null;
 
     // Match on the RFC2397 data URL scheme
-    if (0 === \stripos($data, 'data:')) {
+    if (0 === stripos($data, 'data:')) {
         // Trim the prefix and split on the comma
-        $bits = \explode(',', \substr($data, 5));
+        $bits = explode(',', substr($data, 5));
 
-        if (2 !== \count($bits)) {
+        if (2 !== count($bits)) {
             throw new InvalidRfc2397EncodedDataUriException();
         }
 
-        $mediaType = \strtolower(
-            \trim(\array_shift($bits))
+        $mediaType = strtolower(
+            trim(array_shift($bits))
         );
 
-        $fileBytes = \trim(\array_shift($bits));
+        $fileBytes = trim(array_shift($bits));
 
         // Attempt to decode the string with base64
-        if (\str_ends_with($mediaType, ';base64')) {
-            $fileBytes = \base64_decode($fileBytes);
+        if (str_ends_with($mediaType, ';base64')) {
+            $fileBytes = base64_decode($fileBytes);
 
             if (!$fileBytes) {
                 throw new InvalidBase64EncodedDataUriException();
@@ -95,26 +117,25 @@ function parse_data(
     }
 
     // Use Fileinfo to inspect the actual file to determine the extension
-    if (!$tempExtension = new \finfo(\FILEINFO_EXTENSION)->file($tempPath)) {
+    if (!$tempExtension = new finfo(FILEINFO_EXTENSION)->file($tempPath)) {
         _cleanup_safely($tempPath, new GeneratingExtensionFailedException($tempPath));
     }
 
     // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
-    $extension = \explode('/', \strtolower($tempExtension))[0];
+    $extension = explode('/', strtolower($tempExtension))[0];
 
     if ('???' === $extension) {
         $extension = 'bin';
     }
 
     // Determine the actual media type of the file
-    if (false === $mediaType = \mime_content_type($tempPath)) {
+    if (false === $mediaType = mime_content_type($tempPath)) {
         $mediaType = 'application/octet-stream';
     }
 
     try {
         // Generate path with the extension
         $filePath = $tempPath.'.'.$extension;
-        // $fileName = \basename($filePath);
 
         // Rename the temporary file with the extension
         $filesystem->rename($tempPath, $filePath, true);
@@ -126,33 +147,33 @@ function parse_data(
         // Generate a hash (or fingerprint) to allow the
         // user to determine if this file is unique or not
         $fingerprint = hash($hashAlgorithm, $fileBytes, false);
-    } catch (\ValueError $e) {
+    } catch (ValueError $e) {
         _cleanup_safely($filePath, new GeneratingHashFailedException($filePath, $hashAlgorithm, $e));
     }
 
     // Calculate the filesize in bytes
-    if (false === $byteCount = \filesize($filePath)) {
+    if (false === $byteCount = filesize($filePath)) {
         _cleanup_safely($filePath, new CalculatingFileSizeFailedException($filePath));
     }
 
     // Generate a random name for the remote key
-    $remoteKey = \bin2hex(\random_bytes(16)).'.'.$extension;
+    $remoteKey = bin2hex(random_bytes(16)).'.'.$extension;
 
-    if (!empty($prefix = \substr($fingerprint, 2, 2))) {
+    if (!empty($prefix = substr($fingerprint, 2, 2))) {
         $remoteKey = $prefix.'/'.$remoteKey;
     }
 
-    if (!empty($prefix = \substr($fingerprint, 0, 2))) {
+    if (!empty($prefix = substr($fingerprint, 0, 2))) {
         $remoteKey = $prefix.'/'.$remoteKey;
     }
 
     return new DataUri($fingerprint, $mediaType, $byteCount, $filePath, $extension, $remoteKey);
 }
 
-function _cleanup_safely(string $filePath, \Throwable $exception): never
+function _cleanup_safely(string $filePath, Throwable $exception): never
 {
-    if (\file_exists($filePath)) {
-        @\unlink($filePath);
+    if (file_exists($filePath)) {
+        @unlink($filePath);
     }
 
     throw $exception;

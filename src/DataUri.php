@@ -8,7 +8,7 @@ use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * @property-read string $fileName
+ * @property string $fileName
  */
 final readonly class DataUri implements \Stringable
 {
