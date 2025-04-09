@@ -2,17 +2,17 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Exception\ProcessingFailedCalculatingFileSizeFailedException;
-use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
-use OneToMany\DataUri\Exception\ProcessingFailedGeneratingExtensionFailedException;
-use OneToMany\DataUri\Exception\ProcessingFailedGeneratingHashFailedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
+use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
+use OneToMany\DataUri\Exception\ProcessingFailedCalculatingFileSizeFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedGeneratingExtensionFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedGeneratingHashFailedException;
 use OneToMany\DataUri\Exception\ProcessingFailedRenamingTemporaryFileFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -31,11 +31,13 @@ use function mime_content_type;
 use function random_bytes;
 use function str_ends_with;
 use function stripos;
+use function strlen;
 use function strtolower;
 use function substr;
 use function trim;
 
 use const FILEINFO_EXTENSION;
+use const PHP_MAXPATHLEN;
 
 function parse_data(
     ?string $data,
@@ -170,7 +172,7 @@ function parse_data(
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
 {
-    if (\strlen($filePath) <= \PHP_MAXPATHLEN) {
+    if (strlen($filePath) <= PHP_MAXPATHLEN) {
         if (file_exists($filePath)) {
             @unlink($filePath);
         }
