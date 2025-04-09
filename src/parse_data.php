@@ -4,14 +4,14 @@ namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Exception\CalculatingFileSizeFailedException;
 use OneToMany\DataUri\Exception\CreatingTemporaryFileFailedException;
-use OneToMany\DataUri\Exception\InvalidBase64EncodedDataUriException;
 use OneToMany\DataUri\Exception\DecodingDataFailedException;
 use OneToMany\DataUri\Exception\EmptyDataProvidedException;
 use OneToMany\DataUri\Exception\GeneratingExtensionFailedException;
 use OneToMany\DataUri\Exception\GeneratingHashFailedException;
+use OneToMany\DataUri\Exception\InvalidBase64EncodedDataUriException;
 use OneToMany\DataUri\Exception\InvalidFilePathException;
-use OneToMany\DataUri\Exception\InvalidRfc2397EncodedDataUriException;
 use OneToMany\DataUri\Exception\InvalidHashAlgorithmException;
+use OneToMany\DataUri\Exception\InvalidRfc2397EncodedDataUriException;
 use OneToMany\DataUri\Exception\RenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\WritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
@@ -36,12 +36,7 @@ function parse_data(
     $fileBytes = null;
 
     // Attempt to match on RFC2397 scheme
-    $isLikelyRfc2397EncodedDataUri = (
-        0 === \stripos($data, 'data:') &&
-        1 === \substr_count($data, ',')
-    );
-
-    if (true === $isLikelyRfc2397EncodedDataUri) {
+    if (0 === \stripos($data, 'data:')) {
         // Trim the prefix and split on the comma
         $bits = \explode(',', \substr($data, 5));
 
