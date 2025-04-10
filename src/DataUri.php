@@ -9,7 +9,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use function base64_encode;
 use function sprintf;
 
-final readonly class DataUri implements \Stringable
+readonly class DataUri implements \Stringable
 {
     public function __construct(
         public string $fingerprint,
