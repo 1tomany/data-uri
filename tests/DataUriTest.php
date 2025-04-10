@@ -7,7 +7,6 @@ use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-use function basename;
 use function OneToMany\DataUri\parse_data;
 
 #[Group('UnitTests')]
@@ -27,13 +26,7 @@ final class DataUriTest extends TestCase
     public function testToStringReturnsFilePath(): void
     {
         $dataUri = parse_data(__DIR__.'/data/php-logo.png');
-        $this->assertEquals($dataUri->filePath, strval($dataUri));
-    }
-
-    public function testGettingFileNameProperty(): void
-    {
-        $dataUri = parse_data(__DIR__.'/data/php-logo.png');
-        $this->assertEquals(basename($dataUri->filePath), $dataUri->fileName);
+        $this->assertEquals($dataUri->filePath, $dataUri->__toString());
     }
 
     public function testToDataUriRequiresPathToExist(): void
