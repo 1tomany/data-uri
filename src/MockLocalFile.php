@@ -9,7 +9,7 @@ use function random_bytes;
 use function random_int;
 use function sys_get_temp_dir;
 
-final readonly class MockDataUri extends DataUri
+final readonly class MockLocalFile extends LocalFile
 {
     private const int MIN_BYTES = 1024; // 1KB
     private const int MAX_BYTES = 4_194_304; // 4MB

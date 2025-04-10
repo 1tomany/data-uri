@@ -44,7 +44,7 @@ function parse_data(
     ?string $tempDir = null,
     string $hashAlgorithm = 'sha256',
     ?Filesystem $filesystem = null,
-): DataUri {
+): LocalFile {
     if (!in_array($hashAlgorithm, hash_algos())) {
         throw new ParsingFailedInvalidHashAlgorithmProvidedException($hashAlgorithm);
     }
@@ -167,7 +167,7 @@ function parse_data(
         $remoteKey = $prefix.'/'.$remoteKey;
     }
 
-    return new DataUri($fingerprint, $mediaType, $byteCount, $filePath, basename($filePath), $extension, $remoteKey);
+    return new LocalFile($fingerprint, $mediaType, $byteCount, $filePath, basename($filePath), $extension, $remoteKey);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
