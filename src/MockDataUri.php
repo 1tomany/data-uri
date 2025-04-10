@@ -2,8 +2,18 @@
 
 namespace OneToMany\DataUri;
 
+use function array_rand;
+use function bin2hex;
+use function hash;
+use function random_bytes;
+use function random_int;
+use function sys_get_temp_dir;
+
 final readonly class MockDataUri extends DataUri
 {
+    private const int MIN_BYTES = 1024; // 1KB
+    private const int MAX_BYTES = 4_194_304; // 4MB
+
     private const array MIME_TYPES = [
         'gif' => 'image/gif',
         'jpg' => 'image/jpeg',
@@ -22,27 +32,28 @@ final readonly class MockDataUri extends DataUri
         ?string $extension = null,
         ?string $remoteKey = null,
     ) {
-        $bytes = \bin2hex(\random_bytes(16));
+        $fingerprint = $fingerprint ?? hash(
+            'sha256', random_bytes(16)
+        );
 
-        $fingerprint ??= \hash('sha256', $bytes);
-        $byteCount ??= \random_int(128, 4194304);
-        $extension ??= \array_rand(self::MIME_TYPES);
+        $byteCount = $byteCount ?? random_int(
+            self::MIN_BYTES, self::MAX_BYTES
+        );
+
+        $extension ??= array_rand(self::MIME_TYPES);
         $mediaType ??= self::MIME_TYPES[$extension];
 
-        $filePath ??= \vsprintf('/tmp/%s.%s', [
-            $bytes, $extension,
+        $fileName = $fileName ?? implode('.', [
+            bin2hex(random_bytes(8)), $extension,
         ]);
 
-        $fileName ??= \basename($filePath);
+        $filePath = $filePath ?? implode('/', [
+            sys_get_temp_dir(), $fileName,
+        ]);
 
-        if (null === $remoteKey) {
-            $prefix1 = \substr($fingerprint, 0, 2);
-            $prefix2 = \substr($fingerprint, 2, 2);
-
-            $remoteKey = \vsprintf('%s/%s/%s', [
-                $prefix1, $prefix2, $fileName,
-            ]);
-        }
+        $remoteKey = $remoteKey ?? implode('/', [
+            $fingerprint[0], $fingerprint[1], $fileName,
+        ]);
 
         parent::__construct($fingerprint, $mediaType, $byteCount, $filePath, $fileName, $extension, $remoteKey);
     }
