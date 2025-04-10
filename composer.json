@@ -18,7 +18,6 @@
         "symfony/filesystem": "^7.2"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.24",
         "friendsofphp/php-cs-fixer": "^3.74",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5"
