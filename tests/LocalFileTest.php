@@ -2,8 +2,8 @@
 
 namespace OneToMany\DataUri\Tests;
 
-use OneToMany\DataUri\LocalFile;
 use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
+use OneToMany\DataUri\LocalFile;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
