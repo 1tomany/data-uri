@@ -20,15 +20,14 @@ use Symfony\Component\Filesystem\Filesystem;
 use function array_shift;
 use function base64_decode;
 use function basename;
-use function bin2hex;
 use function count;
 use function explode;
 use function file_exists;
 use function filesize;
 use function hash_algos;
+use function implode;
 use function in_array;
 use function mime_content_type;
-use function random_bytes;
 use function str_ends_with;
 use function stripos;
 use function strlen;
@@ -156,18 +155,14 @@ function parse_data(
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    // Generate a random name for the remote key
-    $remoteKey = bin2hex(random_bytes(16)).'.'.$extension;
+    // Generate a bucketed key using the fingerprint
+    $key = implode('.', [$fingerprint, $extension]);
 
-    if (!empty($prefix = substr($fingerprint, 2, 2))) {
-        $remoteKey = $prefix.'/'.$remoteKey;
-    }
+    $bucketedRemoteKey = vsprintf('%s%s/%s%s/%s', [
+        $key[0], $key[1], $key[2], $key[3], $key,
+    ]);
 
-    if (!empty($prefix = substr($fingerprint, 0, 2))) {
-        $remoteKey = $prefix.'/'.$remoteKey;
-    }
-
-    return new LocalFile($fingerprint, $mediaType, $byteCount, $filePath, basename($filePath), $extension, $remoteKey);
+    return new LocalFile($fingerprint, $mediaType, $byteCount, $filePath, basename($filePath), $extension, $bucketedRemoteKey);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
