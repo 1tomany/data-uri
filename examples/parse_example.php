@@ -13,13 +13,13 @@ $file = \OneToMany\DataUri\parse_data(
 print_r($data);
 print_r($file);
 
-// Loose equality compares the hashes
+// Loose equality compares the fingerprints
 assert($data->equals($file));
 assert($file->equals($data));
 
-// Strict equality compares the paths too
+// Strict equality compares both the fingerprints and filepaths
 assert(false === $data->equals($file, true));
 assert(false === $file->equals($data, true));
 
-// Invoke destructors to delete temp file
+// Invokes destructors to delete temporary files
 unset($data, $file);
