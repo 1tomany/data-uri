@@ -20,13 +20,11 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function array_shift;
 use function base64_decode;
-use function basename;
 use function count;
 use function explode;
 use function file_exists;
 use function filesize;
 use function hash_algos;
-use function implode;
 use function in_array;
 use function mime_content_type;
 use function str_ends_with;
