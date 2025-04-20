@@ -14,6 +14,7 @@ use OneToMany\DataUri\Exception\ProcessingFailedGeneratingHashFailedException;
 use OneToMany\DataUri\Exception\ProcessingFailedRenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedException;
+use OneToMany\SmartFile\SmartFile;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -43,7 +44,7 @@ function parse_data(
     ?string $tempDir = null,
     string $hashAlgorithm = 'sha256',
     ?Filesystem $filesystem = null,
-): LocalFile {
+): SmartFile {
     if (!in_array($hashAlgorithm, hash_algos())) {
         throw new ParsingFailedInvalidHashAlgorithmProvidedException($hashAlgorithm);
     }
@@ -155,14 +156,7 @@ function parse_data(
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    // Generate a bucketed key using the fingerprint
-    $key = implode('.', [$fingerprint, $extension]);
-
-    $bucketedRemoteKey = vsprintf('%s%s/%s%s/%s', [
-        $key[0], $key[1], $key[2], $key[3], $key,
-    ]);
-
-    return new LocalFile($fingerprint, $mediaType, $byteCount, $filePath, basename($filePath), $extension, $bucketedRemoteKey);
+    return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, true, true);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
