@@ -14,7 +14,6 @@ use OneToMany\DataUri\Exception\ProcessingFailedGeneratingHashFailedException;
 use OneToMany\DataUri\Exception\ProcessingFailedRenamingTemporaryFileFailedException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedException;
-use OneToMany\SmartFile\SmartFile;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
