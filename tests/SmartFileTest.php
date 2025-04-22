@@ -10,8 +10,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 use function OneToMany\DataUri\parse_data;
-use function sys_get_temp_dir;
-use function tempnam;
+use function unlink;
 
 #[Group('UnitTests')]
 final class SmartFileTest extends TestCase
@@ -39,26 +38,20 @@ final class SmartFileTest extends TestCase
 
     public function testDestructorDeletesTemporaryFileWhenSelfDestructIsTrue(): void
     {
-        $filePath = tempnam(sys_get_temp_dir(), '__1n__smart_file_');
-
-        $this->assertIsString($filePath);
-        $this->assertFileExists($filePath);
-
-        $file = new SmartFile(...[
-            'filePath' => $filePath,
-            'fingerprint' => 'fingerprint',
-            'mediaType' => 'text/plain',
-        ]);
+        $file = parse_data(__DIR__.'/data/php-logo.png');
 
         $this->assertTrue($file->selfDestruct);
+        $this->assertFileExists($file->filePath);
 
         $file->__destruct();
-        $this->assertFileDoesNotExist($filePath);
+        $this->assertFileDoesNotExist($file->filePath);
     }
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
     {
         $file = parse_data(__DIR__.'/data/php-logo.png');
+
+        $this->assertTrue($file->selfDestruct);
         $this->assertFileExists($file->filePath);
 
         unlink($file->filePath);
@@ -66,6 +59,19 @@ final class SmartFileTest extends TestCase
 
         $file->__destruct();
         $this->assertFileDoesNotExist($file->filePath);
+    }
+
+    public function testDestructorDoesNotDeleteTemporaryFileWhenSelfDestructIsFalse(): void
+    {
+        $file = parse_data(__DIR__.'/data/php-logo.png', selfDestruct: false);
+
+        $this->assertFalse($file->selfDestruct);
+        $this->assertFileExists($file->filePath);
+
+        $file->__destruct();
+        $this->assertFileExists($file->filePath);
+
+        unlink($file->filePath);
     }
 
     public function testToStringReturnsFilePath(): void

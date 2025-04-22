@@ -68,7 +68,7 @@ final class ParseDataTest extends TestCase
                 new IOException('Error')
             );
 
-        parse_data(__DIR__.'/data/php-logo.png', null, 'sha256', $filesystem);
+        parse_data(__DIR__.'/data/php-logo.png', null, 'sha256', true, $filesystem);
     }
 
     public function testParsingDataRequiresValidDataUrlSchemeOrValidFilePath(): void
@@ -93,7 +93,7 @@ final class ParseDataTest extends TestCase
                 new IOException('Error')
             );
 
-        parse_data('data:text/plain,Test%20data', null, 'sha256', $filesystem);
+        parse_data('data:text/plain,Test%20data', null, 'sha256', true, $filesystem);
     }
 
     #[DataProvider('providerFilePath')]

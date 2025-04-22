@@ -40,6 +40,7 @@ function parse_data(
     ?string $data,
     ?string $tempDir = null,
     string $hashAlgorithm = 'sha256',
+    bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFile {
     if (!in_array($hashAlgorithm, hash_algos())) {
@@ -153,7 +154,7 @@ function parse_data(
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, true, true);
+    return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, true, $selfDestruct);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
