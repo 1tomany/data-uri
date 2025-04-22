@@ -15,7 +15,6 @@
     "require": {
         "php": ">=8.4",
         "ext-fileinfo": "*",
-        "1tomany/smart-file": "^0.0.1",
         "symfony/filesystem": "^7.2"
     },
     "require-dev": {
