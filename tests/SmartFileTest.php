@@ -9,6 +9,7 @@ use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
+use function OneToMany\DataUri\parse_data;
 use function sys_get_temp_dir;
 use function tempnam;
 
@@ -53,6 +54,18 @@ final class SmartFileTest extends TestCase
 
         $file->__destruct();
         $this->assertFileDoesNotExist($filePath);
+    }
+
+    public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
+    {
+        $file = parse_data(__DIR__.'/data/php-logo.png');
+        $this->assertFileExists($file->filePath);
+
+        unlink($file->filePath);
+        $this->assertFileDoesNotExist($file->filePath);
+
+        $file->__destruct();
+        $this->assertFileDoesNotExist($file->filePath);
     }
 
     public function testToStringReturnsFilePath(): void
