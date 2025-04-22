@@ -107,6 +107,9 @@ final class ParseDataTest extends TestCase
         unset($file);
     }
 
+    /**
+     * @return list<list<non-empty-string>>
+     */
     public static function providerFilePath(): array
     {
         $prefix = __DIR__.'/data';
