@@ -1,7 +1,7 @@
 # Data URI Parser for PHP
 This simple library exposes a single function, `OneToMany\DataUri\parse_data()` that allows you to easily parse base64 encoded data URIs or valid file paths. During parsing, a temporary, uniquely named file will be stored on the local filesystem and an immutable value object of type `OneToMany\DataUri\SmartFile` will be created and returned.
 
-By default, instances of the `SmartFile` object will attempt to delete the temporary file it references upon object destruction.
+By default, instances of the `SmartFile` object will attempt to delete the temporary file it references upon object destruction. You can change this behavior by setting the `$selfDestruct` argument of the `SmartFile` constructor or `parse_data()` function to `false`.
 
 ## Installation
 ```
