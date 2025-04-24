@@ -17,7 +17,6 @@ use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedExcept
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
-use function array_shift;
 use function base64_decode;
 use function count;
 use function explode;
@@ -30,6 +29,7 @@ use function str_ends_with;
 use function stripos;
 use function strlen;
 use function strtolower;
+use function strval;
 use function substr;
 use function trim;
 
@@ -40,6 +40,7 @@ function parse_data(
     ?string $data,
     ?string $tempDir = null,
     string $hashAlgorithm = 'sha256',
+    bool $deleteOriginalFile = false,
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFile {
@@ -47,52 +48,51 @@ function parse_data(
         throw new ParsingFailedInvalidHashAlgorithmProvidedException($hashAlgorithm);
     }
 
-    $data = trim((string) $data);
+    $data = trim(strval($data));
 
     if (empty($data)) {
         throw new ParsingFailedEmptyDataProvidedException();
     }
 
-    $fileBytes = null;
+    $dataUriBytes = $localFileBytes = null;
 
-    // Match on the RFC2397 data URL scheme
+    // Attempt to match the RFC2397 scheme
     if (0 === stripos($data, 'data:')) {
-        // Trim the prefix and split on the comma
-        $bits = explode(',', substr($data, 5));
+        // Remove "data:" prefix
+        $dataBits = explode(',', substr($data, 5));
 
-        if (2 !== count($bits)) {
+        if (2 !== count($dataBits)) {
             throw new ParsingFailedInvalidRfc2397EncodedDataException();
         }
 
-        $mediaType = strtolower(
-            trim(array_shift($bits))
-        );
-
-        $fileBytes = trim(array_shift($bits));
-
-        // Attempt to decode the string with base64
-        if (str_ends_with($mediaType, ';base64')) {
-            $fileBytes = base64_decode($fileBytes);
-
-            if (!$fileBytes) {
+        // Attempt to decode the data byte string with base64
+        if (str_ends_with(strtolower($dataBits[0]), ';base64')) {
+            if (!$dataUriBytes = base64_decode($dataBits[1], true)) {
                 throw new ParsingFailedInvalidBase64EncodedDataException();
             }
+        } else {
+            $dataUriBytes = trim($dataBits[1]);
         }
+
+        unset($dataBits);
     }
 
     $filesystem ??= new Filesystem();
 
     try {
-        // If the data was not encoded as a URI, check
-        // to see if it is a path to an existing file.
-        if (empty($fileBytes) && $filesystem->exists($data)) {
-            $fileBytes = $filesystem->readFile($data);
+        // Attempt to load the data from the local filesystem
+        if (null === $dataUriBytes && $filesystem->exists($data)) {
+            $localFileBytes = $filesystem->readFile($data);
         }
     } catch (IOExceptionInterface $e) {
         throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
+    } finally {
+        if (true === $deleteOriginalFile) {
+            $filesystem->remove($data);
+        }
     }
 
-    if (empty($fileBytes)) {
+    if (null === $dataUriBytes && null === $localFileBytes) {
         throw new ParsingFailedInvalidDataProvidedException();
     }
 
@@ -106,6 +106,8 @@ function parse_data(
     } catch (IOExceptionInterface $e) {
         throw new ProcessingFailedTemporaryFileNotWrittenException($tempDir, $e);
     }
+
+    $fileBytes = $dataUriBytes ?? $localFileBytes;
 
     try {
         // Write the bytes to the temporary file

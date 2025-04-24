@@ -16,6 +16,8 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function OneToMany\DataUri\parse_data;
+use function sys_get_temp_dir;
+use function tempnam;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends TestCase
@@ -45,7 +47,7 @@ final class ParseDataTest extends TestCase
     {
         $this->expectException(ParsingFailedInvalidBase64EncodedDataException::class);
 
-        parse_data('data:image/png;base64, ');
+        parse_data('data:image/png;base64,ümlaut');
     }
 
     public function testParsingDataRequiresReadableFileToExist(): void
@@ -68,7 +70,7 @@ final class ParseDataTest extends TestCase
                 new IOException('Error')
             );
 
-        parse_data(__DIR__.'/data/php-logo.png', null, 'sha256', true, $filesystem);
+        parse_data(__DIR__.'/data/php-logo.png', null, 'sha256', false, true, $filesystem);
     }
 
     public function testParsingDataRequiresValidDataUrlSchemeOrValidFilePath(): void
@@ -93,7 +95,7 @@ final class ParseDataTest extends TestCase
                 new IOException('Error')
             );
 
-        parse_data('data:text/plain,Test%20data', null, 'sha256', true, $filesystem);
+        parse_data('data:text/plain,Test%20data', null, 'sha256', false, true, $filesystem);
     }
 
     #[DataProvider('providerFilePath')]
@@ -103,6 +105,21 @@ final class ParseDataTest extends TestCase
 
         $this->assertFileExists($file->filePath);
         $this->assertFileEquals($filePath, $file->filePath);
+
+        unset($file);
+    }
+
+    public function testParsingDataAsFilePathCanDeleteOriginalFile(): void
+    {
+        $filePath = tempnam(sys_get_temp_dir(), '__1n__datauri_test_');
+
+        $this->assertIsString($filePath);
+        $this->assertFileExists($filePath);
+
+        $file = parse_data(data: $filePath, deleteOriginalFile: true);
+
+        $this->assertFileExists($file->filePath);
+        $this->assertFileDoesNotExist($filePath);
 
         unset($file);
     }
