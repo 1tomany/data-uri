@@ -70,7 +70,7 @@ final class ParseDataTest extends TestCase
                 new IOException('Error')
             );
 
-        parse_data(__DIR__.'/data/php-logo.png', null, 'sha256', false, true, $filesystem);
+        parse_data(data: __DIR__.'/data/php-logo.png', filesystem: $filesystem);
     }
 
     public function testParsingDataRequiresValidDataUrlSchemeOrValidFilePath(): void
@@ -95,7 +95,7 @@ final class ParseDataTest extends TestCase
                 new IOException('Error')
             );
 
-        parse_data('data:text/plain,Test%20data', null, 'sha256', false, true, $filesystem);
+        parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
     }
 
     #[DataProvider('providerFilePath')]
@@ -105,6 +105,19 @@ final class ParseDataTest extends TestCase
 
         $this->assertFileExists($file->filePath);
         $this->assertFileEquals($filePath, $file->filePath);
+
+        unset($file);
+    }
+
+    public function testParsingDataCanBeForcedToBeDecodedAsBase64(): void
+    {
+        // 1x1 Transparent GIF
+        $data = 'R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+
+        $file = parse_data(data: $data, assumeBase64Data: true);
+
+        $this->assertFileExists($file->filePath);
+        $this->assertEquals('gif', $file->extension);
 
         unset($file);
     }

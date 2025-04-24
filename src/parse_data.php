@@ -25,6 +25,8 @@ use function filesize;
 use function hash_algos;
 use function in_array;
 use function mime_content_type;
+use function sprintf;
+use function str_contains;
 use function str_ends_with;
 use function stripos;
 use function strlen;
@@ -40,6 +42,7 @@ function parse_data(
     ?string $data,
     ?string $tempDir = null,
     string $hashAlgorithm = 'sha256',
+    bool $assumeBase64Data = false,
     bool $deleteOriginalFile = false,
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
@@ -56,22 +59,26 @@ function parse_data(
 
     $dataUriBytes = $localFileBytes = null;
 
+    if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
+        $data = sprintf('data:application/octet-stream;base64,%s', $data);
+    }
+
     // Attempt to match the RFC2397 scheme
-    if (0 === stripos($data, 'data:')) {
-        // Remove "data:" prefix
+    if (0 === stripos($data, 'data:') && str_contains($data, ',')) {
+        // Remove "data:" prefix and split on comma
         $dataBits = explode(',', substr($data, 5));
 
-        if (2 !== count($dataBits)) {
+        if (2 !== count($dataBits) || empty($dataBits[1])) {
             throw new ParsingFailedInvalidRfc2397EncodedDataException();
         }
+
+        $dataUriBytes = trim($dataBits[1]);
 
         // Attempt to decode the data byte string with base64
         if (str_ends_with(strtolower($dataBits[0]), ';base64')) {
             if (!$dataUriBytes = base64_decode($dataBits[1], true)) {
                 throw new ParsingFailedInvalidBase64EncodedDataException();
             }
-        } else {
-            $dataUriBytes = trim($dataBits[1]);
         }
 
         unset($dataBits);
