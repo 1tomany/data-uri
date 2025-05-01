@@ -16,6 +16,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function basename;
 use function OneToMany\DataUri\parse_data;
+use function rawurlencode;
 use function sys_get_temp_dir;
 use function tempnam;
 
@@ -87,6 +88,15 @@ final class ParseDataTest extends FileTestCase
             ->willThrowException(new IOException('Error'));
 
         parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
+    }
+
+    public function testParsingDataWithoutBase64EncodedIsDecodedAsAsciiText(): void
+    {
+        $text = 'Hello, PHP world!';
+        $data = rawurlencode($text);
+
+        $file = parse_data(data: 'data:text/plain,'.$data);
+        $this->assertStringEqualsFile($file->filePath, $text);
     }
 
     public function testParsingDataCanSetClientName(): void
