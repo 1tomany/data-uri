@@ -27,6 +27,7 @@ use function hash_algos;
 use function in_array;
 use function is_readable;
 use function mime_content_type;
+use function rawurldecode;
 use function sprintf;
 use function str_contains;
 use function str_ends_with;
@@ -83,7 +84,7 @@ function parse_data(
                 throw new ParsingFailedInvalidBase64EncodedDataException();
             }
         } else {
-            $dataUriBytes = \rawurldecode($dataBits[1]);
+            $dataUriBytes = rawurldecode($dataBits[1]);
         }
 
         unset($dataBits);
