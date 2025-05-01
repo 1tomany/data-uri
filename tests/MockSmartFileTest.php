@@ -20,6 +20,7 @@ final class MockSmartFileTest extends TestCase
         $this->assertNotEmpty($file->byteCount);
         $this->assertNotEmpty($file->filePath);
         $this->assertNotEmpty($file->fileName);
+        $this->assertNotEmpty($file->clientName);
         $this->assertNotEmpty($file->extension);
         $this->assertNotEmpty($file->remoteKey);
     }
@@ -35,5 +36,6 @@ final class MockSmartFileTest extends TestCase
 
         $this->assertEquals($filePath, $file->filePath);
         $this->assertEquals($fileName, $file->fileName);
+        $this->assertEquals($fileName, $file->clientName);
     }
 }

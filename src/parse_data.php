@@ -57,7 +57,7 @@ function parse_data(
         throw new ParsingFailedEmptyDataProvidedException();
     }
 
-    $dataUriBytes = $localFileBytes = null;
+    $dataUriBytes = $localFileBytes = $clientName = null;
 
     if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
         $data = sprintf('data:application/octet-stream;base64,%s', $data);
@@ -89,6 +89,7 @@ function parse_data(
     try {
         // Attempt to load the data from the local filesystem
         if (null === $dataUriBytes && $filesystem->exists($data)) {
+            $clientName = \basename($data);
             $localFileBytes = $filesystem->readFile($data);
         }
     } catch (IOExceptionInterface $e) {
@@ -163,7 +164,7 @@ function parse_data(
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, true, $selfDestruct);
+    return new SmartFile($filePath, $fingerprint, $mediaType, $clientName, $byteCount, true, $selfDestruct);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
