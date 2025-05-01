@@ -15,9 +15,9 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function basename;
-use function OneToMany\DataUri\parse_data;
 use function sys_get_temp_dir;
 use function tempnam;
+use function OneToMany\DataUri\parse_data;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends FileTestCase
@@ -89,15 +89,31 @@ final class ParseDataTest extends FileTestCase
         parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
     }
 
-    public function testParsingDataAsFilePathSetsClientName(): void
+    public function testParsingDataCanSetClientName(): void
     {
-        $file = parse_data($this->path);
-        $clientName = basename($this->path);
+        $name = 'HelloWorld.txt';
+        $file = parse_data(data: 'data:,Hello%20World', clientName: $name);
 
-        $this->assertEquals($clientName, $file->clientName);
-        $this->assertNotEquals($clientName, $file->fileName);
+        $this->assertEquals($name, $file->clientName);
+        $this->assertNotEquals($name, $file->fileName);
+    }
 
-        unset($file);
+    public function testParsingDataAsFilePathSetsClientNameWhenClientNameArgumentIsNull(): void
+    {
+        $name = basename($this->path);
+        $file = parse_data(data: $this->path, clientName: null);
+
+        $this->assertEquals($name, $file->clientName);
+        $this->assertNotEquals($name, $file->fileName);
+    }
+
+    public function testParsingDataAsFilePathCanHaveClientNameOverwritten(): void
+    {
+        $name = 'CustomFileName.bin';
+        $file = parse_data(data: $this->path, clientName: $name);
+
+        $this->assertEquals($name, $file->clientName);
+        $this->assertNotEquals($name, $file->fileName);
     }
 
     #[DataProvider('providerFilePath')]
@@ -107,8 +123,6 @@ final class ParseDataTest extends FileTestCase
 
         $this->assertFileExists($file->filePath);
         $this->assertFileEquals($filePath, $file->filePath);
-
-        unset($file);
     }
 
     /**
@@ -128,14 +142,10 @@ final class ParseDataTest extends FileTestCase
     public function testParsingDataCanBeForcedToBeDecodedAsBase64(): void
     {
         // 1x1 Transparent GIF
-        $data = 'R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
-
-        $file = parse_data(data: $data, assumeBase64Data: true);
+        $file = parse_data(data: 'R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', assumeBase64Data: true);
 
         $this->assertFileExists($file->filePath);
         $this->assertEquals('gif', $file->extension);
-
-        unset($file);
     }
 
     public function testParsingDataAsFilePathCanDeleteOriginalFile(): void
@@ -149,7 +159,5 @@ final class ParseDataTest extends FileTestCase
 
         $this->assertFileExists($file->filePath);
         $this->assertFileDoesNotExist($filePath);
-
-        unset($file);
     }
 }

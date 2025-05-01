@@ -9,8 +9,8 @@ use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 
 use function basename;
-use function OneToMany\DataUri\parse_data;
 use function unlink;
+use function OneToMany\DataUri\parse_data;
 
 #[Group('UnitTests')]
 final class SmartFileTest extends FileTestCase
@@ -92,7 +92,7 @@ final class SmartFileTest extends FileTestCase
 
     public function testToStringReturnsFilePath(): void
     {
-        $file = new SmartFile('file.txt', 'fingerprint1', 'text/plain', null, 0, false);
+        $file = new SmartFile('file.txt', 'fingerprint1', 'text/plain', 0, null, false);
 
         $this->assertEquals($file->filePath, $file->__toString());
     }
@@ -101,13 +101,13 @@ final class SmartFileTest extends FileTestCase
     {
         $this->expectException(EncodingFailedInvalidFilePathException::class);
 
-        new SmartFile('/invalid/path/1.txt', 'fingerprint', 'text/plain', null, 0, false)->toDataUri();
+        new SmartFile('/invalid/path/1.txt', 'fingerprint', 'text/plain', 0, null, false)->toDataUri();
     }
 
     public function testSmartFilesWithDifferentFingerprintsAreNotEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
-        $file2 = new SmartFile('1.txt', 'fingerprint2', 'text/plain', null, 0, false);
+        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
+        $file2 = new SmartFile('1.txt', 'fingerprint2', 'text/plain', 0, null, false);
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
@@ -115,8 +115,8 @@ final class SmartFileTest extends FileTestCase
 
     public function testSmartFilesWithIdenticalFingerprintsAreLooselyEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
-        $file2 = new SmartFile('2.txt', 'fingerprint1', 'text/plain', null, 0, false);
+        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
+        $file2 = new SmartFile('2.txt', 'fingerprint1', 'text/plain', 0, null, false);
 
         $this->assertTrue($file1->equals($file2));
         $this->assertTrue($file2->equals($file1));
@@ -124,8 +124,8 @@ final class SmartFileTest extends FileTestCase
 
     public function testSmartFilesWithIdenticalFingerprintsAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
-        $file2 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
+        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
+        $file2 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
 
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));

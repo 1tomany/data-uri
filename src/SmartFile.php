@@ -35,35 +35,35 @@ use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements \Stringable
 {
+    public string $filePath;
     public string $fingerprint;
     public string $mediaType;
     public int $byteCount;
-    public string $filePath;
     public string $fileName;
     public string $clientName;
     public string $extension;
     public string $remoteKey;
-    public bool $selfDestruct;
 
     public function __construct(
         string $filePath,
         ?string $fingerprint,
         string $mediaType,
-        ?string $clientName = null,
         ?int $byteCount = null,
+        ?string $clientName = null,
         bool $checkExists = true,
-        bool $selfDestruct = true,
+        public bool $selfDestruct = true,
     ) {
         $filePath = trim($filePath);
+        $fileName = basename($filePath);
 
         if (empty($filePath)) {
             throw new ConstructionFailedFilePathNotProvidedException();
         }
 
         $this->filePath = $filePath;
-        $this->selfDestruct = $selfDestruct;
+        $this->fileName = $fileName;
 
-        if ($checkExists) {
+        if (true === $checkExists) {
             if (!file_exists($this->filePath)) {
                 throw new ConstructionFailedFileDoesNotExistException($this->filePath);
             }
@@ -89,9 +89,6 @@ readonly class SmartFile implements \Stringable
             }
         }
 
-        $this->fileName = basename($this->filePath);
-        $this->clientName = $clientName ?? $this->fileName;
-
         if (null === $fingerprint) {
             throw new ConstructionFailedFingerprintNotProvidedException($this->filePath);
         }
@@ -110,7 +107,14 @@ readonly class SmartFile implements \Stringable
 
         $this->mediaType = strtolower($mediaType);
 
-        // Resolve the File's Extension
+        // Resolve the Client Name
+        if (true === empty($clientName)) {
+            $clientName = $this->fileName;
+        }
+
+        $this->clientName = $clientName;
+
+        // Resolve the File Extension
         $this->extension = pathinfo($this->filePath, PATHINFO_EXTENSION);
 
         // Generate the Remote Key
