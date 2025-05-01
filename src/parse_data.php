@@ -82,6 +82,8 @@ function parse_data(
             if (!$dataUriBytes = base64_decode($dataBits[1], true)) {
                 throw new ParsingFailedInvalidBase64EncodedDataException();
             }
+        } else {
+            $dataUriBytes = \rawurldecode($dataBits[1]);
         }
 
         unset($dataBits);
