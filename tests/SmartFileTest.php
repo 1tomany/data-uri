@@ -15,6 +15,17 @@ use function unlink;
 #[Group('UnitTests')]
 final class SmartFileTest extends TestCase
 {
+    private string $path;
+    private string $type;
+
+    protected function setUp(): void
+    {
+        $this->path = __DIR__.'/data/php-logo.png';
+
+        // @phpstan-ignore-next-line
+        $this->type = \mime_content_type($this->path);
+    }
+
     public function testConstructorRequiresNonEmptyFilePath(): void
     {
         $this->expectException(ConstructionFailedFilePathNotProvidedException::class);
@@ -29,9 +40,36 @@ final class SmartFileTest extends TestCase
         new SmartFile('/invalid/path/to/file.txt', null, 'text/plain');
     }
 
+    public function testConstructorSetsClientNameToFileNameWhenClientNameIsNull(): void
+    {
+        $clientName = null;
+
+        $file = new SmartFile(...[
+            'filePath' => $this->path,
+            'fingerprint' => null,
+            'mediaType' => $this->type,
+            'clientName' => $clientName,
+            'selfDestruct' => false,
+        ]);
+
+        $this->assertEquals($file->fileName, $file->clientName);
+    }
+
+    public function testConstructorSetsClientNameWhenClientNameIsNotNull(): void
+    {
+        //$filePath = __DIR__.'/data/php-logo.png';
+    }
+
     public function testConstructorGeneratesRemoteKey(): void
     {
-        $file = new SmartFile(__DIR__.'/data/php-logo.png', null, 'image/png', null, null, true, false);
+        $file = new SmartFile(...[
+            'filePath' => $this->path,
+            'fingerprint' => null,
+            'mediaType' => $this->type,
+            'selfDestruct' => false,
+        ]);
+
+        // $file = new SmartFile(__DIR__.'/data/php-logo.png', null, 'image/png', null, null, true, false);
 
         $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->remoteKey);
     }
@@ -49,7 +87,7 @@ final class SmartFileTest extends TestCase
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
     {
-        $file = parse_data(__DIR__.'/data/php-logo.png');
+        $file = parse_data($this->path);
 
         $this->assertTrue($file->selfDestruct);
         $this->assertFileExists($file->filePath);
@@ -63,7 +101,7 @@ final class SmartFileTest extends TestCase
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenSelfDestructIsFalse(): void
     {
-        $file = parse_data(__DIR__.'/data/php-logo.png', selfDestruct: false);
+        $file = parse_data($this->path, selfDestruct: false);
 
         $this->assertFalse($file->selfDestruct);
         $this->assertFileExists($file->filePath);

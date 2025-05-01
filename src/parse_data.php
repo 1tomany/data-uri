@@ -16,6 +16,7 @@ use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException
 use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function base64_decode;
 use function count;
@@ -57,6 +58,7 @@ function parse_data(
         throw new ParsingFailedEmptyDataProvidedException();
     }
 
+    // $clientName = null;
     $dataUriBytes = $localFileBytes = $clientName = null;
 
     if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
@@ -86,17 +88,19 @@ function parse_data(
 
     $filesystem ??= new Filesystem();
 
-    try {
-        // Attempt to load the data from the local filesystem
-        if (null === $dataUriBytes && $filesystem->exists($data)) {
+    if (null === $dataUriBytes) {
+        try {
+            if ($filesystem->exists($data) && \is_readable($data)) {
+                $localFileBytes = $filesystem->readFile($data);
+            }
+
             $clientName = \basename($data);
-            $localFileBytes = $filesystem->readFile($data);
-        }
-    } catch (IOExceptionInterface $e) {
-        throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
-    } finally {
-        if (true === $deleteOriginalFile) {
-            $filesystem->remove($data);
+        } catch (IOExceptionInterface $e) {
+            throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
+        } finally {
+            if (true === $deleteOriginalFile) {
+                $filesystem->remove($data);
+            }
         }
     }
 

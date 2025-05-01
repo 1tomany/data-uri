@@ -54,9 +54,7 @@ final class ParseDataTest extends TestCase
     {
         $this->expectException(ParsingFailedInvalidFilePathProvidedException::class);
 
-        $filesystem = $this->createMock(
-            Filesystem::class
-        );
+        $filesystem = $this->createMock(Filesystem::class);
 
         $filesystem
             ->expects($this->any())
@@ -66,9 +64,7 @@ final class ParseDataTest extends TestCase
         $filesystem
             ->expects($this->once())
             ->method('readFile')
-            ->willThrowException(
-                new IOException('Error')
-            );
+            ->willThrowException(new IOException('Error'));
 
         parse_data(data: __DIR__.'/data/php-logo.png', filesystem: $filesystem);
     }
@@ -77,25 +73,33 @@ final class ParseDataTest extends TestCase
     {
         $this->expectException(ParsingFailedInvalidDataProvidedException::class);
 
-        parse_data('invalid-data-string');
+        parse_data('invalid-data-string-and-file-path');
     }
 
     public function testParsingDataRequiresWritingDataToTemporaryFile(): void
     {
         $this->expectException(ProcessingFailedTemporaryFileNotWrittenException::class);
 
-        $filesystem = $this->createMock(
-            Filesystem::class
-        );
-
+        $filesystem = $this->createMock(Filesystem::class);
         $filesystem
             ->expects($this->once())
             ->method('tempnam')
-            ->willThrowException(
-                new IOException('Error')
-            );
+            ->willThrowException(new IOException('Error'));
 
         parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
+    }
+
+    public function testParsingDataAsFilePathSetsClientName(): void
+    {
+        $filePath = __DIR__.'/data/php-logo.png';
+        $clientName = \basename($filePath);
+
+        $file = parse_data($filePath);
+
+        $this->assertEquals($clientName, $file->clientName);
+        $this->assertNotEquals($clientName, $file->fileName);
+
+        unset($file);
     }
 
     #[DataProvider('providerFilePath')]
@@ -107,6 +111,20 @@ final class ParseDataTest extends TestCase
         $this->assertFileEquals($filePath, $file->filePath);
 
         unset($file);
+    }
+
+    /**
+     * @return list<list<non-empty-string>>
+     */
+    public static function providerFilePath(): array
+    {
+        $prefix = __DIR__.'/data';
+
+        $provider = [
+            [$prefix.'/php-logo.png'],
+        ];
+
+        return $provider;
     }
 
     public function testParsingDataCanBeForcedToBeDecodedAsBase64(): void
@@ -135,19 +153,5 @@ final class ParseDataTest extends TestCase
         $this->assertFileDoesNotExist($filePath);
 
         unset($file);
-    }
-
-    /**
-     * @return list<list<non-empty-string>>
-     */
-    public static function providerFilePath(): array
-    {
-        $prefix = __DIR__.'/data';
-
-        $provider = [
-            [$prefix.'/php-logo.png'],
-        ];
-
-        return $provider;
     }
 }
