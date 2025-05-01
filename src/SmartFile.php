@@ -61,6 +61,7 @@ readonly class SmartFile implements \Stringable
         }
 
         $this->filePath = $filePath;
+        $this->selfDestruct = $selfDestruct;
 
         if ($checkExists) {
             if (!file_exists($this->filePath)) {
@@ -127,11 +128,7 @@ readonly class SmartFile implements \Stringable
             array_unshift($remoteKeyBits, $prefix);
         }
 
-        $this->remoteKey = implode(
-            '/', $remoteKeyBits
-        );
-
-        $this->selfDestruct = $selfDestruct;
+        $this->remoteKey = implode('/', $remoteKeyBits);
     }
 
     public function __destruct()
