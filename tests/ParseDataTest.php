@@ -11,22 +11,22 @@ use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
+use function basename;
 use function OneToMany\DataUri\parse_data;
 use function sys_get_temp_dir;
 use function tempnam;
 
 #[Group('UnitTests')]
-final class ParseDataTest extends TestCase
+final class ParseDataTest extends FileTestCase
 {
     public function testParsingDataRequiresValidHashAlgorithm(): void
     {
         $this->expectException(ParsingFailedInvalidHashAlgorithmProvidedException::class);
 
-        parse_data(__DIR__.'/data/php-logo.png', null, 'sha-1024');
+        parse_data($this->path, null, 'sha-1024');
     }
 
     public function testParsingDataRequiresNonEmptyData(): void
@@ -66,7 +66,7 @@ final class ParseDataTest extends TestCase
             ->method('readFile')
             ->willThrowException(new IOException('Error'));
 
-        parse_data(data: __DIR__.'/data/php-logo.png', filesystem: $filesystem);
+        parse_data(data: $this->path, filesystem: $filesystem);
     }
 
     public function testParsingDataRequiresValidDataUrlSchemeOrValidFilePath(): void
@@ -91,10 +91,8 @@ final class ParseDataTest extends TestCase
 
     public function testParsingDataAsFilePathSetsClientName(): void
     {
-        $filePath = __DIR__.'/data/php-logo.png';
-        $clientName = \basename($filePath);
-
-        $file = parse_data($filePath);
+        $file = parse_data($this->path);
+        $clientName = basename($this->path);
 
         $this->assertEquals($clientName, $file->clientName);
         $this->assertNotEquals($clientName, $file->fileName);

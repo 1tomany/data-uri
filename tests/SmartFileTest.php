@@ -7,25 +7,14 @@ use OneToMany\DataUri\Exception\ConstructionFailedFilePathNotProvidedException;
 use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
 use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
+use function basename;
 use function OneToMany\DataUri\parse_data;
 use function unlink;
 
 #[Group('UnitTests')]
-final class SmartFileTest extends TestCase
+final class SmartFileTest extends FileTestCase
 {
-    private string $path;
-    private string $type;
-
-    protected function setUp(): void
-    {
-        $this->path = __DIR__.'/data/php-logo.png';
-
-        // @phpstan-ignore-next-line
-        $this->type = \mime_content_type($this->path);
-    }
-
     public function testConstructorRequiresNonEmptyFilePath(): void
     {
         $this->expectException(ConstructionFailedFilePathNotProvidedException::class);
@@ -42,41 +31,30 @@ final class SmartFileTest extends TestCase
 
     public function testConstructorSetsClientNameToFileNameWhenClientNameIsNull(): void
     {
-        $clientName = null;
-
-        $file = new SmartFile(...[
-            'filePath' => $this->path,
-            'fingerprint' => null,
-            'mediaType' => $this->type,
-            'clientName' => $clientName,
-            'selfDestruct' => false,
-        ]);
+        $file = new SmartFile($this->path, null, $this->type, null, null, true, false);
 
         $this->assertEquals($file->fileName, $file->clientName);
     }
 
     public function testConstructorSetsClientNameWhenClientNameIsNotNull(): void
     {
-        //$filePath = __DIR__.'/data/php-logo.png';
+        $file = parse_data($this->path);
+        $clientName = basename($this->path);
+
+        $this->assertEquals($clientName, $file->clientName);
+        $this->assertNotEquals($clientName, $file->fileName);
     }
 
     public function testConstructorGeneratesRemoteKey(): void
     {
-        $file = new SmartFile(...[
-            'filePath' => $this->path,
-            'fingerprint' => null,
-            'mediaType' => $this->type,
-            'selfDestruct' => false,
-        ]);
-
-        // $file = new SmartFile(__DIR__.'/data/php-logo.png', null, 'image/png', null, null, true, false);
+        $file = new SmartFile($this->path, null, $this->type, null, null, true, false);
 
         $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->remoteKey);
     }
 
     public function testDestructorDeletesTemporaryFileWhenSelfDestructIsTrue(): void
     {
-        $file = parse_data(__DIR__.'/data/php-logo.png');
+        $file = parse_data($this->path);
 
         $this->assertTrue($file->selfDestruct);
         $this->assertFileExists($file->filePath);
@@ -114,7 +92,7 @@ final class SmartFileTest extends TestCase
 
     public function testToStringReturnsFilePath(): void
     {
-        $file = new SmartFile('file.txt', 'fingerprint1', 'text/plain', null, 0, false, false);
+        $file = new SmartFile('file.txt', 'fingerprint1', 'text/plain', null, 0, false);
 
         $this->assertEquals($file->filePath, $file->__toString());
     }
@@ -123,13 +101,13 @@ final class SmartFileTest extends TestCase
     {
         $this->expectException(EncodingFailedInvalidFilePathException::class);
 
-        new SmartFile('/invalid/path/1.txt', 'fingerprint', 'text/plain', null, 0, false, false)->toDataUri();
+        new SmartFile('/invalid/path/1.txt', 'fingerprint', 'text/plain', null, 0, false)->toDataUri();
     }
 
     public function testSmartFilesWithDifferentFingerprintsAreNotEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false, false);
-        $file2 = new SmartFile('1.txt', 'fingerprint2', 'text/plain', null, 0, false, false);
+        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
+        $file2 = new SmartFile('1.txt', 'fingerprint2', 'text/plain', null, 0, false);
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
@@ -137,8 +115,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalFingerprintsAreLooselyEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false, false);
-        $file2 = new SmartFile('2.txt', 'fingerprint1', 'text/plain', null, 0, false, false);
+        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
+        $file2 = new SmartFile('2.txt', 'fingerprint1', 'text/plain', null, 0, false);
 
         $this->assertTrue($file1->equals($file2));
         $this->assertTrue($file2->equals($file1));
@@ -146,8 +124,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalFingerprintsAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false, false);
-        $file2 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false, false);
+        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
+        $file2 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', null, 0, false);
 
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));

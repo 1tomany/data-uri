@@ -4,12 +4,11 @@ namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\MockSmartFile;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function sys_get_temp_dir;
 
 #[Group('UnitTests')]
-final class MockSmartFileTest extends TestCase
+final class MockSmartFileTest extends FileTestCase
 {
     public function testConstructingMockSmartFileWithEmptyArguments(): void
     {
