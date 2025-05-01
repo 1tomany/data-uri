@@ -60,7 +60,6 @@ function parse_data(
         throw new ParsingFailedEmptyDataProvidedException();
     }
 
-    // $clientName = null;
     $dataUriBytes = $localFileBytes = $clientName = null;
 
     if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
