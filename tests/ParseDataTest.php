@@ -98,9 +98,13 @@ final class ParseDataTest extends FileTestCase
         $this->assertNotEquals($name, $file->fileName);
     }
 
-    public function testParsingDataAsFilePathSetsClientNameWhenClientNameArgumentIsNull(): void
+    public function testParsingDataAsFilePathSetsFileNameAsClientName(): void
     {
         $name = basename($this->path);
+
+        $this->assertNotEmpty($name);
+        $this->assertStringEndsWith($name, $this->path);
+
         $file = parse_data(data: $this->path, clientName: null);
 
         $this->assertEquals($name, $file->clientName);
@@ -109,7 +113,9 @@ final class ParseDataTest extends FileTestCase
 
     public function testParsingDataAsFilePathCanHaveClientNameOverwritten(): void
     {
-        $name = 'CustomFileName.bin';
+        $name = 'CustomFileName_'.uniqid().'.bin';
+        $this->assertStringEndsNotWith($name, $this->path);
+
         $file = parse_data(data: $this->path, clientName: $name);
 
         $this->assertEquals($name, $file->clientName);
