@@ -18,12 +18,14 @@ use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function base64_decode;
+use function basename;
 use function count;
 use function explode;
 use function file_exists;
 use function filesize;
 use function hash_algos;
 use function in_array;
+use function is_readable;
 use function mime_content_type;
 use function sprintf;
 use function str_contains;
@@ -57,7 +59,7 @@ function parse_data(
         throw new ParsingFailedEmptyDataProvidedException();
     }
 
-    $dataUriBytes = $localFileBytes = null;
+    $dataUriBytes = $localFileBytes = $clientName = null;
 
     if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
         $data = sprintf('data:application/octet-stream;base64,%s', $data);
@@ -86,16 +88,19 @@ function parse_data(
 
     $filesystem ??= new Filesystem();
 
-    try {
-        // Attempt to load the data from the local filesystem
-        if (null === $dataUriBytes && $filesystem->exists($data)) {
-            $localFileBytes = $filesystem->readFile($data);
-        }
-    } catch (IOExceptionInterface $e) {
-        throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
-    } finally {
-        if (true === $deleteOriginalFile) {
-            $filesystem->remove($data);
+    if (null === $dataUriBytes) {
+        try {
+            if ($filesystem->exists($data) && is_readable($data)) {
+                $localFileBytes = $filesystem->readFile($data);
+            }
+
+            $clientName = basename($data);
+        } catch (IOExceptionInterface $e) {
+            throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
+        } finally {
+            if (true === $deleteOriginalFile) {
+                $filesystem->remove($data);
+            }
         }
     }
 
@@ -163,7 +168,7 @@ function parse_data(
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, true, $selfDestruct);
+    return new SmartFile($filePath, $fingerprint, $mediaType, $clientName, $byteCount, true, $selfDestruct);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never

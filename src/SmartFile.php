@@ -40,6 +40,7 @@ readonly class SmartFile implements \Stringable
     public int $byteCount;
     public string $filePath;
     public string $fileName;
+    public string $clientName;
     public string $extension;
     public string $remoteKey;
     public bool $selfDestruct;
@@ -48,6 +49,7 @@ readonly class SmartFile implements \Stringable
         string $filePath,
         ?string $fingerprint,
         string $mediaType,
+        ?string $clientName = null,
         ?int $byteCount = null,
         bool $checkExists = true,
         bool $selfDestruct = true,
@@ -59,6 +61,7 @@ readonly class SmartFile implements \Stringable
         }
 
         $this->filePath = $filePath;
+        $this->selfDestruct = $selfDestruct;
 
         if ($checkExists) {
             if (!file_exists($this->filePath)) {
@@ -87,6 +90,7 @@ readonly class SmartFile implements \Stringable
         }
 
         $this->fileName = basename($this->filePath);
+        $this->clientName = $clientName ?? $this->fileName;
 
         if (null === $fingerprint) {
             throw new ConstructionFailedFingerprintNotProvidedException($this->filePath);
@@ -124,11 +128,7 @@ readonly class SmartFile implements \Stringable
             array_unshift($remoteKeyBits, $prefix);
         }
 
-        $this->remoteKey = implode(
-            '/', $remoteKeyBits
-        );
-
-        $this->selfDestruct = $selfDestruct;
+        $this->remoteKey = implode('/', $remoteKeyBits);
     }
 
     public function __destruct()

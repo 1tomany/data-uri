@@ -9,6 +9,6 @@ final class ParsingFailedInvalidFilePathProvidedException extends \InvalidArgume
 {
     public function __construct(string $filePath, ?\Throwable $previous = null, int $code = 0)
     {
-        parent::__construct(sprintf('Parsing the data failed because the file path "%s" does not exist.', substr($filePath, 0, 1024)), $code, $previous);
+        parent::__construct(sprintf('Parsing the data failed because the file "%s" does not exist or is not a file.', substr($filePath, 0, 1024)), $code, $previous);
     }
 }

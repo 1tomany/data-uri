@@ -65,7 +65,7 @@ final readonly class MockSmartFile extends SmartFile
             ];
         }
 
-        parent::__construct($filePath, $fingerprint, $mediaType, $byteCount, false, false);
+        parent::__construct($filePath, $fingerprint, $mediaType, null, $byteCount, false, false);
     }
 
     public function __destruct()

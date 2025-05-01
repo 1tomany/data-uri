@@ -4,12 +4,11 @@ namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\MockSmartFile;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function sys_get_temp_dir;
 
 #[Group('UnitTests')]
-final class MockSmartFileTest extends TestCase
+final class MockSmartFileTest extends FileTestCase
 {
     public function testConstructingMockSmartFileWithEmptyArguments(): void
     {
@@ -20,6 +19,7 @@ final class MockSmartFileTest extends TestCase
         $this->assertNotEmpty($file->byteCount);
         $this->assertNotEmpty($file->filePath);
         $this->assertNotEmpty($file->fileName);
+        $this->assertNotEmpty($file->clientName);
         $this->assertNotEmpty($file->extension);
         $this->assertNotEmpty($file->remoteKey);
     }
@@ -35,5 +35,6 @@ final class MockSmartFileTest extends TestCase
 
         $this->assertEquals($filePath, $file->filePath);
         $this->assertEquals($fileName, $file->fileName);
+        $this->assertEquals($fileName, $file->clientName);
     }
 }
