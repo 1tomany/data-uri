@@ -95,7 +95,7 @@ final class ParseDataTest extends FileTestCase
         $text = 'Hello, PHP world!';
         $data = rawurlencode($text);
 
-        $file = parse_data(data: 'data:text/plain,'.$data);
+        $file = parse_data('data:text/plain,'.$data);
         $this->assertStringEqualsFile($file->filePath, $text);
     }
 
