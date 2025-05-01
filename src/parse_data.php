@@ -44,6 +44,7 @@ function parse_data(
     ?string $data,
     ?string $tempDir = null,
     string $hashAlgorithm = 'sha256',
+    ?string $clientName = null,
     bool $assumeBase64Data = false,
     bool $deleteOriginalFile = false,
     bool $selfDestruct = true,
@@ -59,7 +60,7 @@ function parse_data(
         throw new ParsingFailedEmptyDataProvidedException();
     }
 
-    $dataUriBytes = $localFileBytes = $clientName = null;
+    $dataUriBytes = $localFileBytes = null;
 
     if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
         $data = sprintf('data:application/octet-stream;base64,%s', $data);
@@ -94,7 +95,7 @@ function parse_data(
                 $localFileBytes = $filesystem->readFile($data);
             }
 
-            $clientName = basename($data);
+            $clientName ??= basename($data);
         } catch (IOExceptionInterface $e) {
             throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
         } finally {
@@ -168,7 +169,7 @@ function parse_data(
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    return new SmartFile($filePath, $fingerprint, $mediaType, $clientName, $byteCount, true, $selfDestruct);
+    return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, $clientName, true, $selfDestruct);
 }
 
 function _cleanup_safely(string $filePath, \Throwable $exception): never
