@@ -9,8 +9,8 @@ use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 
 use function basename;
-use function unlink;
 use function OneToMany\DataUri\parse_data;
+use function unlink;
 
 #[Group('UnitTests')]
 final class SmartFileTest extends FileTestCase

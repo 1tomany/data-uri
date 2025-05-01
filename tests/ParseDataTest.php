@@ -15,9 +15,9 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function basename;
+use function OneToMany\DataUri\parse_data;
 use function sys_get_temp_dir;
 use function tempnam;
-use function OneToMany\DataUri\parse_data;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends FileTestCase
