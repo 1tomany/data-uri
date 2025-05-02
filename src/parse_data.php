@@ -114,21 +114,25 @@ function parse_data(
         }
     }
 
+    // Ensure we have some data to work with
     if (null === ($fileBytes = $dataUriBytes ?? $localFileBytes)) {
         throw new ParsingFailedInvalidDataProvidedException();
     }
 
+    // Ensure we can write the data to a temporary file
     if (!is_writable($tempDir ??= sys_get_temp_dir())) {
         throw new ProcessingFailedTemporaryDirectoryNotWritableException($tempDir);
     }
 
     try {
+        // Create a temporary file with a unique prefix
         $tempPath = $filesystem->tempnam($tempDir, '__1n__datauri_');
     } catch (IOExceptionInterface $e) {
         throw new ProcessingFailedTemporaryFileNotWrittenException($tempDir, $e);
     }
 
     try {
+        // Write the data to the temporary file
         $filesystem->dumpFile($tempPath, $fileBytes);
     } catch (IOExceptionInterface $e) {
         _cleanup_safely($tempPath, new ProcessingFailedWritingTemporaryFileFailedException($tempPath, $e));
