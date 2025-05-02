@@ -1,5 +1,5 @@
 # Data URI Parser for PHP
-This simple library exposes a single function, `OneToMany\DataUri\parse_data()` that allows you to easily parse base64 encoded data URIs or valid file paths. During parsing, a temporary, uniquely named file will be stored on the local filesystem and an immutable value object of type `OneToMany\DataUri\SmartFile` will be created and returned.
+This simple library exposes a single function, `OneToMany\DataUri\parse_data()` that allows you to easily parse URL or base64 encoded data URIs or valid file paths. During parsing, a temporary, uniquely named file will be stored on the local filesystem and an immutable value object of type `OneToMany\DataUri\SmartFile` will be created and returned.
 
 By default, instances of the `SmartFile` object will attempt to delete the temporary file it references upon object destruction. You can change this behavior by setting the `$selfDestruct` argument of the `SmartFile` constructor or `parse_data()` function to `false`.
 
@@ -23,7 +23,7 @@ If you _do_ wish to use the `parse_data()` function, you can write a unit test t
 - `void dumpFile(string $filename, string|resource $content)`
 - `void rename(string $origin, string $target, bool $overwrite = false)`
 
-An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingDataRequiresReadableFileToExist()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L51).
+An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingFilePathDataRequiresReadableFileToExist()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L55).
 
 If you want to take your tests further, you can validate the data is "written" to the temporary file by combining the mocked `Filesystem` object with a library like [mikey179/vfsstream](https://packagist.org/packages/mikey179/vfsstream).
 
