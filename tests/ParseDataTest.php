@@ -101,12 +101,16 @@ final class ParseDataTest extends FileTestCase
 
     public function testParsingDataWithoutMediaTypeDefaultsToTextPlain(): void
     {
+        $file = parse_data('data:,Hello%20world');
+
+        $this->assertEquals('text/plain', $file->mediaType);
+        $this->assertStringEndsWith('.txt', $file->fileName);
     }
 
     public function testParsingDataCanSetClientName(): void
     {
         $name = 'HelloWorld.txt';
-        $file = parse_data(data: 'data:,Hello%20World', clientName: $name);
+        $file = parse_data(data: 'data:,Hello%20world', clientName: $name);
 
         $this->assertEquals($name, $file->clientName);
         $this->assertNotEquals($name, $file->fileName);
@@ -144,6 +148,7 @@ final class ParseDataTest extends FileTestCase
         $file = parse_data($data);
 
         $this->assertFileExists($file->filePath);
+        $this->assertGreaterThan(0, $file->byteCount);
         $this->assertEquals($mediaType, $file->mediaType);
         $this->assertEquals($extension, $file->extension);
     }
@@ -178,6 +183,7 @@ final class ParseDataTest extends FileTestCase
 
         $this->assertFileExists($file->filePath);
         $this->assertFileEquals($filePath, $file->filePath);
+        $this->assertGreaterThan(0, $file->byteCount);
         $this->assertEquals($mediaType, $file->mediaType);
         $this->assertEquals($extension, $file->extension);
     }
