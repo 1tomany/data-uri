@@ -27,7 +27,7 @@ final class ParseDataTest extends FileTestCase
     {
         $this->expectException(ParsingFailedInvalidHashAlgorithmProvidedException::class);
 
-        parse_data($this->path, null, 'sha-1024');
+        parse_data($this->filePath, null, 'sha-1024');
     }
 
     public function testParsingDataRequiresNonEmptyData(): void
@@ -67,7 +67,7 @@ final class ParseDataTest extends FileTestCase
             ->method('readFile')
             ->willThrowException(new IOException('Error'));
 
-        parse_data(data: $this->path, filesystem: $filesystem);
+        parse_data(data: $this->filePath, filesystem: $filesystem);
     }
 
     public function testParsingDataRequiresValidDataUrlSchemeOrValidFilePath(): void
@@ -118,22 +118,18 @@ final class ParseDataTest extends FileTestCase
 
     public function testParsingDataAsFilePathSetsFileNameAsClientName(): void
     {
-        /** @var non-empty-string $name */
-        $name = basename($this->path);
-        $this->assertStringEndsWith($name, $this->path);
+        $file = parse_data(data: $this->filePath, clientName: null);
 
-        $file = parse_data(data: $this->path, clientName: null);
-
-        $this->assertEquals($name, $file->clientName);
-        $this->assertNotEquals($name, $file->fileName);
+        $this->assertEquals($this->fileName, $file->clientName);
+        $this->assertNotEquals($this->fileName, $file->fileName);
     }
 
     public function testParsingDataAsFilePathCanHaveClientNameOverwritten(): void
     {
         $name = 'CustomFileName_'.uniqid().'.bin';
-        $this->assertStringEndsNotWith($name, $this->path);
+        $this->assertStringEndsNotWith($name, $this->filePath);
 
-        $file = parse_data(data: $this->path, clientName: $name);
+        $file = parse_data(data: $this->filePath, clientName: $name);
 
         $this->assertEquals($name, $file->clientName);
         $this->assertNotEquals($name, $file->fileName);
@@ -198,8 +194,9 @@ final class ParseDataTest extends FileTestCase
         $prefix = __DIR__.'/data';
 
         $provider = [
-            [$prefix.'/email.txt', 'text/plain', 'txt'],
-            [$prefix.'/php-logo.png', 'image/png', 'png'],
+            [$prefix.'/png-small.png', 'image/png', 'png'],
+            [$prefix.'/text-small.txt', 'text/plain', 'txt'],
+            [$prefix.'/word-small.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx'],
         ];
 
         return $provider;
@@ -208,10 +205,15 @@ final class ParseDataTest extends FileTestCase
     public function testParsingDataCanBeForcedToBeDecodedAsBase64(): void
     {
         // 1x1 Transparent GIF
-        $file = parse_data(data: 'R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', assumeBase64Data: true);
+        $data = $this->readFile(...[
+            'fileName' => 'gif-base64.txt',
+        ]);
 
-        $this->assertFileExists($file->filePath);
-        $this->assertEquals('gif', $file->extension);
+        // Assert: Not a Data URI
+        $this->assertStringStartsNotWith('data:', $data);
+
+        $file = parse_data($data, assumeBase64Data: true);
+        $this->assertEquals('image/gif', $file->mediaType);
     }
 
     public function testParsingDataAsFilePathCanDeleteOriginalFile(): void

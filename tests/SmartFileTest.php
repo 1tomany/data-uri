@@ -31,15 +31,15 @@ final class SmartFileTest extends FileTestCase
 
     public function testConstructorSetsClientNameToFileNameWhenClientNameIsNull(): void
     {
-        $file = new SmartFile($this->path, null, $this->type, null, null, true, false);
+        $file = new SmartFile($this->filePath, null, $this->mediaType, null, null, true, false);
 
         $this->assertEquals($file->fileName, $file->clientName);
     }
 
     public function testConstructorSetsClientNameWhenClientNameIsNotNull(): void
     {
-        $file = parse_data($this->path);
-        $clientName = basename($this->path);
+        $file = parse_data($this->filePath);
+        $clientName = basename($this->filePath);
 
         $this->assertEquals($clientName, $file->clientName);
         $this->assertNotEquals($clientName, $file->fileName);
@@ -47,14 +47,14 @@ final class SmartFileTest extends FileTestCase
 
     public function testConstructorGeneratesRemoteKey(): void
     {
-        $file = new SmartFile($this->path, null, $this->type, null, null, true, false);
+        $file = new SmartFile($this->filePath, null, $this->mediaType, null, null, true, false);
 
         $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->remoteKey);
     }
 
     public function testDestructorDeletesTemporaryFileWhenSelfDestructIsTrue(): void
     {
-        $file = parse_data($this->path);
+        $file = parse_data($this->filePath);
 
         $this->assertTrue($file->selfDestruct);
         $this->assertFileExists($file->filePath);
@@ -65,7 +65,7 @@ final class SmartFileTest extends FileTestCase
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
     {
-        $file = parse_data($this->path);
+        $file = parse_data($this->filePath);
 
         $this->assertTrue($file->selfDestruct);
         $this->assertFileExists($file->filePath);
@@ -79,7 +79,7 @@ final class SmartFileTest extends FileTestCase
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenSelfDestructIsFalse(): void
     {
-        $file = parse_data($this->path, selfDestruct: false);
+        $file = parse_data($this->filePath, selfDestruct: false);
 
         $this->assertFalse($file->selfDestruct);
         $this->assertFileExists($file->filePath);
