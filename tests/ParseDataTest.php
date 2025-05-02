@@ -17,8 +17,8 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function OneToMany\DataUri\parse_data;
 use function rawurlencode;
-use function sys_get_temp_dir;
-use function tempnam;
+use function uniqid;
+use function vsprintf;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends TestCase
@@ -123,7 +123,7 @@ final class ParseDataTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Parse File With Null Client Name
-        $file = parse_data(data: $data, clientName: null);
+        $file = parse_data(data: $data->filePath, clientName: null);
 
         // Assert: Client Name Equals Original File Name
         $this->assertEquals($data->fileName, $file->clientName);
@@ -134,14 +134,14 @@ final class ParseDataTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Assert: Client Name Is Different
-        $clientName = \vsprintf('Test_%s.%s', [
-            \uniqid(), $data->extension,
+        $clientName = vsprintf('Test_%s.%s', [
+            uniqid(), $data->extension,
         ]);
 
         $this->assertNotEquals($clientName, $data->clientName);
 
         // Act: Parse File With Different Client Name
-        $file = parse_data(data: $data, clientName: $clientName);
+        $file = parse_data(data: $data->filePath, clientName: $clientName);
 
         // Assert: Client Name Equals Different Client Name
         $this->assertEquals($clientName, $file->clientName);
@@ -173,7 +173,7 @@ final class ParseDataTest extends TestCase
         $this->assertFileExists($data->filePath);
 
         // Act: Parse Data and Delete Original File
-        $file = parse_data(data: $data, deleteOriginalFile: true);
+        $file = parse_data(data: $data->filePath, deleteOriginalFile: true);
 
         $this->assertFileExists($file->filePath);
         $this->assertFileDoesNotExist($data->filePath);
