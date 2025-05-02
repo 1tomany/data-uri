@@ -165,6 +165,8 @@ final class ParseDataTest extends FileTestCase
             ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 'txt'],
             ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 'txt'],
             ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 'txt'],
+            ['data:application/json,%7B%22id%22%3A10%7D', 'application/json', 'bin'],
+            ['data:application/json;base64,eyJpZCI6MTB9', 'application/json', 'bin'],
 
             // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
             ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 'pdf'],

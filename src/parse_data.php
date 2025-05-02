@@ -118,9 +118,6 @@ function parse_data(
         throw new ParsingFailedInvalidDataProvidedException();
     }
 
-    // Resolve the extension based on the data contents and client file name
-    $extension = $isTextData ? 'txt' : Path::getExtension($clientName ?? '');
-
     if (!is_writable($tempDir ??= sys_get_temp_dir())) {
         throw new ProcessingFailedTemporaryDirectoryNotWritableException($tempDir);
     }
@@ -145,6 +142,9 @@ function parse_data(
     $isTextData = in_array($mediaType, [
         'text/plain',
     ]);
+
+    // Resolve the extension based on the data contents and client file name
+    $extension = $isTextData ? 'txt' : Path::getExtension($clientName ?? '');
 
     if (empty($extension)) {
         if (false !== $finfo = finfo_open(FILEINFO_EXTENSION)) {
