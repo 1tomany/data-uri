@@ -99,6 +99,10 @@ final class ParseDataTest extends FileTestCase
         $this->assertStringEqualsFile($file->filePath, $text);
     }
 
+    public function testParsingDataWithoutMediaTypeDefaultsToTextPlain(): void
+    {
+    }
+
     public function testParsingDataCanSetClientName(): void
     {
         $name = 'HelloWorld.txt';
@@ -110,9 +114,8 @@ final class ParseDataTest extends FileTestCase
 
     public function testParsingDataAsFilePathSetsFileNameAsClientName(): void
     {
+        /** @var non-empty-string $name */
         $name = basename($this->path);
-
-        $this->assertNotEmpty($name);
         $this->assertStringEndsWith($name, $this->path);
 
         $file = parse_data(data: $this->path, clientName: null);
@@ -132,24 +135,65 @@ final class ParseDataTest extends FileTestCase
         $this->assertNotEquals($name, $file->fileName);
     }
 
-    #[DataProvider('providerFilePath')]
-    public function testParsingDataAsFilePath(string $filePath): void
+    #[DataProvider('providerDataAndMetadata')]
+    public function testParsingData(
+        string $data,
+        string $mediaType,
+        string $extension,
+    ): void
     {
-        $file = parse_data($filePath);
+        $file = parse_data($data);
 
         $this->assertFileExists($file->filePath);
-        $this->assertFileEquals($filePath, $file->filePath);
+        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($extension, $file->extension);
     }
 
     /**
      * @return list<list<non-empty-string>>
      */
-    public static function providerFilePath(): array
+    public static function providerDataAndMetadata(): array
+    {
+        $provider = [
+            ['data:,Test', 'text/plain', 'txt'],
+            ['data:text/plain,Test', 'text/plain', 'txt'],
+            ['data:text/plain,Test', 'text/plain', 'txt'],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 'txt'],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 'txt'],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 'txt'],
+
+            // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 'pdf'],
+        ];
+
+        return $provider;
+    }
+
+    #[DataProvider('providerFilePathAndMetadata')]
+    public function testParsingDataAsFilePath(
+        string $filePath,
+        string $mediaType,
+        string $extension,
+    ): void
+    {
+        $file = parse_data($filePath);
+
+        $this->assertFileExists($file->filePath);
+        $this->assertFileEquals($filePath, $file->filePath);
+        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($extension, $file->extension);
+    }
+
+    /**
+     * @return list<list<non-empty-string>>
+     */
+    public static function providerFilePathAndMetadata(): array
     {
         $prefix = __DIR__.'/data';
 
         $provider = [
-            [$prefix.'/php-logo.png'],
+            [$prefix.'/email.txt', 'text/plain', 'txt'],
+            [$prefix.'/php-logo.png', 'image/png', 'png'],
         ];
 
         return $provider;

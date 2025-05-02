@@ -12,10 +12,12 @@ use OneToMany\DataUri\Exception\ProcessingFailedCalculatingFileSizeFailedExcepti
 use OneToMany\DataUri\Exception\ProcessingFailedGeneratingExtensionFailedException;
 use OneToMany\DataUri\Exception\ProcessingFailedGeneratingHashFailedException;
 use OneToMany\DataUri\Exception\ProcessingFailedRenamingTemporaryFileFailedException;
+use OneToMany\DataUri\Exception\ProcessingFailedTemporaryDirectoryNotWritableException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedException;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function base64_decode;
 use function basename;
@@ -31,7 +33,6 @@ use function rawurldecode;
 use function sprintf;
 use function str_contains;
 use function str_ends_with;
-use function stripos;
 use function strlen;
 use function strtolower;
 use function strval;
@@ -61,29 +62,32 @@ function parse_data(
         throw new ParsingFailedEmptyDataProvidedException();
     }
 
-    $dataUriBytes = $localFileBytes = null;
+    $isTextData = false;
+
+    // Variables that we will try to expand during parsing
+    $mediaType = $dataUriBytes = $localFileBytes = null;
 
     if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
         $data = sprintf('data:application/octet-stream;base64,%s', $data);
     }
 
-    // Attempt to match the RFC2397 scheme
-    if (0 === stripos($data, 'data:') && str_contains($data, ',')) {
-        // Remove "data:" prefix and split on comma
+    // Parse the data based RFC2397: data:[<mediatype>][;base64],<data>
+    if (str_starts_with($data, 'data:') && str_contains($data, ',')) {
         $dataBits = explode(',', substr($data, 5));
 
         if (2 !== count($dataBits) || empty($dataBits[1])) {
             throw new ParsingFailedInvalidRfc2397EncodedDataException();
         }
 
-        $dataUriBytes = trim($dataBits[1]);
-
-        // Attempt to decode the data byte string with base64
-        if (str_ends_with(strtolower($dataBits[0]), ';base64')) {
+        // Attempt to decode the base64 encoded data
+        if (str_ends_with($dataBits[0], ';base64')) {
             if (!$dataUriBytes = base64_decode($dataBits[1], true)) {
                 throw new ParsingFailedInvalidBase64EncodedDataException();
             }
-        } else {
+        }
+
+        // Attempt to decode the URL encoded data
+        if ($isTextData = null === $dataUriBytes) {
             $dataUriBytes = rawurldecode($dataBits[1]);
         }
 
@@ -108,46 +112,52 @@ function parse_data(
         }
     }
 
-    if (null === $dataUriBytes && null === $localFileBytes) {
+    if (null === ($fileBytes = $dataUriBytes ?? $localFileBytes)) {
         throw new ParsingFailedInvalidDataProvidedException();
     }
 
-    try {
-        $tempDir ??= sys_get_temp_dir();
+    // Resolve the extension based on the data contents and client file name
+    $extension = $isTextData ? 'txt' : Path::getExtension($clientName ?? '');
 
-        // Regardless of the data source, attempt to create a temp
-        // file to store the raw data. This allows us to inspect the
-        // file itself determine actual the extension and media type.
+    if (!\is_writable($tempDir ??= sys_get_temp_dir())) {
+        throw new ProcessingFailedTemporaryDirectoryNotWritableException($tempDir);
+    }
+
+    try {
         $tempPath = $filesystem->tempnam($tempDir, '__1n__datauri_');
     } catch (IOExceptionInterface $e) {
         throw new ProcessingFailedTemporaryFileNotWrittenException($tempDir, $e);
     }
 
-    $fileBytes = $dataUriBytes ?? $localFileBytes;
-
     try {
-        // Write the bytes to the temporary file
         $filesystem->dumpFile($tempPath, $fileBytes);
     } catch (IOExceptionInterface $e) {
         _cleanup_safely($tempPath, new ProcessingFailedWritingTemporaryFileFailedException($tempPath, $e));
     }
 
-    // Use Fileinfo to inspect the actual file to determine the extension
-    if (!$tempExtension = new \finfo(FILEINFO_EXTENSION)->file($tempPath)) {
-        _cleanup_safely($tempPath, new ProcessingFailedGeneratingExtensionFailedException($tempPath));
-    }
-
-    // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
-    $extension = explode('/', strtolower($tempExtension))[0];
-
-    if ('???' === $extension) {
-        $extension = 'bin';
-    }
-
     // Determine the actual media type of the file
     if (false === $mediaType = mime_content_type($tempPath)) {
-        $mediaType = 'application/octet-stream';
+        $mediaType = $isTextData ? 'text/plain' : 'application/octet-stream';
     }
+
+    $isTextData = in_array($mediaType, [
+        'text/plain',
+    ]);
+
+    if (empty($extension)) {
+        if (false !== $finfo = \finfo_open(FILEINFO_EXTENSION)) {
+            // Use finfo to inspect the file to determine the extension
+            if (false === $extensions = \finfo_file($finfo, $tempPath)) {
+                _cleanup_safely($tempPath, new ProcessingFailedGeneratingExtensionFailedException($tempPath));
+            }
+
+            // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
+            $extension = trim(explode('/', $extensions)[0], '? ');
+        }
+    }
+
+    // Final attempt to determine the extension
+    $extension = $extension ?: ($isTextData ? 'txt' : 'bin');
 
     try {
         // Generate path with the extension
