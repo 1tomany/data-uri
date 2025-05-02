@@ -149,15 +149,6 @@ readonly class SmartFile implements \Stringable
         return $this->filePath;
     }
 
-    public function toDataUri(): string
-    {
-        if (false === $contents = @file_get_contents($this->filePath)) {
-            throw new EncodingFailedInvalidFilePathException($this->filePath);
-        }
-
-        return sprintf('data:%s;base64,%s', $this->mediaType, base64_encode($contents));
-    }
-
     public function equals(self $data, bool $strict = false): bool
     {
         if ($this->fingerprint === $data->fingerprint) {
@@ -169,5 +160,14 @@ readonly class SmartFile implements \Stringable
         }
 
         return false;
+    }
+
+    public function toDataUri(): string
+    {
+        if (false === $contents = @file_get_contents($this->filePath)) {
+            throw new EncodingFailedInvalidFilePathException($this->filePath);
+        }
+
+        return sprintf('data:%s;base64,%s', $this->mediaType, base64_encode($contents));
     }
 }
