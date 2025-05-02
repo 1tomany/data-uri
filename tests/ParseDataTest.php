@@ -11,23 +11,25 @@ use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
-use function basename;
 use function OneToMany\DataUri\parse_data;
 use function rawurlencode;
 use function sys_get_temp_dir;
 use function tempnam;
 
 #[Group('UnitTests')]
-final class ParseDataTest extends FileTestCase
+final class ParseDataTest extends TestCase
 {
+    use TestFileTrait;
+
     public function testParsingDataRequiresValidHashAlgorithm(): void
     {
         $this->expectException(ParsingFailedInvalidHashAlgorithmProvidedException::class);
 
-        parse_data($this->filePath, null, 'sha-1024');
+        parse_data('data:text/plain,Hello%20world', null, 'sha-1024');
     }
 
     public function testParsingDataRequiresNonEmptyData(): void
@@ -37,21 +39,21 @@ final class ParseDataTest extends FileTestCase
         parse_data(' ');
     }
 
-    public function testParsingDataRequiresValidRfc2397Format(): void
+    public function testParsingEncodedDataRequiresValidRfc2397Format(): void
     {
         $this->expectException(ParsingFailedInvalidRfc2397EncodedDataException::class);
 
         parse_data('data:image/png,charset=UTF-8,invalid-png-contents');
     }
 
-    public function testParsingDataRequiresValidBase64EncodedData(): void
+    public function testParsingEncodedDataRequiresValidBase64EncodedData(): void
     {
         $this->expectException(ParsingFailedInvalidBase64EncodedDataException::class);
 
         parse_data('data:image/png;base64,ümlaut');
     }
 
-    public function testParsingDataRequiresReadableFileToExist(): void
+    public function testParsingFilePathDataRequiresReadableFileToExist(): void
     {
         $this->expectException(ParsingFailedInvalidFilePathProvidedException::class);
 
@@ -67,10 +69,10 @@ final class ParseDataTest extends FileTestCase
             ->method('readFile')
             ->willThrowException(new IOException('Error'));
 
-        parse_data(data: $this->filePath, filesystem: $filesystem);
+        parse_data(data: __FILE__, filesystem: $filesystem);
     }
 
-    public function testParsingDataRequiresValidDataUrlSchemeOrValidFilePath(): void
+    public function testParsingDataRequiresValidDataUriSchemeOrValidFilePath(): void
     {
         $this->expectException(ParsingFailedInvalidDataProvidedException::class);
 
@@ -90,7 +92,7 @@ final class ParseDataTest extends FileTestCase
         parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
     }
 
-    public function testParsingDataWithoutBase64EncodedIsDecodedAsAsciiText(): void
+    public function testParsingEncodedDataWithoutBase64OptionIsDecodedAsAsciiText(): void
     {
         $text = 'Hello, PHP world!';
         $data = rawurlencode($text);
@@ -99,7 +101,7 @@ final class ParseDataTest extends FileTestCase
         $this->assertStringEqualsFile($file->filePath, $text);
     }
 
-    public function testParsingDataWithoutMediaTypeDefaultsToTextPlain(): void
+    public function testParsingEncodedDataWithoutMediaTypeDefaultsToTextPlain(): void
     {
         $file = parse_data('data:,Hello%20world');
 
@@ -107,7 +109,7 @@ final class ParseDataTest extends FileTestCase
         $this->assertStringEndsWith('.txt', $file->fileName);
     }
 
-    public function testParsingDataCanSetClientName(): void
+    public function testParsingEncodedDataCanSetClientName(): void
     {
         $name = 'HelloWorld.txt';
         $file = parse_data(data: 'data:,Hello%20world', clientName: $name);
@@ -116,116 +118,132 @@ final class ParseDataTest extends FileTestCase
         $this->assertNotEquals($name, $file->fileName);
     }
 
-    public function testParsingDataAsFilePathSetsFileNameAsClientName(): void
+    public function testParsingFilePathDataSetsFileNameAsClientName(): void
     {
-        $file = parse_data(data: $this->filePath, clientName: null);
+        $data = $this->fetchRandomFile();
 
-        $this->assertEquals($this->fileName, $file->clientName);
-        $this->assertNotEquals($this->fileName, $file->fileName);
+        // Act: Parse File With Null Client Name
+        $file = parse_data(data: $data, clientName: null);
+
+        // Assert: Client Name Equals Original File Name
+        $this->assertEquals($data->fileName, $file->clientName);
     }
 
-    public function testParsingDataAsFilePathCanHaveClientNameOverwritten(): void
+    public function testParsingFilePathDataCanHaveClientNameOverwritten(): void
     {
-        $name = 'CustomFileName_'.uniqid().'.bin';
-        $this->assertStringEndsNotWith($name, $this->filePath);
+        $data = $this->fetchRandomFile();
 
-        $file = parse_data(data: $this->filePath, clientName: $name);
+        // Assert: Client Name Is Different
+        $clientName = \vsprintf('Test_%s.%s', [
+            \uniqid(), $data->extension,
+        ]);
 
-        $this->assertEquals($name, $file->clientName);
-        $this->assertNotEquals($name, $file->fileName);
+        $this->assertNotEquals($clientName, $data->clientName);
+
+        // Act: Parse File With Different Client Name
+        $file = parse_data(data: $data, clientName: $clientName);
+
+        // Assert: Client Name Equals Different Client Name
+        $this->assertEquals($clientName, $file->clientName);
     }
 
-    #[DataProvider('providerDataAndMetadata')]
-    public function testParsingData(
-        string $data,
-        string $mediaType,
-        string $extension,
-    ): void {
-        $file = parse_data($data);
-
-        $this->assertFileExists($file->filePath);
-        $this->assertGreaterThan(0, $file->byteCount);
-        $this->assertEquals($mediaType, $file->mediaType);
-        $this->assertEquals($extension, $file->extension);
-    }
-
-    /**
-     * @return list<list<non-empty-string>>
-     */
-    public static function providerDataAndMetadata(): array
-    {
-        $provider = [
-            ['data:,Test', 'text/plain', 'txt'],
-            ['data:text/plain,Test', 'text/plain', 'txt'],
-            ['data:text/plain,Test', 'text/plain', 'txt'],
-            ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 'txt'],
-            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 'txt'],
-            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 'txt'],
-            ['data:application/json,%7B%22id%22%3A10%7D', 'application/json', 'bin'],
-            ['data:application/json;base64,eyJpZCI6MTB9', 'application/json', 'bin'],
-
-            // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
-            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 'pdf'],
-        ];
-
-        return $provider;
-    }
-
-    #[DataProvider('providerFilePathAndMetadata')]
-    public function testParsingDataAsFilePath(
-        string $filePath,
-        string $mediaType,
-        string $extension,
-    ): void {
-        $file = parse_data($filePath);
-
-        $this->assertFileExists($file->filePath);
-        $this->assertFileEquals($filePath, $file->filePath);
-        $this->assertGreaterThan(0, $file->byteCount);
-        $this->assertEquals($mediaType, $file->mediaType);
-        $this->assertEquals($extension, $file->extension);
-    }
-
-    /**
-     * @return list<list<non-empty-string>>
-     */
-    public static function providerFilePathAndMetadata(): array
-    {
-        $prefix = __DIR__.'/data';
-
-        $provider = [
-            [$prefix.'/png-small.png', 'image/png', 'png'],
-            [$prefix.'/text-small.txt', 'text/plain', 'txt'],
-            [$prefix.'/word-small.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx'],
-        ];
-
-        return $provider;
-    }
-
-    public function testParsingDataCanBeForcedToBeDecodedAsBase64(): void
+    public function testParsingEncodedDataCanBeForcedToBeDecodedAsBase64(): void
     {
         // 1x1 Transparent GIF
-        $data = $this->readFile(...[
+        $data = $this->readFileContents(...[
             'fileName' => 'gif-base64.txt',
         ]);
 
         // Assert: Not a Data URI
         $this->assertStringStartsNotWith('data:', $data);
 
-        $file = parse_data($data, assumeBase64Data: true);
+        // Act: Parse Data With Base64 Assumption
+        $file = parse_data(data: $data, assumeBase64Data: true);
+
+        // Assert: Data Is Successfully Parsed
         $this->assertEquals('image/gif', $file->mediaType);
+        $this->assertStringEndsWith('.gif', $file->fileName);
     }
 
-    public function testParsingDataAsFilePathCanDeleteOriginalFile(): void
+    public function testParsingFilePathDataCanDeleteOriginalFile(): void
     {
-        $filePath = tempnam(sys_get_temp_dir(), '__1n__datauri_test_');
+        $data = $this->fetchRandomFile();
 
-        $this->assertIsString($filePath);
-        $this->assertFileExists($filePath);
+        // Assert: Original File Exists
+        $this->assertFileExists($data->filePath);
 
-        $file = parse_data(data: $filePath, deleteOriginalFile: true);
+        // Act: Parse Data and Delete Original File
+        $file = parse_data(data: $data, deleteOriginalFile: true);
 
         $this->assertFileExists($file->filePath);
-        $this->assertFileDoesNotExist($filePath);
+        $this->assertFileDoesNotExist($data->filePath);
+    }
+
+    #[DataProvider('providerEncodedDataAndMetadata')]
+    public function testParsingEncodedData(
+        string $data,
+        string $mediaType,
+        int $byteCount,
+        string $extension,
+    ): void {
+        $file = parse_data($data);
+
+        $this->assertFileExists($file->filePath);
+        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($byteCount, $file->byteCount);
+        $this->assertEquals($extension, $file->extension);
+    }
+
+    /**
+     * @return list<list<int|non-empty-string>>
+     */
+    public static function providerEncodedDataAndMetadata(): array
+    {
+        $provider = [
+            ['data:,Test', 'text/plain', 4, 'txt'],
+            ['data:text/plain,Test', 'text/plain', 4, 'txt'],
+            ['data:text/plain,Test', 'text/plain', 4, 'txt'],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 11, 'txt'],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13, 'txt'],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13, 'txt'],
+            ['data:application/json,%7B%22id%22%3A10%7D', 'application/json', 9, 'bin'],
+            ['data:application/json;base64,eyJpZCI6MTB9', 'application/json', 9, 'bin'],
+
+            // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 67, 'pdf'],
+        ];
+
+        return $provider;
+    }
+
+    #[DataProvider('providerFilePathAndMetadata')]
+    public function testParsingFilePathData(
+        string $filePath,
+        string $mediaType,
+        int $byteCount,
+        string $extension,
+    ): void {
+        $file = parse_data($filePath);
+
+        $this->assertFileExists($file->filePath);
+        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($byteCount, $file->byteCount);
+        $this->assertEquals($extension, $file->extension);
+    }
+
+    /**
+     * @return list<list<int|non-empty-string>>
+     */
+    public static function providerFilePathAndMetadata(): array
+    {
+        $prefix = __DIR__.'/data';
+
+        $provider = [
+            [$prefix.'/png-small.png', 'image/png', 10289, 'png'],
+            [$prefix.'/text-small.txt', 'text/plain', 86, 'txt'],
+            [$prefix.'/word-small.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 6657, 'docx'],
+        ];
+
+        return $provider;
     }
 }

@@ -4,12 +4,14 @@ namespace OneToMany\DataUri\Tests;
 
 use PHPUnit\Framework\TestCase;
 
+use function array_rand;
+use function file_get_contents;
+
 /**
  * @phpstan-type TestFile array{filePath: non-empty-string, fileName: non-empty-string, mediaType: non-empty-string, extension: non-empty-string}
  */
 abstract class FileTestCase extends TestCase
 {
-
     /** @var non-empty-string */
     protected static string $dataDirectory;
 
@@ -36,15 +38,20 @@ abstract class FileTestCase extends TestCase
     protected function setUp(): void
     {
         // @phpstan-ignore-next-line
-        $file = self::$testFiles[\array_rand(self::$testFiles)];
+        $file = self::$testFiles[array_rand(self::$testFiles)];
 
         $this->filePath = $file['filePath'];
         $this->fileName = $file['fileName'];
         $this->mediaType = $file['mediaType'];
     }
 
+    protected function getFilePath(string $fileName): string
+    {
+        return self::$dataDirectory.'/'.$fileName;
+    }
+
     protected function readFile(string $fileName): string
     {
-        return @\file_get_contents(self::$dataDirectory.'/'.$fileName) ?: throw new \RuntimeException(sprintf('Failed to read "%s".', $fileName));
+        return @file_get_contents($this->getFilePath($fileName)) ?: throw new \RuntimeException(sprintf('Failed to read "%s".', $fileName));
     }
 }

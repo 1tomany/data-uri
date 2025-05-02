@@ -28,11 +28,11 @@ $files = [
 
 $files = array_map(function (array $file): array {
     $filePath = vsprintf('%s/data/%s', [
-        __DIR__, $file['fileName']
+        __DIR__, $file['fileName'],
     ]);
 
     return [...$file, ...['filePath' => $filePath]];
 }, $files);
 
-/** @return list<array{filePath: non-empty-string, fileName: non-empty-string, mediaType: non-empty-string, extension: non-empty-string}> */
+/* @return list<array{filePath: non-empty-string, fileName: non-empty-string, mediaType: non-empty-string, extension: non-empty-string}> */
 return $files;
