@@ -16,7 +16,6 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function OneToMany\DataUri\parse_data;
-use function rawurlencode;
 use function uniqid;
 use function vsprintf;
 
@@ -95,7 +94,7 @@ final class ParseDataTest extends TestCase
     public function testParsingEncodedDataWithoutBase64OptionIsDecodedAsAsciiText(): void
     {
         $text = 'Hello, PHP world!';
-        $data = rawurlencode($text);
+        $data = 'Hello%2C%20PHP%20world%21';
 
         $file = parse_data('data:text/plain,'.$data);
         $this->assertStringEqualsFile($file->filePath, $text);
@@ -133,17 +132,18 @@ final class ParseDataTest extends TestCase
     {
         $data = $this->fetchRandomFile();
 
-        // Assert: Client Name Is Different
-        $clientName = vsprintf('Test_%s.%s', [
-            uniqid(), $data->extension,
+        // Arrange: Create Unique Client Name
+        $clientName = vsprintf('test-%s.%s', [
+            uniqid('', true), $data->extension,
         ]);
 
+        // Assert: Client Name Is Unique
         $this->assertNotEquals($clientName, $data->clientName);
 
-        // Act: Parse File With Different Client Name
+        // Act: Parse File With Unique Client Name
         $file = parse_data(data: $data->filePath, clientName: $clientName);
 
-        // Assert: Client Name Equals Different Client Name
+        // Assert: Client Name Equals Unique Client Name
         $this->assertEquals($clientName, $file->clientName);
     }
 
@@ -236,14 +236,13 @@ final class ParseDataTest extends TestCase
      */
     public static function providerFilePathAndMetadata(): array
     {
-        $prefix = __DIR__.'/data';
+        $dir = __DIR__.'/data';
 
-        $provider = [
-            [$prefix.'/png-small.png', 'image/png', 10289, 'png'],
-            [$prefix.'/text-small.txt', 'text/plain', 86, 'txt'],
-            [$prefix.'/word-small.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 6657, 'docx'],
+        return [
+            [$dir.'/pdf-small.pdf', 'application/pdf', 36916, 'pdf'],
+            [$dir.'/png-small.png', 'image/png', 10289, 'png'],
+            [$dir.'/text-small.txt', 'text/plain', 86, 'txt'],
+            [$dir.'/word-small.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 6657, 'docx'],
         ];
-
-        return $provider;
     }
 }
