@@ -140,8 +140,7 @@ final class ParseDataTest extends FileTestCase
         string $data,
         string $mediaType,
         string $extension,
-    ): void
-    {
+    ): void {
         $file = parse_data($data);
 
         $this->assertFileExists($file->filePath);
@@ -174,8 +173,7 @@ final class ParseDataTest extends FileTestCase
         string $filePath,
         string $mediaType,
         string $extension,
-    ): void
-    {
+    ): void {
         $file = parse_data($filePath);
 
         $this->assertFileExists($file->filePath);

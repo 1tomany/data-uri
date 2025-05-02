@@ -25,16 +25,18 @@ use function count;
 use function explode;
 use function file_exists;
 use function filesize;
+use function finfo_file;
+use function finfo_open;
 use function hash_algos;
 use function in_array;
 use function is_readable;
+use function is_writable;
 use function mime_content_type;
 use function rawurldecode;
 use function sprintf;
 use function str_contains;
 use function str_ends_with;
 use function strlen;
-use function strtolower;
 use function strval;
 use function substr;
 use function trim;
@@ -119,7 +121,7 @@ function parse_data(
     // Resolve the extension based on the data contents and client file name
     $extension = $isTextData ? 'txt' : Path::getExtension($clientName ?? '');
 
-    if (!\is_writable($tempDir ??= sys_get_temp_dir())) {
+    if (!is_writable($tempDir ??= sys_get_temp_dir())) {
         throw new ProcessingFailedTemporaryDirectoryNotWritableException($tempDir);
     }
 
@@ -145,9 +147,9 @@ function parse_data(
     ]);
 
     if (empty($extension)) {
-        if (false !== $finfo = \finfo_open(FILEINFO_EXTENSION)) {
+        if (false !== $finfo = finfo_open(FILEINFO_EXTENSION)) {
             // Use finfo to inspect the file to determine the extension
-            if (false === $extensions = \finfo_file($finfo, $tempPath)) {
+            if (false === $extensions = finfo_file($finfo, $tempPath)) {
                 _cleanup_safely($tempPath, new ProcessingFailedGeneratingExtensionFailedException($tempPath));
             }
 
