@@ -148,8 +148,8 @@ function parse_data(
         'text/plain',
     ]);
 
-    // Resolve the extension based on the data contents and client file name
-    $extension = $isTextData ? 'txt' : Path::getExtension($clientName ?? '');
+    // Resolve the extension based on the client file name or file contents
+    $extension = Path::getExtension($clientName ?? '') ?: ($isTextData ? 'txt' : '');
 
     if (empty($extension)) {
         if (false !== $finfo = finfo_open(FILEINFO_EXTENSION)) {

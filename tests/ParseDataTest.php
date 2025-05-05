@@ -9,11 +9,14 @@ use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamFile;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function OneToMany\DataUri\parse_data;
 use function uniqid;
@@ -112,6 +115,7 @@ final class ParseDataTest extends TestCase
         $this->expectException(ProcessingFailedTemporaryFileNotWrittenException::class);
 
         $filesystem = $this->createMock(Filesystem::class);
+
         $filesystem
             ->expects($this->once())
             ->method('tempnam')
@@ -137,15 +141,58 @@ final class ParseDataTest extends TestCase
         $this->assertNotEquals($name, $file->fileName);
     }
 
-    public function testParsingFilePathDataSetsFileNameAsClientName(): void
+    #[DataProvider('providerFilePathAndClientName')]
+    public function testParsingFilePathDataSetsFileNameAsClientName(
+        string $filePath,
+        string $clientName,
+    ): void
     {
-        $data = $this->fetchRandomFile();
+        // Arrange: Create Virtual File and Temporary Virtual File
+        $vFile = vfsStream::newFile($clientName)->withContent('Hello, PHP world!');
+        $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($clientName));
+
+        // Arrange: Create Virtual File System
+        vfsStream::setup(structure: [$vFile, $tFile]);
+
+        // Arrange: Mock Symfony Filesystem Component
+        $filesystem = $this->createMock(Filesystem::class);
+
+        $filesystem
+            ->expects($this->once())
+            ->method('readFile')
+            ->willReturn($vFile->getContent());
+
+        $filesystem
+            ->expects($this->once())
+            ->method('tempnam')
+            ->willReturn($tFile->url());
 
         // Act: Parse File With Null Client Name
-        $file = parse_data(data: $data->filePath, clientName: null);
+        $file = parse_data(data: $filePath, clientName: null, filesystem: $filesystem);
 
         // Assert: Client Name Equals Original File Name
-        $this->assertEquals($data->fileName, $file->clientName);
+        $this->assertEquals($clientName, $file->clientName);
+        $this->assertEquals($file->fileName, $file->clientName);
+    }
+
+    /**
+     * @return list<list<non-empty-string>>
+     */
+    public static function providerFilePathAndClientName(): array
+    {
+        $provider = [
+            ['test.jpeg', 'test.jpeg'],
+            ['/test.txt', 'test.txt'],
+            ['./test.pdf', 'test.pdf'],
+            ['/tmp/test.png', 'test.png'],
+            ['http://1tomany-cdn.com/test.gif', 'test.gif'],
+            ['https://1tomany-cdn.com/test.pdf', 'test.pdf'],
+            ['https://1tomany-cdn.com/test.pdf?id=10', 'test.pdf'],
+            ['https://1tomany-cdn.com/test.pdf?id=10&name=Vic', 'test.pdf'],
+            ['https://1tomany-cdn.com/b1/b2/test.jpg', 'test.jpg'],
+        ];
+
+        return $provider;
     }
 
     public function testParsingFilePathDataCanHaveClientNameOverwritten(): void
