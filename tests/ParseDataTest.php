@@ -5,7 +5,6 @@ namespace OneToMany\DataUri\Tests;
 use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
@@ -19,6 +18,8 @@ use Symfony\Component\Filesystem\Filesystem;
 use function OneToMany\DataUri\parse_data;
 use function uniqid;
 use function vsprintf;
+
+use const PHP_MAXPATHLEN;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends TestCase
@@ -57,7 +58,7 @@ final class ParseDataTest extends TestCase
     {
         $this->expectException(ParsingFailedFilePathTooLongException::class);
 
-        parse_data(str_repeat('a', \PHP_MAXPATHLEN + 1));
+        parse_data(str_repeat('a', PHP_MAXPATHLEN + 1));
     }
 
     public function testParsingFilePathDataRequiresReadableFileToExist(): void

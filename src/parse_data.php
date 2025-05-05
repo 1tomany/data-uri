@@ -29,9 +29,9 @@ use function finfo_file;
 use function finfo_open;
 use function hash_algos;
 use function in_array;
-use function is_readable;
 use function is_writable;
 use function mime_content_type;
+use function parse_url;
 use function rawurldecode;
 use function sprintf;
 use function str_contains;
@@ -43,6 +43,7 @@ use function trim;
 
 use const FILEINFO_EXTENSION;
 use const PHP_MAXPATHLEN;
+use const PHP_URL_PATH;
 
 function parse_data(
     ?string $data,
@@ -113,7 +114,7 @@ function parse_data(
             }
         }
 
-        $clientName ??= basename(\parse_url($data, \PHP_URL_PATH) ?: '') ?: null;
+        $clientName ??= basename(parse_url($data, PHP_URL_PATH) ?: '') ?: null;
     }
 
     // Ensure we have some raw data to work with
