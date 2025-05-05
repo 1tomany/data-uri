@@ -100,17 +100,17 @@ function parse_data(
     $filesystem ??= new Filesystem();
 
     if (null === $dataUriBytes) {
-        if (strlen($data) > PHP_MAXPATHLEN) {
-            throw new ParsingFailedFilePathTooLongException();
-        }
-
         try {
+            if (strlen($data) > PHP_MAXPATHLEN) {
+                throw new ParsingFailedFilePathTooLongException();
+            }
+
             $localFileBytes = $filesystem->readFile($data);
         } catch (IOExceptionInterface $e) {
             throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
         } finally {
-            if (true === $deleteOriginalFile) {
-                $filesystem->remove($data);
+            if ($deleteOriginalFile) {
+                _cleanup_safely($data);
             }
         }
 
@@ -192,13 +192,25 @@ function parse_data(
     return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, $clientName, true, $selfDestruct);
 }
 
-function _cleanup_safely(string $filePath, \Throwable $exception): never
+// function _data_uri_safely_delete_file(string $filePath): bool
+// {
+//     if (file_exists($filePath)) {
+//         return @unlink($filePath);
+//     }
+
+//     return false;
+// }
+
+/**
+ * @return ($exception is not null ? never : void)
+ */
+function _cleanup_safely(string $filePath, ?\Throwable $exception = null): void
 {
-    if (strlen($filePath) <= PHP_MAXPATHLEN) {
-        if (file_exists($filePath)) {
-            @unlink($filePath);
-        }
+    if (file_exists($filePath)) {
+        @unlink($filePath);
     }
 
-    throw $exception;
+    if (null !== $exception) {
+        throw $exception;
+    }
 }
