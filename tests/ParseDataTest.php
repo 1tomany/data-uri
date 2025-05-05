@@ -40,6 +40,24 @@ final class ParseDataTest extends TestCase
         parse_data(' ');
     }
 
+    public function testParsingEncodedDataCanBeForcedToBeDecodedAsBase64(): void
+    {
+        // 1x1 Transparent GIF
+        $data = $this->readFileContents(...[
+            'fileName' => 'gif-base64.txt',
+        ]);
+
+        // Assert: Not a Data URI
+        $this->assertStringStartsNotWith('data:', $data);
+
+        // Act: Parse Data With Base64 Assumption
+        $file = parse_data(data: $data, assumeBase64Data: true);
+
+        // Assert: Data Is Successfully Parsed
+        $this->assertEquals('image/gif', $file->mediaType);
+        $this->assertStringEndsWith('.gif', $file->fileName);
+    }
+
     public function testParsingEncodedDataRequiresValidRfc2397Format(): void
     {
         $this->expectException(ParsingFailedInvalidRfc2397EncodedDataException::class);
@@ -52,6 +70,15 @@ final class ParseDataTest extends TestCase
         $this->expectException(ParsingFailedInvalidBase64EncodedDataException::class);
 
         parse_data('data:image/png;base64,ümlaut');
+    }
+
+    public function testParsingEncodedDataWithoutBase64OptionIsDecodedAsAsciiText(): void
+    {
+        $text = 'Hello, PHP world!';
+        $data = 'Hello%2C%20PHP%20world%21';
+
+        $file = parse_data('data:text/plain,'.$data);
+        $this->assertStringEqualsFile($file->filePath, $text);
     }
 
     public function testParsingFilePathRequiresFilePathLengthToBeLessThanOrEqualToTheMaximumPathLength(): void
@@ -91,15 +118,6 @@ final class ParseDataTest extends TestCase
             ->willThrowException(new IOException('Error'));
 
         parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
-    }
-
-    public function testParsingEncodedDataWithoutBase64OptionIsDecodedAsAsciiText(): void
-    {
-        $text = 'Hello, PHP world!';
-        $data = 'Hello%2C%20PHP%20world%21';
-
-        $file = parse_data('data:text/plain,'.$data);
-        $this->assertStringEqualsFile($file->filePath, $text);
     }
 
     public function testParsingEncodedDataWithoutMediaTypeDefaultsToTextPlain(): void
@@ -147,24 +165,6 @@ final class ParseDataTest extends TestCase
 
         // Assert: Client Name Equals Unique Client Name
         $this->assertEquals($clientName, $file->clientName);
-    }
-
-    public function testParsingEncodedDataCanBeForcedToBeDecodedAsBase64(): void
-    {
-        // 1x1 Transparent GIF
-        $data = $this->readFileContents(...[
-            'fileName' => 'gif-base64.txt',
-        ]);
-
-        // Assert: Not a Data URI
-        $this->assertStringStartsNotWith('data:', $data);
-
-        // Act: Parse Data With Base64 Assumption
-        $file = parse_data(data: $data, assumeBase64Data: true);
-
-        // Assert: Data Is Successfully Parsed
-        $this->assertEquals('image/gif', $file->mediaType);
-        $this->assertStringEndsWith('.gif', $file->fileName);
     }
 
     public function testParsingFilePathDataCanDeleteOriginalFile(): void
