@@ -10,7 +10,6 @@ use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedExcepti
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamFile;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -145,8 +144,7 @@ final class ParseDataTest extends TestCase
     public function testParsingFilePathDataSetsFileNameAsClientName(
         string $filePath,
         string $clientName,
-    ): void
-    {
+    ): void {
         // Arrange: Create Virtual File and Temporary Virtual File
         $vFile = vfsStream::newFile($clientName)->withContent('Hello, PHP world!');
         $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($clientName));
