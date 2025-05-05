@@ -3,8 +3,8 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
+use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
@@ -99,12 +99,12 @@ function parse_data(
     $filesystem ??= new Filesystem();
 
     if (null === $dataUriBytes) {
-        try {
-            if ($filesystem->exists($data) && is_readable($data)) {
-                $localFileBytes = $filesystem->readFile($data);
-            }
+        if (strlen($data) > PHP_MAXPATHLEN) {
+            throw new ParsingFailedFilePathTooLongException();
+        }
 
-            $clientName ??= basename($data);
+        try {
+            $localFileBytes = $filesystem->readFile($data);
         } catch (IOExceptionInterface $e) {
             throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
         } finally {
@@ -112,12 +112,12 @@ function parse_data(
                 $filesystem->remove($data);
             }
         }
+
+        $clientName ??= basename(\parse_url($data, \PHP_URL_PATH) ?: '') ?: null;
     }
 
-    // Ensure we have some data to work with
-    if (null === ($fileBytes = $dataUriBytes ?? $localFileBytes)) {
-        throw new ParsingFailedInvalidDataProvidedException();
-    }
+    // Ensure we have some raw data to work with
+    $fileBytes = $dataUriBytes ?? $localFileBytes;
 
     // Ensure we can write the data to a temporary file
     if (!is_writable($tempDir ??= sys_get_temp_dir())) {

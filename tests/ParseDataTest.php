@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
+use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
@@ -52,6 +53,13 @@ final class ParseDataTest extends TestCase
         parse_data('data:image/png;base64,ümlaut');
     }
 
+    public function testParsingFilePathRequiresFilePathLengthToBeLessThanOrEqualToTheMaximumPathLength(): void
+    {
+        $this->expectException(ParsingFailedFilePathTooLongException::class);
+
+        parse_data(str_repeat('a', \PHP_MAXPATHLEN + 1));
+    }
+
     public function testParsingFilePathDataRequiresReadableFileToExist(): void
     {
         $this->expectException(ParsingFailedInvalidFilePathProvidedException::class);
@@ -69,13 +77,6 @@ final class ParseDataTest extends TestCase
             ->willThrowException(new IOException('Error'));
 
         parse_data(data: __FILE__, filesystem: $filesystem);
-    }
-
-    public function testParsingDataRequiresValidDataUriSchemeOrValidFilePath(): void
-    {
-        $this->expectException(ParsingFailedInvalidDataProvidedException::class);
-
-        parse_data('invalid-data-string-and-file-path');
     }
 
     public function testParsingDataRequiresWritingDataToTemporaryFile(): void
