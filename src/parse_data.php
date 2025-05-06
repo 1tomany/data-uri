@@ -3,8 +3,8 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
+use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
@@ -29,9 +29,9 @@ use function finfo_file;
 use function finfo_open;
 use function hash_algos;
 use function in_array;
-use function is_readable;
 use function is_writable;
 use function mime_content_type;
+use function parse_url;
 use function rawurldecode;
 use function sprintf;
 use function str_contains;
@@ -43,6 +43,7 @@ use function trim;
 
 use const FILEINFO_EXTENSION;
 use const PHP_MAXPATHLEN;
+use const PHP_URL_PATH;
 
 function parse_data(
     ?string $data,
@@ -100,24 +101,24 @@ function parse_data(
 
     if (null === $dataUriBytes) {
         try {
-            if ($filesystem->exists($data) && is_readable($data)) {
-                $localFileBytes = $filesystem->readFile($data);
+            if (strlen($data) > PHP_MAXPATHLEN) {
+                throw new ParsingFailedFilePathTooLongException();
             }
 
-            $clientName ??= basename($data);
+            $localFileBytes = $filesystem->readFile($data);
         } catch (IOExceptionInterface $e) {
             throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
         } finally {
-            if (true === $deleteOriginalFile) {
-                $filesystem->remove($data);
+            if ($deleteOriginalFile) {
+                _cleanup_safely($data);
             }
         }
+
+        $clientName ??= basename(parse_url($data, PHP_URL_PATH) ?: '') ?: null;
     }
 
-    // Ensure we have some data to work with
-    if (null === ($fileBytes = $dataUriBytes ?? $localFileBytes)) {
-        throw new ParsingFailedInvalidDataProvidedException();
-    }
+    // Ensure we have some raw data to work with
+    $fileBytes = $dataUriBytes ?? $localFileBytes;
 
     // Ensure we can write the data to a temporary file
     if (!is_writable($tempDir ??= sys_get_temp_dir())) {
@@ -147,8 +148,8 @@ function parse_data(
         'text/plain',
     ]);
 
-    // Resolve the extension based on the data contents and client file name
-    $extension = $isTextData ? 'txt' : Path::getExtension($clientName ?? '');
+    // Resolve the extension based on the client file name or file contents
+    $extension = Path::getExtension($clientName ?? '') ?: ($isTextData ? 'txt' : '');
 
     if (empty($extension)) {
         if (false !== $finfo = finfo_open(FILEINFO_EXTENSION)) {
@@ -191,13 +192,25 @@ function parse_data(
     return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, $clientName, true, $selfDestruct);
 }
 
-function _cleanup_safely(string $filePath, \Throwable $exception): never
+// function _data_uri_safely_delete_file(string $filePath): bool
+// {
+//     if (file_exists($filePath)) {
+//         return @unlink($filePath);
+//     }
+
+//     return false;
+// }
+
+/**
+ * @return ($exception is not null ? never : void)
+ */
+function _cleanup_safely(string $filePath, ?\Throwable $exception = null): void
 {
-    if (strlen($filePath) <= PHP_MAXPATHLEN) {
-        if (file_exists($filePath)) {
-            @unlink($filePath);
-        }
+    if (file_exists($filePath)) {
+        @unlink($filePath);
     }
 
-    throw $exception;
+    if (null !== $exception) {
+        throw $exception;
+    }
 }

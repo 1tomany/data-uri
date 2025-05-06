@@ -3,21 +3,25 @@
 namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
+use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
+use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function OneToMany\DataUri\parse_data;
 use function uniqid;
 use function vsprintf;
+
+use const PHP_MAXPATHLEN;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends TestCase
@@ -38,6 +42,24 @@ final class ParseDataTest extends TestCase
         parse_data(' ');
     }
 
+    public function testParsingEncodedDataCanBeForcedToBeDecodedAsBase64(): void
+    {
+        // 1x1 Transparent GIF
+        $data = $this->readFileContents(...[
+            'fileName' => 'gif-base64.txt',
+        ]);
+
+        // Assert: Not a Data URI
+        $this->assertStringStartsNotWith('data:', $data);
+
+        // Act: Parse Data With Base64 Assumption
+        $file = parse_data(data: $data, assumeBase64Data: true);
+
+        // Assert: Data Is Successfully Parsed
+        $this->assertEquals('image/gif', $file->mediaType);
+        $this->assertStringEndsWith('.gif', $file->fileName);
+    }
+
     public function testParsingEncodedDataRequiresValidRfc2397Format(): void
     {
         $this->expectException(ParsingFailedInvalidRfc2397EncodedDataException::class);
@@ -50,6 +72,22 @@ final class ParseDataTest extends TestCase
         $this->expectException(ParsingFailedInvalidBase64EncodedDataException::class);
 
         parse_data('data:image/png;base64,ümlaut');
+    }
+
+    public function testParsingEncodedDataWithoutBase64OptionIsDecodedAsAsciiText(): void
+    {
+        $text = 'Hello, PHP world!';
+        $data = 'Hello%2C%20PHP%20world%21';
+
+        $file = parse_data('data:text/plain,'.$data);
+        $this->assertStringEqualsFile($file->filePath, $text);
+    }
+
+    public function testParsingFilePathRequiresFilePathLengthToBeLessThanOrEqualToTheMaximumPathLength(): void
+    {
+        $this->expectException(ParsingFailedFilePathTooLongException::class);
+
+        parse_data(str_repeat('a', PHP_MAXPATHLEN + 1));
     }
 
     public function testParsingFilePathDataRequiresReadableFileToExist(): void
@@ -71,33 +109,18 @@ final class ParseDataTest extends TestCase
         parse_data(data: __FILE__, filesystem: $filesystem);
     }
 
-    public function testParsingDataRequiresValidDataUriSchemeOrValidFilePath(): void
-    {
-        $this->expectException(ParsingFailedInvalidDataProvidedException::class);
-
-        parse_data('invalid-data-string-and-file-path');
-    }
-
     public function testParsingDataRequiresWritingDataToTemporaryFile(): void
     {
         $this->expectException(ProcessingFailedTemporaryFileNotWrittenException::class);
 
         $filesystem = $this->createMock(Filesystem::class);
+
         $filesystem
             ->expects($this->once())
             ->method('tempnam')
             ->willThrowException(new IOException('Error'));
 
         parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
-    }
-
-    public function testParsingEncodedDataWithoutBase64OptionIsDecodedAsAsciiText(): void
-    {
-        $text = 'Hello, PHP world!';
-        $data = 'Hello%2C%20PHP%20world%21';
-
-        $file = parse_data('data:text/plain,'.$data);
-        $this->assertStringEqualsFile($file->filePath, $text);
     }
 
     public function testParsingEncodedDataWithoutMediaTypeDefaultsToTextPlain(): void
@@ -117,15 +140,57 @@ final class ParseDataTest extends TestCase
         $this->assertNotEquals($name, $file->fileName);
     }
 
-    public function testParsingFilePathDataSetsFileNameAsClientName(): void
-    {
-        $data = $this->fetchRandomFile();
+    #[DataProvider('providerFilePathAndClientName')]
+    public function testParsingFilePathDataSetsFileNameAsClientName(
+        string $filePath,
+        string $clientName,
+    ): void {
+        // Arrange: Create Virtual File and Temporary Virtual File
+        $vFile = vfsStream::newFile($clientName)->withContent('Hello, PHP world!');
+        $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($clientName));
+
+        // Arrange: Create Virtual File System
+        vfsStream::setup(structure: [$vFile, $tFile]);
+
+        // Arrange: Mock Symfony Filesystem Component
+        $filesystem = $this->createMock(Filesystem::class);
+
+        $filesystem
+            ->expects($this->once())
+            ->method('readFile')
+            ->willReturn($vFile->getContent());
+
+        $filesystem
+            ->expects($this->once())
+            ->method('tempnam')
+            ->willReturn($tFile->url());
 
         // Act: Parse File With Null Client Name
-        $file = parse_data(data: $data->filePath, clientName: null);
+        $file = parse_data(data: $filePath, clientName: null, filesystem: $filesystem);
 
         // Assert: Client Name Equals Original File Name
-        $this->assertEquals($data->fileName, $file->clientName);
+        $this->assertEquals($clientName, $file->clientName);
+        $this->assertEquals($file->fileName, $file->clientName);
+    }
+
+    /**
+     * @return list<list<non-empty-string>>
+     */
+    public static function providerFilePathAndClientName(): array
+    {
+        $provider = [
+            ['test.jpeg', 'test.jpeg'],
+            ['/test.txt', 'test.txt'],
+            ['./test.pdf', 'test.pdf'],
+            ['/tmp/test.png', 'test.png'],
+            ['http://1tomany-cdn.com/test.gif', 'test.gif'],
+            ['https://1tomany-cdn.com/test.pdf', 'test.pdf'],
+            ['https://1tomany-cdn.com/test.pdf?id=10', 'test.pdf'],
+            ['https://1tomany-cdn.com/test.pdf?id=10&name=Vic', 'test.pdf'],
+            ['https://1tomany-cdn.com/b1/b2/test.jpg', 'test.jpg'],
+        ];
+
+        return $provider;
     }
 
     public function testParsingFilePathDataCanHaveClientNameOverwritten(): void
@@ -145,24 +210,6 @@ final class ParseDataTest extends TestCase
 
         // Assert: Client Name Equals Unique Client Name
         $this->assertEquals($clientName, $file->clientName);
-    }
-
-    public function testParsingEncodedDataCanBeForcedToBeDecodedAsBase64(): void
-    {
-        // 1x1 Transparent GIF
-        $data = $this->readFileContents(...[
-            'fileName' => 'gif-base64.txt',
-        ]);
-
-        // Assert: Not a Data URI
-        $this->assertStringStartsNotWith('data:', $data);
-
-        // Act: Parse Data With Base64 Assumption
-        $file = parse_data(data: $data, assumeBase64Data: true);
-
-        // Assert: Data Is Successfully Parsed
-        $this->assertEquals('image/gif', $file->mediaType);
-        $this->assertStringEndsWith('.gif', $file->fileName);
     }
 
     public function testParsingFilePathDataCanDeleteOriginalFile(): void
