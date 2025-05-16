@@ -4,6 +4,7 @@
     "license": "MIT",
     "type": "library",
     "minimum-stability": "stable",
+    "prefer-stable": true,
     "keywords": [
         "datauri",
         "data uri",
