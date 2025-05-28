@@ -49,7 +49,7 @@ function parse_data(
     ?string $data,
     ?string $tempDir = null,
     string $hashAlgorithm = 'sha256',
-    ?string $clientName = null,
+    ?string $displayName = null,
     bool $assumeBase64Data = false,
     bool $deleteOriginalFile = false,
     bool $selfDestruct = true,
@@ -68,7 +68,7 @@ function parse_data(
     $isTextData = false;
 
     // Variables that we will try to expand during parsing
-    $mediaType = $dataUriBytes = $localFileBytes = null;
+    $contentType = $dataUriBytes = $localFileBytes = null;
 
     if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
         $data = sprintf('data:application/octet-stream;base64,%s', $data);
@@ -114,7 +114,7 @@ function parse_data(
             }
         }
 
-        $clientName ??= basename(parse_url($data, PHP_URL_PATH) ?: '') ?: null;
+        $displayName ??= basename(parse_url($data, PHP_URL_PATH) ?: '') ?: null;
     }
 
     // Ensure we have some raw data to work with
@@ -140,16 +140,16 @@ function parse_data(
     }
 
     // Determine the actual media type of the file
-    if (false === $mediaType = mime_content_type($tempPath)) {
-        $mediaType = $isTextData ? 'text/plain' : 'application/octet-stream';
+    if (false === $contentType = mime_content_type($tempPath)) {
+        $contentType = $isTextData ? 'text/plain' : 'application/octet-stream';
     }
 
-    $isTextData = in_array($mediaType, [
+    $isTextData = in_array($contentType, [
         'text/plain',
     ]);
 
     // Resolve the extension based on the client file name or file contents
-    $extension = Path::getExtension($clientName ?? '') ?: ($isTextData ? 'txt' : '');
+    $extension = Path::getExtension($displayName ?? '') ?: ($isTextData ? 'txt' : '');
 
     if (empty($extension)) {
         if (false !== $finfo = finfo_open(FILEINFO_EXTENSION)) {
@@ -177,9 +177,8 @@ function parse_data(
     }
 
     try {
-        // Generate a hash (or fingerprint) to allow the
-        // user to determine if this file is unique or not
-        $fingerprint = hash($hashAlgorithm, $fileBytes, false);
+        // Generate a hash to uniquely identify this file
+        $hash = hash($hashAlgorithm, $fileBytes, false);
     } catch (\ValueError $e) {
         _cleanup_safely($filePath, new ProcessingFailedGeneratingHashFailedException($filePath, $hashAlgorithm, $e));
     }
@@ -189,17 +188,8 @@ function parse_data(
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    return new SmartFile($filePath, $fingerprint, $mediaType, $byteCount, $clientName, true, $selfDestruct);
+    return new SmartFile($filePath, $hash, $contentType, $byteCount, $displayName, true, $selfDestruct);
 }
-
-// function _data_uri_safely_delete_file(string $filePath): bool
-// {
-//     if (file_exists($filePath)) {
-//         return @unlink($filePath);
-//     }
-
-//     return false;
-// }
 
 /**
  * @return ($exception is not null ? never : void)

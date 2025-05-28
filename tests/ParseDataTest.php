@@ -56,7 +56,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data(data: $data, assumeBase64Data: true);
 
         // Assert: Data Is Successfully Parsed
-        $this->assertEquals('image/gif', $file->mediaType);
+        $this->assertEquals('image/gif', $file->contentType);
         $this->assertStringEndsWith('.gif', $file->fileName);
     }
 
@@ -123,31 +123,31 @@ final class ParseDataTest extends TestCase
         parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
     }
 
-    public function testParsingEncodedDataWithoutMediaTypeDefaultsToTextPlain(): void
+    public function testParsingEncodedDataWithoutContentTypeDefaultsToTextPlain(): void
     {
         $file = parse_data('data:,Hello%20world');
 
-        $this->assertEquals('text/plain', $file->mediaType);
+        $this->assertEquals('text/plain', $file->contentType);
         $this->assertStringEndsWith('.txt', $file->fileName);
     }
 
-    public function testParsingEncodedDataCanSetClientName(): void
+    public function testParsingEncodedDataCanSetDisplayName(): void
     {
         $name = 'HelloWorld.txt';
-        $file = parse_data(data: 'data:,Hello%20world', clientName: $name);
+        $file = parse_data(data: 'data:,Hello%20world', displayName: $name);
 
-        $this->assertEquals($name, $file->clientName);
+        $this->assertEquals($name, $file->displayName);
         $this->assertNotEquals($name, $file->fileName);
     }
 
-    #[DataProvider('providerFilePathAndClientName')]
-    public function testParsingFilePathDataSetsFileNameAsClientName(
+    #[DataProvider('providerFilePathAndDisplayName')]
+    public function testParsingFilePathDataSetsFileNameAsDisplayName(
         string $filePath,
-        string $clientName,
+        string $displayName,
     ): void {
         // Arrange: Create Virtual File and Temporary Virtual File
-        $vFile = vfsStream::newFile($clientName)->withContent('Hello, PHP world!');
-        $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($clientName));
+        $vFile = vfsStream::newFile($displayName)->withContent('Hello, PHP world!');
+        $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($displayName));
 
         // Arrange: Create Virtual File System
         vfsStream::setup(structure: [$vFile, $tFile]);
@@ -165,18 +165,18 @@ final class ParseDataTest extends TestCase
             ->method('tempnam')
             ->willReturn($tFile->url());
 
-        // Act: Parse File With Null Client Name
-        $file = parse_data(data: $filePath, clientName: null, filesystem: $filesystem);
+        // Act: Parse File With Null Display Name
+        $file = parse_data(data: $filePath, displayName: null, filesystem: $filesystem);
 
-        // Assert: Client Name Equals Original File Name
-        $this->assertEquals($clientName, $file->clientName);
-        $this->assertEquals($file->fileName, $file->clientName);
+        // Assert: Display Name Equals Original File Name
+        $this->assertEquals($displayName, $file->displayName);
+        $this->assertEquals($file->fileName, $file->displayName);
     }
 
     /**
      * @return list<list<non-empty-string>>
      */
-    public static function providerFilePathAndClientName(): array
+    public static function providerFilePathAndDisplayName(): array
     {
         $provider = [
             ['test.jpeg', 'test.jpeg'],
@@ -193,23 +193,23 @@ final class ParseDataTest extends TestCase
         return $provider;
     }
 
-    public function testParsingFilePathDataCanHaveClientNameOverwritten(): void
+    public function testParsingFilePathDataCanHaveDisplayNameOverwritten(): void
     {
         $data = $this->fetchRandomFile();
 
-        // Arrange: Create Unique Client Name
-        $clientName = vsprintf('test-%s.%s', [
+        // Arrange: Create Unique Display Name
+        $displayName = vsprintf('test-%s.%s', [
             uniqid('', true), $data->extension,
         ]);
 
-        // Assert: Client Name Is Unique
-        $this->assertNotEquals($clientName, $data->clientName);
+        // Assert: Display Name Is Unique
+        $this->assertNotEquals($displayName, $data->displayName);
 
-        // Act: Parse File With Unique Client Name
-        $file = parse_data(data: $data->filePath, clientName: $clientName);
+        // Act: Parse File With Unique Display Name
+        $file = parse_data(data: $data->filePath, displayName: $displayName);
 
-        // Assert: Client Name Equals Unique Client Name
-        $this->assertEquals($clientName, $file->clientName);
+        // Assert: Display Name Equals Unique Display Name
+        $this->assertEquals($displayName, $file->displayName);
     }
 
     public function testParsingFilePathDataCanDeleteOriginalFile(): void
@@ -229,14 +229,14 @@ final class ParseDataTest extends TestCase
     #[DataProvider('providerEncodedDataAndMetadata')]
     public function testParsingEncodedData(
         string $data,
-        string $mediaType,
+        string $contentType,
         int $byteCount,
         string $extension,
     ): void {
         $file = parse_data($data);
 
         $this->assertFileExists($file->filePath);
-        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($contentType, $file->contentType);
         $this->assertEquals($byteCount, $file->byteCount);
         $this->assertEquals($extension, $file->extension);
     }
@@ -266,14 +266,14 @@ final class ParseDataTest extends TestCase
     #[DataProvider('providerFilePathAndMetadata')]
     public function testParsingFilePathData(
         string $filePath,
-        string $mediaType,
+        string $contentType,
         int $byteCount,
         string $extension,
     ): void {
         $file = parse_data($filePath);
 
         $this->assertFileExists($file->filePath);
-        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($contentType, $file->contentType);
         $this->assertEquals($byteCount, $file->byteCount);
         $this->assertEquals($extension, $file->extension);
     }
