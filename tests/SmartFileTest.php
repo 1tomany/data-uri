@@ -4,7 +4,8 @@ namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\Exception\ConstructionFailedFileDoesNotExistException;
 use OneToMany\DataUri\Exception\ConstructionFailedFilePathNotProvidedException;
-use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
+use OneToMany\DataUri\Exception\EncodingFailedFileDoesNotExistException;
+use OneToMany\DataUri\Exception\ReadingFailedFileDoesNotExistException;
 use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -132,9 +133,16 @@ final class SmartFileTest extends TestCase
         $this->assertEquals($file->filePath, $file->__toString());
     }
 
-    public function testToDataUriRequiresFilePathToExist(): void
+    public function testReadingFileRequiresFileToExist(): void
     {
-        $this->expectException(EncodingFailedInvalidFilePathException::class);
+        $this->expectException(ReadingFailedFileDoesNotExistException::class);
+
+        new SmartFile('/invalid/path/1.txt', 'hash', 'text/plain', 0, null, false)->read();
+    }
+
+    public function testToDataUriRequiresFileToExist(): void
+    {
+        $this->expectException(EncodingFailedFileDoesNotExistException::class);
 
         new SmartFile('/invalid/path/1.txt', 'hash', 'text/plain', 0, null, false)->toDataUri();
     }
