@@ -37,9 +37,9 @@ use const PATHINFO_EXTENSION;
 
 final readonly class SmartFile implements \Stringable
 {
+    public string $hash;
     public string $filePath;
     public string $fileName;
-    public string $hash;
     public string $contentType;
     public int $byteCount;
     public string $displayName;
