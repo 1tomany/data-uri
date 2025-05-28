@@ -11,10 +11,10 @@ composer require 1tomany/data-uri
 ## Example
 See the [`parse_example.php`](https://github.com/1tomany/data-uri/blob/main/examples/parse_example.php) file for examples on how to use the `parse_data()` method.
 
-### Testing with `MockSmartFile`
+### Testing with `SmartFile::createMock()`
 You may be reluctant to write tests for code that uses the `parse_data()` function because it interacts with the actual filesystem. For example, if you have a class that takes a `SmartFile` object and uploads it to a remote storage service, you may not want to actually call `parse_data()` in your test or instantiate a new `SmartFile` object since it requires the existence of a file on the local filesystem and will attempt to delete the file when the object is destroyed.
 
-In those instances, you can instantiate the `OneToMany\DataUri\MockSmartFile` object and use it in place of the `SmartFile` object. `MockSmartFile` extends `SmartFile`, allows you to artificially set any constructor values, and doesn't attempt to delete itself after it is destroyed.
+In those instances, you can instantiate a `OneToMany\DataUri\SmartFile` object with the `createMock(string $filePath, string $contentType)` method. `SmartFile` instances created using `createMock()` do not require the file to exist, and don't attempt to delete the file when the object is destroyed.
 
 If you _do_ wish to use the `parse_data()` function, you can write a unit test that does not interact with the filesystem by passing a mocked `Symfony\Component\Filesystem\Filesystem` object as the last parameter of the `parse_data()` method in your test. You will need to mock the following methods of the `Filesystem` class:
 
@@ -23,7 +23,7 @@ If you _do_ wish to use the `parse_data()` function, you can write a unit test t
 - `void dumpFile(string $filename, string|resource $content)`
 - `void rename(string $origin, string $target, bool $overwrite = false)`
 
-An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingFilePathDataRequiresReadableFileToExist()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L55).
+An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingFilePathDataRequiresReadableFileToExist()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L93).
 
 If you want to take your tests further, you can validate the data is "written" to the temporary file by combining the mocked `Filesystem` object with a library like [mikey179/vfsstream](https://packagist.org/packages/mikey179/vfsstream).
 

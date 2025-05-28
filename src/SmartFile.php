@@ -24,6 +24,8 @@ use function implode;
 use function is_file;
 use function is_readable;
 use function pathinfo;
+use function random_bytes;
+use function random_int;
 use function sprintf;
 use function strtolower;
 use function substr;
@@ -33,7 +35,7 @@ use function vsprintf;
 
 use const PATHINFO_EXTENSION;
 
-readonly class SmartFile implements \Stringable
+final readonly class SmartFile implements \Stringable
 {
     public string $filePath;
     public string $fileName;
@@ -99,7 +101,7 @@ readonly class SmartFile implements \Stringable
 
         $this->byteCount = $byteCount;
 
-        if (empty($contentType)) {
+        if (empty($contentType = trim($contentType))) {
             throw new ConstructionFailedContentTypeNotProvidedException($this->filePath);
         }
 
@@ -141,6 +143,17 @@ readonly class SmartFile implements \Stringable
     public function __toString(): string
     {
         return $this->filePath;
+    }
+
+    public static function createMock(string $filePath, string $contentType): self
+    {
+        // Generate Random Size [1KB, 4MB]
+        $size = random_int(1_024, 4_194_304);
+
+        // Generate Random Hash Based on Size
+        $hash = hash('sha256', random_bytes($size));
+
+        return new self($filePath, $hash, $contentType, $size, null, false, false);
     }
 
     public function equals(self $data, bool $strict = false): bool
