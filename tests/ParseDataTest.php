@@ -56,7 +56,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data(data: $data, assumeBase64Data: true);
 
         // Assert: Data Is Successfully Parsed
-        $this->assertEquals('image/gif', $file->mediaType);
+        $this->assertEquals('image/gif', $file->contentType);
         $this->assertStringEndsWith('.gif', $file->fileName);
     }
 
@@ -127,16 +127,16 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_data('data:,Hello%20world');
 
-        $this->assertEquals('text/plain', $file->mediaType);
+        $this->assertEquals('text/plain', $file->contentType);
         $this->assertStringEndsWith('.txt', $file->fileName);
     }
 
     public function testParsingEncodedDataCanSetClientName(): void
     {
         $name = 'HelloWorld.txt';
-        $file = parse_data(data: 'data:,Hello%20world', clientName: $name);
+        $file = parse_data(data: 'data:,Hello%20world', displayName: $name);
 
-        $this->assertEquals($name, $file->clientName);
+        $this->assertEquals($name, $file->displayName);
         $this->assertNotEquals($name, $file->fileName);
     }
 
@@ -166,11 +166,11 @@ final class ParseDataTest extends TestCase
             ->willReturn($tFile->url());
 
         // Act: Parse File With Null Client Name
-        $file = parse_data(data: $filePath, clientName: null, filesystem: $filesystem);
+        $file = parse_data(data: $filePath, displayName: null, filesystem: $filesystem);
 
         // Assert: Client Name Equals Original File Name
-        $this->assertEquals($clientName, $file->clientName);
-        $this->assertEquals($file->fileName, $file->clientName);
+        $this->assertEquals($clientName, $file->displayName);
+        $this->assertEquals($file->fileName, $file->displayName);
     }
 
     /**
@@ -203,13 +203,13 @@ final class ParseDataTest extends TestCase
         ]);
 
         // Assert: Client Name Is Unique
-        $this->assertNotEquals($clientName, $data->clientName);
+        $this->assertNotEquals($clientName, $data->displayName);
 
         // Act: Parse File With Unique Client Name
-        $file = parse_data(data: $data->filePath, clientName: $clientName);
+        $file = parse_data(data: $data->filePath, displayName: $clientName);
 
         // Assert: Client Name Equals Unique Client Name
-        $this->assertEquals($clientName, $file->clientName);
+        $this->assertEquals($clientName, $file->displayName);
     }
 
     public function testParsingFilePathDataCanDeleteOriginalFile(): void
@@ -236,7 +236,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data($data);
 
         $this->assertFileExists($file->filePath);
-        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($mediaType, $file->contentType);
         $this->assertEquals($byteCount, $file->byteCount);
         $this->assertEquals($extension, $file->extension);
     }
@@ -273,7 +273,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data($filePath);
 
         $this->assertFileExists($file->filePath);
-        $this->assertEquals($mediaType, $file->mediaType);
+        $this->assertEquals($mediaType, $file->contentType);
         $this->assertEquals($byteCount, $file->byteCount);
         $this->assertEquals($extension, $file->extension);
     }

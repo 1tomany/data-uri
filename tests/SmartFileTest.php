@@ -35,10 +35,10 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile With Null Client Name
-        $file = new SmartFile($data->filePath, null, $data->mediaType, null, null, true, false);
+        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, false);
 
         // Assert: File Name and Client Name Are Equal
-        $this->assertEquals($file->fileName, $file->clientName);
+        $this->assertEquals($file->fileName, $file->displayName);
     }
 
     public function testConstructorSetsClientNameWhenClientNameIsNotNull(): void
@@ -46,12 +46,12 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile With Non-Null Client Name
-        $file = new SmartFile($data->filePath, null, $data->mediaType, null, $data->clientName, true, false);
+        $file = new SmartFile($data->filePath, null, $data->contentType, null, $data->displayName, true, false);
 
         // Assert: File Name and Client Name Are Different
-        $this->assertEquals($data->clientName, $file->clientName);
-        $this->assertNotEquals($data->clientName, $file->fileName);
-        $this->assertNotEquals($file->clientName, $file->fileName);
+        $this->assertEquals($data->displayName, $file->displayName);
+        $this->assertNotEquals($data->displayName, $file->fileName);
+        $this->assertNotEquals($file->displayName, $file->fileName);
     }
 
     public function testConstructorGeneratesRemoteKey(): void
@@ -59,7 +59,7 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile With Null Remote Key
-        $file = new SmartFile($data->filePath, null, $data->mediaType, null, null, true, false);
+        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, false);
 
         // Assert: Remote Key Generated
         $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->remoteKey);
@@ -70,7 +70,7 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile to Self Destruct
-        $file = new SmartFile($data->filePath, null, $data->mediaType, null, null, true, true);
+        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, true);
 
         // Assert: SmartFile to Self Destruct
         $this->assertTrue($file->selfDestruct);
@@ -88,7 +88,7 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile to Self Destruct
-        $file = new SmartFile($data->filePath, null, $data->mediaType, null, null, true, true);
+        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, true);
 
         // Assert: SmartFile to Self Destruct
         $this->assertTrue($file->selfDestruct);
@@ -110,7 +110,7 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile to Not Self Destruct
-        $file = new SmartFile($data->filePath, null, $data->mediaType, null, null, true, false);
+        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, false);
 
         // Assert: SmartFile to Not Self Destruct
         $this->assertFalse($file->selfDestruct);

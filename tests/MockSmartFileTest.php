@@ -16,12 +16,12 @@ final class MockSmartFileTest extends TestCase
         $file = new MockSmartFile();
 
         // Assert: MockSmartFile Is Hydrated
-        $this->assertNotEmpty($file->fingerprint);
-        $this->assertNotEmpty($file->mediaType);
+        $this->assertNotEmpty($file->hash);
+        $this->assertNotEmpty($file->contentType);
         $this->assertNotEmpty($file->byteCount);
         $this->assertNotEmpty($file->filePath);
         $this->assertNotEmpty($file->fileName);
-        $this->assertNotEmpty($file->clientName);
+        $this->assertNotEmpty($file->displayName);
         $this->assertNotEmpty($file->extension);
         $this->assertNotEmpty($file->remoteKey);
     }
@@ -41,6 +41,6 @@ final class MockSmartFileTest extends TestCase
         // Assert: MockSmartFile Has Same Path and Name
         $this->assertEquals($data->filePath, $file->filePath);
         $this->assertEquals($data->fileName, $file->fileName);
-        $this->assertEquals($data->fileName, $file->clientName);
+        $this->assertEquals($data->fileName, $file->displayName);
     }
 }
