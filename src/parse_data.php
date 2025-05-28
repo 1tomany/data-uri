@@ -78,13 +78,13 @@ function parse_data(
     if (str_starts_with($data, 'data:') && str_contains($data, ',')) {
         $dataBits = explode(',', substr($data, 5));
 
-        if (2 !== count($dataBits) || empty($dataBits[1])) {
+        if (2 !== count($dataBits)) {
             throw new ParsingFailedInvalidRfc2397EncodedDataException();
         }
 
         // Attempt to decode the base64 encoded data
         if (str_ends_with($dataBits[0], ';base64')) {
-            if (!$dataUriBytes = base64_decode($dataBits[1], true)) {
+            if (false === $dataUriBytes = base64_decode($dataBits[1], true)) {
                 throw new ParsingFailedInvalidBase64EncodedDataException();
             }
         }

@@ -10,6 +10,7 @@ use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
+use function OneToMany\DataUri\parse_data;
 use function unlink;
 
 #[Group('UnitTests')]
@@ -138,6 +139,13 @@ final class SmartFileTest extends TestCase
         $this->expectException(ReadingFailedFileDoesNotExistException::class);
 
         new SmartFile('/invalid/path/1.txt', 'hash', 'text/plain', 0, null, false)->read();
+    }
+
+    public function testReadingEmptyFile(): void
+    {
+        $file = parse_data('data:;base64,');
+
+        $this->assertEmpty($file->read());
     }
 
     public function testToDataUriRequiresFileToExist(): void
