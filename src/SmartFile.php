@@ -2,8 +2,8 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotProvidedException;
 use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotCalculatedException;
+use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotProvidedException;
 use OneToMany\DataUri\Exception\ConstructionFailedContentTypeNotProvidedException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileContentsNotReadableException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileDoesNotExistException;
