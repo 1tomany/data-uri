@@ -2,15 +2,15 @@
 
 namespace OneToMany\DataUri;
 
+use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotProvidedException;
+use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotReadableException;
+use OneToMany\DataUri\Exception\ConstructionFailedContentTypeNotProvidedException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileContentsNotReadableException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileDoesNotExistException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileNotFileException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileNotReadableException;
 use OneToMany\DataUri\Exception\ConstructionFailedFilePathNotProvidedException;
-use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotProvidedException;
-use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotReadableException;
 use OneToMany\DataUri\Exception\ConstructionFailedHashNotProvidedException;
-use OneToMany\DataUri\Exception\ConstructionFailedContentTypeNotProvidedException;
 use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
 
 use function array_unshift;

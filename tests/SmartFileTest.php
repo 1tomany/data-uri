@@ -30,25 +30,25 @@ final class SmartFileTest extends TestCase
         new SmartFile('/invalid/path/to/file.txt', null, 'text/plain');
     }
 
-    public function testConstructorSetsClientNameToFileNameWhenClientNameIsNull(): void
+    public function testConstructorSetsDisplayNameToFileNameWhenDisplayNameIsNull(): void
     {
         $data = $this->fetchRandomFile();
 
-        // Act: Construct SmartFile With Null Client Name
+        // Act: Construct SmartFile With Null Display Name
         $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, false);
 
-        // Assert: File Name and Client Name Are Equal
+        // Assert: File Name and Display Name Are Equal
         $this->assertEquals($file->fileName, $file->displayName);
     }
 
-    public function testConstructorSetsClientNameWhenClientNameIsNotNull(): void
+    public function testConstructorSetsDisplayNameWhenDisplayNameIsNotNull(): void
     {
         $data = $this->fetchRandomFile();
 
-        // Act: Construct SmartFile With Non-Null Client Name
+        // Act: Construct SmartFile With Non-Null Display Name
         $file = new SmartFile($data->filePath, null, $data->contentType, null, $data->displayName, true, false);
 
-        // Assert: File Name and Client Name Are Different
+        // Assert: File Name and Display Name Are Different
         $this->assertEquals($data->displayName, $file->displayName);
         $this->assertNotEquals($data->displayName, $file->fileName);
         $this->assertNotEquals($file->displayName, $file->fileName);
@@ -127,7 +127,7 @@ final class SmartFileTest extends TestCase
 
     public function testToStringReturnsFilePath(): void
     {
-        $file = new SmartFile('file.txt', 'fingerprint', 'text/plain', 0, null, false);
+        $file = new SmartFile('file.txt', 'hash', 'text/plain', 0, null, false);
 
         $this->assertEquals($file->filePath, $file->__toString());
     }
@@ -136,31 +136,31 @@ final class SmartFileTest extends TestCase
     {
         $this->expectException(EncodingFailedInvalidFilePathException::class);
 
-        new SmartFile('/invalid/path/1.txt', 'fingerprint', 'text/plain', 0, null, false)->toDataUri();
+        new SmartFile('/invalid/path/1.txt', 'hash', 'text/plain', 0, null, false)->toDataUri();
     }
 
-    public function testSmartFilesWithDifferentFingerprintsAreNotEqual(): void
+    public function testSmartFilesWithDifferentHashesAreNotEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
-        $file2 = new SmartFile('1.txt', 'fingerprint2', 'text/plain', 0, null, false);
+        $file1 = new SmartFile('1.txt', 'hash1', 'text/plain', 0, null, false);
+        $file2 = new SmartFile('1.txt', 'hash2', 'text/plain', 0, null, false);
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
     }
 
-    public function testSmartFilesWithIdenticalFingerprintsAreLooselyEqual(): void
+    public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
-        $file2 = new SmartFile('2.txt', 'fingerprint1', 'text/plain', 0, null, false);
+        $file1 = new SmartFile('1.txt', 'hash1', 'text/plain', 0, null, false);
+        $file2 = new SmartFile('2.txt', 'hash1', 'text/plain', 0, null, false);
 
         $this->assertTrue($file1->equals($file2));
         $this->assertTrue($file2->equals($file1));
     }
 
-    public function testSmartFilesWithIdenticalFingerprintsAndPathsAreStrictlyEqual(): void
+    public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
-        $file2 = new SmartFile('1.txt', 'fingerprint1', 'text/plain', 0, null, false);
+        $file1 = new SmartFile('1.txt', 'hash1', 'text/plain', 0, null, false);
+        $file2 = new SmartFile('1.txt', 'hash1', 'text/plain', 0, null, false);
 
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));
