@@ -8,6 +8,6 @@ final class EncodingFailedInvalidFilePathException extends \RuntimeException imp
 {
     public function __construct(string $filePath, ?\Throwable $previous = null, int $code = 0)
     {
-        parent::__construct(sprintf('Encoding the data failed because the file "%s" does not exist.', $filePath), $code, $previous);
+        parent::__construct(sprintf('Encoding the data failed because the file "%s" does not exist or is not readable.', $filePath), $code, $previous);
     }
 }

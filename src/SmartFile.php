@@ -112,11 +112,11 @@ readonly class SmartFile implements \Stringable
         $this->extension = pathinfo($this->filePath, PATHINFO_EXTENSION);
 
         // Generate the Remote Key
-        $remoteFileKeyPrefix = vsprintf('%s.%s', [
+        $remoteKeyPrefix = vsprintf('%s.%s', [
             $this->hash, $this->extension,
         ]);
 
-        $remoteKeyBits = [$remoteFileKeyPrefix];
+        $remoteKeyBits = [$remoteKeyPrefix];
 
         if ($prefix = substr($hash, 2, 2)) {
             array_unshift($remoteKeyBits, $prefix);
