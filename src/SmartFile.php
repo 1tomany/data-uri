@@ -11,7 +11,8 @@ use OneToMany\DataUri\Exception\ConstructionFailedFileNotFileException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileNotReadableException;
 use OneToMany\DataUri\Exception\ConstructionFailedFilePathNotProvidedException;
 use OneToMany\DataUri\Exception\ConstructionFailedHashNotProvidedException;
-use OneToMany\DataUri\Exception\EncodingFailedInvalidFilePathException;
+use OneToMany\DataUri\Exception\EncodingFailedFileDoesNotExistException;
+use OneToMany\DataUri\Exception\ReadingFailedFileDoesNotExistException;
 
 use function array_unshift;
 use function base64_encode;
@@ -169,12 +170,21 @@ final readonly class SmartFile implements \Stringable
         return false;
     }
 
-    public function toDataUri(): string
+    public function read(): string
     {
         if (false === $contents = @file_get_contents($this->filePath)) {
-            throw new EncodingFailedInvalidFilePathException($this->filePath);
+            throw new ReadingFailedFileDoesNotExistException($this->filePath);
         }
 
-        return sprintf('data:%s;base64,%s', $this->contentType, base64_encode($contents));
+        return $contents;
+    }
+
+    public function toDataUri(): string
+    {
+        try {
+            return sprintf('data:%s;base64,%s', $this->contentType, base64_encode($this->read()));
+        } catch (ReadingFailedFileDoesNotExistException $e) {
+            throw new EncodingFailedFileDoesNotExistException($this->filePath, $e);
+        }
     }
 }
