@@ -4,7 +4,7 @@ namespace OneToMany\DataUri\Exception;
 
 use function sprintf;
 
-final class ConstructionFailedByteCountNotReadableException extends InvalidArgumentException
+final class ConstructionFailedByteCountNotCalculatedException extends InvalidArgumentException
 {
     public function __construct(string $filePath, ?\Throwable $previous = null, int $code = 0)
     {

@@ -3,7 +3,7 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotProvidedException;
-use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotReadableException;
+use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotCalculatedException;
 use OneToMany\DataUri\Exception\ConstructionFailedContentTypeNotProvidedException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileContentsNotReadableException;
 use OneToMany\DataUri\Exception\ConstructionFailedFileDoesNotExistException;
@@ -85,7 +85,7 @@ final readonly class SmartFile implements \Stringable
             }
 
             if (false === $byteCount = ($byteCount ?? filesize($this->filePath))) {
-                throw new ConstructionFailedByteCountNotReadableException($this->filePath);
+                throw new ConstructionFailedByteCountNotCalculatedException($this->filePath);
             }
         }
 
