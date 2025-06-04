@@ -13,7 +13,6 @@ use function file_get_contents;
 use function filesize;
 use function hash;
 use function implode;
-use function in_array;
 use function is_file;
 use function is_readable;
 use function max;
@@ -111,29 +110,14 @@ final readonly class SmartFile implements \Stringable
 
     public function __destruct()
     {
-        if ($this->delete) {
-            if (file_exists($this->path)) {
-                @unlink($this->path);
-            }
+        if (!$this->delete) {
+            return;
+        }
+
+        if ($this->exists()) {
+            @unlink($this->path);
         }
     }
-
-    /*
-    public function __get(string $name): mixed
-    {
-        $name = strtolower($name);
-
-        if (in_array($name, ['extension'])) {
-            return pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
-        }
-
-        if (in_array($name, ['basename'])) {
-            return basename($this->path);
-        }
-
-        return null;
-    }
-    */
 
     public function __toString(): string
     {
@@ -162,6 +146,11 @@ final readonly class SmartFile implements \Stringable
         }
 
         return false;
+    }
+
+    public function exists(): bool
+    {
+        return file_exists($this->path);
     }
 
     public function read(): string
