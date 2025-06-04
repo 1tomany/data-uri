@@ -11,9 +11,12 @@ use function array_filter;
 use function basename;
 use function ctype_print;
 use function explode;
+use function fclose;
 use function fopen;
 use function hash_file;
+use function implode;
 use function is_dir;
+use function is_file;
 use function is_readable;
 use function is_writable;
 use function parse_url;
@@ -22,6 +25,7 @@ use function sprintf;
 use function str_contains;
 use function stream_get_contents;
 use function trim;
+use function unlink;
 
 use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
@@ -52,7 +56,7 @@ function parse_data(
             throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $directory));
         }
 
-        if (\is_file($data) && !is_readable($data)) {
+        if (is_file($data) && !is_readable($data)) {
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
