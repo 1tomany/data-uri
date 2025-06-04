@@ -2,192 +2,132 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
-use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
-use OneToMany\DataUri\Exception\ProcessingFailedCalculatingFileSizeFailedException;
-use OneToMany\DataUri\Exception\ProcessingFailedGeneratingExtensionFailedException;
-use OneToMany\DataUri\Exception\ProcessingFailedGeneratingHashFailedException;
-use OneToMany\DataUri\Exception\ProcessingFailedRenamingTemporaryFileFailedException;
-use OneToMany\DataUri\Exception\ProcessingFailedTemporaryDirectoryNotWritableException;
-use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
-use OneToMany\DataUri\Exception\ProcessingFailedWritingTemporaryFileFailedException;
-use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\RuntimeException;
+use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
-use function base64_decode;
+use function array_filter;
 use function basename;
-use function count;
+use function ctype_print;
 use function explode;
 use function file_exists;
-use function filesize;
-use function finfo_file;
-use function finfo_open;
-use function hash_algos;
-use function in_array;
+use function fopen;
+use function hash_file;
+use function is_dir;
 use function is_writable;
-use function mime_content_type;
 use function parse_url;
-use function rawurldecode;
+use function pathinfo;
 use function sprintf;
 use function str_contains;
-use function str_ends_with;
-use function strlen;
-use function substr;
+use function stream_get_contents;
 use function trim;
 
 use const FILEINFO_EXTENSION;
-use const PHP_MAXPATHLEN;
-use const PHP_URL_PATH;
+use const PATHINFO_EXTENSION;
+// use const PHP_URL_PATH;
 
 function parse_data(
     ?string $data,
-    ?string $tempDir = null,
-    string $hashAlgorithm = 'sha256',
-    ?string $displayName = null,
-    bool $assumeBase64Data = false,
-    bool $deleteOriginalFile = false,
-    bool $selfDestruct = true,
+    ?string $name = null,
+    ?string $type = null,
+    ?string $dir = null,
+    bool $delete = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
-    if (!in_array($hashAlgorithm, hash_algos())) {
-        throw new ParsingFailedInvalidHashAlgorithmProvidedException($hashAlgorithm);
+    if (empty($data = trim($data ?? ''))) {
+        throw new InvalidArgumentException('The data cannot be empty.');
     }
 
-    $data = trim($data ?? '');
-
-    if (empty($data)) {
-        throw new ParsingFailedEmptyDataProvidedException();
+    if (is_dir($data)) {
+        throw new InvalidArgumentException('The data cannot be a directory.');
     }
 
-    $isTextData = false;
-
-    // Variables that we will try to expand during parsing
-    $contentType = $dataUriBytes = $localFileBytes = null;
-
-    if ($assumeBase64Data && !str_starts_with($data, 'data:')) {
-        $data = sprintf('data:application/octet-stream;base64,%s', $data);
+    if (!ctype_print($data)) {
+        throw new InvalidArgumentException('The data cannot contain non-printable or NULL bytes.');
     }
 
-    // Parse the data based RFC2397: data:[<mediatype>][;base64],<data>
-    if (str_starts_with($data, 'data:') && str_contains($data, ',')) {
-        $dataBits = explode(',', substr($data, 5));
+    if (!is_writable($dir ??= sys_get_temp_dir())) {
+        throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $dir));
+    }
 
-        if (2 !== count($dataBits)) {
-            throw new ParsingFailedInvalidRfc2397EncodedDataException();
+    // Resolve the File Name
+    $name = trim($name ?? '');
+
+    if (empty($name) && is_file($data)) {
+        // Resolve the Name From URLs or Paths
+        $name = parse_url($data)['path'] ?? '';
+    }
+
+    // Remove Path Prefix
+    $name = basename($name);
+
+    // Normalize the Content MIME Type
+    $type = strtolower(trim($type ?? ''));
+
+    // Attempt to Read and Parse the Data
+    if (!$handle = @fopen($data, 'rb')) {
+        if (empty($type)) {
+            throw new InvalidArgumentException('The type cannot be empty when decoding data.');
         }
 
-        // Attempt to decode the base64 encoded data
-        if (str_ends_with($dataBits[0], ';base64')) {
-            if (false === $dataUriBytes = base64_decode($dataBits[1], true)) {
-                throw new ParsingFailedInvalidBase64EncodedDataException();
-            }
-        }
+        $data = sprintf('data:%s;base64,%s', $type, $data);
 
-        // Attempt to decode the URL encoded data
-        if ($isTextData = null === $dataUriBytes) {
-            $dataUriBytes = rawurldecode($dataBits[1]);
+        if (!$handle = @fopen($data, 'rb')) {
+            throw new InvalidArgumentException('really cant read this thing');
         }
-
-        unset($dataBits);
     }
 
     $filesystem ??= new Filesystem();
 
-    if (null === $dataUriBytes) {
-        try {
-            if (strlen($data) > PHP_MAXPATHLEN) {
-                throw new ParsingFailedFilePathTooLongException();
-            }
-
-            $localFileBytes = $filesystem->readFile($data);
-        } catch (IOExceptionInterface $e) {
-            throw new ParsingFailedInvalidFilePathProvidedException($data, $e);
-        } finally {
-            if ($deleteOriginalFile) {
-                _cleanup_safely($data);
-            }
-        }
-
-        $displayName ??= basename(parse_url($data, PHP_URL_PATH) ?: '') ?: null;
-    }
-
-    // Ensure we have some raw data to work with
-    $fileBytes = $dataUriBytes ?? $localFileBytes;
-
-    // Ensure we can write the data to a temporary file
-    if (!is_writable($tempDir ??= sys_get_temp_dir())) {
-        throw new ProcessingFailedTemporaryDirectoryNotWritableException($tempDir);
-    }
-
     try {
         // Create a temporary file with a unique prefix
-        $tempPath = $filesystem->tempnam($tempDir, '__1n__datauri_');
-    } catch (IOExceptionInterface $e) {
-        throw new ProcessingFailedTemporaryFileNotWrittenException($tempDir, $e);
-    }
+        $temp = $filesystem->tempnam($dir, '__1n__datauri_');
 
-    try {
+        if (false === $contents = stream_get_contents($handle)) {
+            throw new RuntimeException('Reading contents failed.');
+        }
+
         // Write the data to the temporary file
-        $filesystem->dumpFile($tempPath, $fileBytes);
-    } catch (IOExceptionInterface $e) {
-        _cleanup_safely($tempPath, new ProcessingFailedWritingTemporaryFileFailedException($tempPath, $e));
-    }
+        $filesystem->dumpFile($temp, $contents);
 
-    // Determine the actual media type of the file
-    if (false === $contentType = mime_content_type($tempPath)) {
-        $contentType = $isTextData ? 'text/plain' : 'application/octet-stream';
-    }
+        // Attempt to Resolve the Extension
+        if (!$extension = pathinfo($name, PATHINFO_EXTENSION)) {
+            $exts = new \finfo(FILEINFO_EXTENSION)->file($temp);
 
-    $isTextData = in_array($contentType, [
-        'text/plain',
-    ]);
-
-    // Resolve the extension based on the client file name or file contents
-    $extension = Path::getExtension($displayName ?? '') ?: ($isTextData ? 'txt' : '');
-
-    if (empty($extension)) {
-        if (false !== $finfo = finfo_open(FILEINFO_EXTENSION)) {
-            // Use finfo to inspect the file to determine the extension
-            if (false === $extensions = finfo_file($finfo, $tempPath)) {
-                _cleanup_safely($tempPath, new ProcessingFailedGeneratingExtensionFailedException($tempPath));
+            if ($exts && str_contains($exts, '?')) {
+                $extension = explode('/', $exts)[0];
             }
+        }
 
-            // @see https://www.php.net/manual/en/fileinfo.constants.php#constant.fileinfo-extension
-            $extension = trim(explode('/', $extensions)[0], '? ');
+        // Rename the File With Extension
+        $path = implode('.', array_filter([
+            $temp, trim($extension, '?'),
+        ]));
+
+        $filesystem->rename($temp, $path, true);
+
+        if (false === $hash = hash_file('sha256', $path)) {
+            throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $path));
+        }
+
+        // Resolve and Validate the Content Type
+        $type = $type ?: mime_content_type($path);
+
+        if (!$type || !str_contains($type, '/')) {
+            throw new RuntimeException(sprintf('The type "%s" is invalid.', $type));
+        }
+    } catch (FilesystemExceptionInterface $e) {
+        throw new RuntimeException('Failed to parse the data.', previous: $e);
+    } finally {
+        @fclose($handle);
+
+        if (true === $delete) {
+            @unlink($data);
         }
     }
 
-    // Final attempt to determine the extension
-    $extension = $extension ?: ($isTextData ? 'txt' : 'bin');
-
-    try {
-        // Generate path with the extension
-        $filePath = $tempPath.'.'.$extension;
-
-        // Rename the temporary file with the extension
-        $filesystem->rename($tempPath, $filePath, true);
-    } catch (IOExceptionInterface $e) {
-        _cleanup_safely($tempPath, new ProcessingFailedRenamingTemporaryFileFailedException($tempPath, $filePath, $e));
-    }
-
-    try {
-        // Generate a hash to uniquely identify this file
-        $hash = hash($hashAlgorithm, $fileBytes, false);
-    } catch (\ValueError $e) {
-        _cleanup_safely($filePath, new ProcessingFailedGeneratingHashFailedException($filePath, $hashAlgorithm, $e));
-    }
-
-    // Calculate the filesize in bytes
-    if (false === $size = filesize($filePath)) {
-        _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
-    }
-
-    return new SmartFile($hash, $filePath, $displayName, $size, $contentType, true, $selfDestruct);
+    return new SmartFile($hash, $path, $name ?: null, null, $type, true, true);
 }
 
 /*
@@ -198,17 +138,3 @@ function parse_base64_data(string $data, ?string $type = null, ?string $name = n
     }
 }
 */
-
-/**
- * @return ($exception is not null ? never : void)
- */
-function _cleanup_safely(string $filePath, ?\Throwable $exception = null): void
-{
-    if (file_exists($filePath)) {
-        @unlink($filePath);
-    }
-
-    if (null !== $exception) {
-        throw $exception;
-    }
-}

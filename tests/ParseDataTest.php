@@ -18,8 +18,6 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function OneToMany\DataUri\parse_data;
-use function uniqid;
-use function vsprintf;
 
 use const PHP_MAXPATHLEN;
 
@@ -134,7 +132,7 @@ final class ParseDataTest extends TestCase
     public function testParsingEncodedDataCanSetDisplayName(): void
     {
         $name = 'HelloWorld.txt';
-        $file = parse_data(data: 'data:,Hello%20world', displayName: $name);
+        $file = parse_data(data: 'data:,Hello%20world', name: $name);
 
         $this->assertEquals($name, $file->name);
         $this->assertNotEquals($name, $file->basename);
@@ -164,7 +162,7 @@ final class ParseDataTest extends TestCase
             ->willReturn($tFile->url());
 
         // Act: Parse File With Null Display Name
-        $file = parse_data(data: $path, displayName: null, filesystem: $filesystem);
+        $file = parse_data(data: $path, name: null, filesystem: $filesystem);
 
         // Assert: Both File Names Are Equal
         $this->assertEquals($name, $file->name);
@@ -201,7 +199,7 @@ final class ParseDataTest extends TestCase
         $this->assertStringEndsNotWith($name, $path);
 
         // Act: Parse File With Non-Null Name
-        $file = parse_data(data: $path, displayName: $name);
+        $file = parse_data(data: $path, name: $name);
 
         // Assert: File Name Equals Name
         $this->assertEquals($name, $file->name);
@@ -215,7 +213,7 @@ final class ParseDataTest extends TestCase
         $this->assertFileExists($data->path);
 
         // Act: Parse Data and Delete Original File
-        $file = parse_data(data: $data->path, deleteOriginalFile: true);
+        $file = parse_data(data: $data->path, delete: true);
 
         $this->assertFileExists($file->path);
         $this->assertFileDoesNotExist($data->path);

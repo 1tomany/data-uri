@@ -27,7 +27,7 @@ trait TestFileTrait
         /** @var non-empty-string $path */
         $path = $files[array_rand($files)];
 
-        return \OneToMany\DataUri\parse_data(data: $path, deleteOriginalFile: false);
+        return \OneToMany\DataUri\parse_data(data: $path, delete: false);
     }
 
     protected function readFileContents(string $fileName): string

@@ -2,16 +2,13 @@
 
 namespace OneToMany\DataUri\Tests;
 
-use OneToMany\DataUri\Exception\EncodingFailedFileDoesNotExistException;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
-use OneToMany\DataUri\Exception\ReadingFailedFileDoesNotExistException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 use function basename;
-use function OneToMany\DataUri\parse_data;
 use function unlink;
 
 #[Group('UnitTests')]
