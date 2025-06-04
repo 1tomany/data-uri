@@ -2,9 +2,8 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Exception\EncodingFailedFileDoesNotExistException;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
-use OneToMany\DataUri\Exception\ReadingFailedFileDoesNotExistException;
+use OneToMany\DataUri\Exception\RuntimeException;
 
 use function base64_encode;
 use function basename;
@@ -53,7 +52,7 @@ final readonly class SmartFile implements \Stringable
         $this->hash = $hash;
 
         if (empty($path = trim($path))) {
-            throw new InvalidArgumentException('The path can not be empty.');
+            throw new InvalidArgumentException('The path cannot be empty.');
         }
 
         $this->path = $path;
@@ -110,11 +109,7 @@ final readonly class SmartFile implements \Stringable
 
     public function __destruct()
     {
-        if (!$this->delete) {
-            return;
-        }
-
-        if ($this->exists()) {
+        if ($this->delete && $this->exists()) {
             @unlink($this->path);
         }
     }
@@ -156,7 +151,7 @@ final readonly class SmartFile implements \Stringable
     public function read(): string
     {
         if (false === $contents = @file_get_contents($this->path)) {
-            throw new ReadingFailedFileDoesNotExistException($this->path);
+            throw new RuntimeException(sprintf('Failed to read the file "%s".', $this->path));
         }
 
         return $contents;
@@ -166,8 +161,8 @@ final readonly class SmartFile implements \Stringable
     {
         try {
             return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->read()));
-        } catch (ReadingFailedFileDoesNotExistException $e) {
-            throw new EncodingFailedFileDoesNotExistException($this->path, $e);
+        } catch (RuntimeException $e) {
+            throw new RuntimeException(sprintf('Failed to encode the file "%s".', $this->path), previous: $e);
         }
     }
 }
