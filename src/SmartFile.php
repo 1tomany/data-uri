@@ -29,20 +29,21 @@ use const PATHINFO_EXTENSION;
 final readonly class SmartFile implements \Stringable
 {
     public string $hash;
+    public string $type;
+
     public string $path;
     public string $name;
     public string $basename;
     public ?string $extension;
     public int $size;
-    public string $type;
     public string $key;
 
     public function __construct(
         string $hash,
+        string $type,
         string $path,
         ?string $name,
         ?int $size,
-        string $type,
         bool $checkPath = true,
         public bool $delete = true,
     ) {

@@ -131,95 +131,54 @@ final class ParseDataTest extends TestCase
         $this->assertStringEndsWith($name, $path);
 
         // Act: Parse Data With Null Name
-        $file = parse_data($path, name: null);
+        $file = parse_data($path, name: null, delete: true);
 
         // Assert: Both File Names Are Equal
         $this->assertEquals($name, $file->name);
         $this->assertNotEquals($file->name, $file->basename);
     }
 
-    /**
-     * @return list<list<non-empty-string>>
-     */
-    public static function providerPathAndName(): array
+    public function testParsingFileDataCanDeleteFile(): void
     {
-        $provider = [
-            ['test.jpeg', 'test.jpeg'],
-            ['/test.txt', 'test.txt'],
-            ['./test.pdf', 'test.pdf'],
-            ['/tmp/test.png', 'test.png'],
-            ['http://1tomany-cdn.com/test.gif', 'test.gif'],
-            ['https://1tomany-cdn.com/test.pdf', 'test.pdf'],
-            ['https://1tomany-cdn.com/test.pdf?id=10', 'test.pdf'],
-            ['https://1tomany-cdn.com/test.pdf?id=10&name=Vic', 'test.pdf'],
-            ['https://1tomany-cdn.com/b1/b2/test.jpg', 'test.jpg'],
-        ];
-
-        return $provider;
-    }
-
-    public function _testParsingPathCanOverwriteName(): void
-    {
-        // Arrange: Create File and Name
+        // Arrange: Create Temp File
         $path = $this->createTempFile();
-        $name = 'OverwrittenFileName.txt';
+        $this->assertFileExists($path);
 
-        // Assert: Name Does Not Equal File Name
-        $this->assertStringEndsNotWith($name, $path);
+        // Act: Parse Data and Delete File
+        $file = parse_data($path, delete: true);
 
-        // Act: Parse File With Non-Null Name
-        $file = parse_data(data: $path, name: $name);
-
-        // Assert: File Name Equals Name
-        $this->assertEquals($name, $file->name);
-    }
-
-    public function _testParsingFilePathDataCanDeleteOriginalFile(): void
-    {
-        $data = $this->fetchRandomFile();
-
-        // Assert: Original File Exists
-        $this->assertFileExists($data->path);
-
-        // Act: Parse Data and Delete Original File
-        $file = parse_data(data: $data->path, delete: true);
-
+        // Assert: Original File Is Deleted
         $this->assertFileExists($file->path);
-        $this->assertFileDoesNotExist($data->path);
+        $this->assertFileDoesNotExist($path);
     }
 
-    #[DataProvider('providerEncodedDataAndMetadata')]
-    public function _testParsingEncodedData(
-        string $data,
-        string $contentType,
-        int $byteCount,
-        string $extension,
-    ): void {
+    #[DataProvider('providerDataAndMetadata')]
+    public function testParsingData(string $data, string $hash, string $type, int $size): void
+    {
         $file = parse_data($data);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($contentType, $file->type);
-        $this->assertEquals($byteCount, $file->size);
-        $this->assertEquals($extension, $file->extension);
+        $this->assertEquals($hash, $file->hash);
+        $this->assertEquals($type, $file->type);
+        $this->assertEquals($size, $file->size);
     }
 
     /**
      * @return list<list<int|non-empty-string>>
      */
-    public static function providerEncodedDataAndMetadata(): array
+    public static function providerDataAndMetadata(): array
     {
         $provider = [
-            ['data:,Test', 'text/plain', 4, 'txt'],
-            ['data:text/plain,Test', 'text/plain', 4, 'txt'],
-            ['data:text/plain,Test', 'text/plain', 4, 'txt'],
-            ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 11, 'txt'],
-            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13, 'txt'],
-            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13, 'txt'],
-            ['data:application/json,%7B%22id%22%3A10%7D', 'application/json', 9, 'bin'],
-            ['data:application/json;base64,eyJpZCI6MTB9', 'application/json', 9, 'bin'],
+            ['data:,Test', '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25', 'text/plain', 4],
+            ['data:text/plain,Test', '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25', 'text/plain', 4],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', '64ec88ca00b268e5ba1a35678a1b5316d212f4f366b2477232534a8aeca37f3c', 'text/plain', 11],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', '315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3', 'text/plain', 13],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', '315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3', 'text/plain', 13],
+            ['data:application/json,%7B%22id%22%3A10%7D', '451973eae50e0e18bc1e8a4bd66bf035306c435164af0b41ceaf3a0ab918bd08', 'application/json', 9],
+            ['data:application/json;base64,eyJpZCI6MTB9', '451973eae50e0e18bc1e8a4bd66bf035306c435164af0b41ceaf3a0ab918bd08', 'application/json', 9],
 
             // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
-            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 67, 'pdf'],
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', '1d9e024228ddfa3a9b8924b96d65d7428c326cc8945102a8149182b2f8e823b5', 'application/pdf', 67],
         ];
 
         return $provider;
