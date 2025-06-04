@@ -3,13 +3,6 @@
 namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\Exception\InvalidArgumentException;
-use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
-use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
-use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
-use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -17,9 +10,13 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
+use function base64_encode;
+use function basename;
 use function OneToMany\DataUri\parse_data;
+use function random_bytes;
+use function sys_get_temp_dir;
+use function vsprintf;
 
 // use const PHP_MAXPATHLEN;
 
@@ -49,7 +46,7 @@ final class ParseDataTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The data cannot contain non-printable or NULL bytes.');
 
-        parse_data(\random_bytes(1024));
+        parse_data(random_bytes(1024));
     }
 
     public function testParsingDataRequiresDirectoryToBeWritable(): void
@@ -90,8 +87,9 @@ final class ParseDataTest extends TestCase
 
     public function testParsingDataRequiresWritingDataToTemporaryFile(): void
     {
-        // Arrange: Find Writable Directory
-        $directory = \sys_get_temp_dir();
+        // Arrange: Writable Directory
+        $directory = sys_get_temp_dir();
+
         $this->assertDirectoryExists($directory);
         $this->assertDirectoryIsWritable($directory);
 
@@ -107,44 +105,36 @@ final class ParseDataTest extends TestCase
         parse_data(__DIR__.'/data/pdf-small.pdf', directory: $directory, filesystem: $filesystem);
     }
 
-    public function _testParsingEncodedDataCanSetDisplayName(): void
+    public function testParsingDataCanSetName(): void
     {
-        $name = 'HelloWorld.txt';
-        $file = parse_data(data: 'data:,Hello%20world', name: $name);
+        // Arrange: Name and Data
+        $name = 'Hello_World.txt';
 
+        $data = vsprintf('data:text/plain;base64,%s', [
+            base64_encode('Hello, PHP developer!'),
+        ]);
+
+        // Act: Parse Data With Name
+        $file = parse_data($data, name: $name);
+
+        // Assert: File Name Equals Name
         $this->assertEquals($name, $file->name);
         $this->assertNotEquals($name, $file->basename);
     }
 
-    #[DataProvider('providerPathAndName')]
-    public function _testParsingPathWithoutNameSetsFileName(string $path, string $name): void
+    public function testParsingFileWithoutNameUsesFileName(): void
     {
-        // Arrange: Create Virtual File and Temporary Virtual File
-        $vFile = vfsStream::newFile($name)->withContent('Hello, PHP world!');
-        $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($name));
+        // Arrange: Create Temp File
+        $path = $this->createTempFile();
 
-        // Arrange: Create Virtual File System
-        vfsStream::setup(structure: [$vFile, $tFile]);
+        $name = basename($path);
+        $this->assertStringEndsWith($name, $path);
 
-        // Arrange: Mock Symfony Filesystem Component
-        $filesystem = $this->createMock(Filesystem::class);
-
-        $filesystem
-            ->expects($this->once())
-            ->method('readFile')
-            ->willReturn($vFile->getContent());
-
-        $filesystem
-            ->expects($this->once())
-            ->method('tempnam')
-            ->willReturn($tFile->url());
-
-        // Act: Parse File With Null Display Name
-        $file = parse_data(data: $path, name: null, filesystem: $filesystem);
+        // Act: Parse Data With Null Name
+        $file = parse_data($path, name: null);
 
         // Assert: Both File Names Are Equal
         $this->assertEquals($name, $file->name);
-        $this->assertEquals($name, $file->basename);
     }
 
     /**

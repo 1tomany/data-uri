@@ -14,6 +14,7 @@ use function explode;
 use function fopen;
 use function hash_file;
 use function is_dir;
+use function is_readable;
 use function is_writable;
 use function parse_url;
 use function pathinfo;
@@ -52,7 +53,7 @@ function parse_data(
             throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $directory));
         }
 
-        if (\is_file($data) && !\is_readable($data)) {
+        if (\is_file($data) && !is_readable($data)) {
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
