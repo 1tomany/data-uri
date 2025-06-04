@@ -28,8 +28,8 @@ use const PATHINFO_EXTENSION;
 function parse_data(
     ?string $data,
     ?string $name = null,
-    ?string $type = null,
-    ?string $dir = null,
+    // ?string $type = null,
+    ?string $directory = null,
     bool $delete = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
@@ -37,88 +37,99 @@ function parse_data(
         throw new InvalidArgumentException('The data cannot be empty.');
     }
 
-    if (is_dir($data)) {
-        throw new InvalidArgumentException('The data cannot be a directory.');
-    }
-
-    if (!ctype_print($data)) {
-        throw new InvalidArgumentException('The data cannot contain non-printable or NULL bytes.');
-    }
-
-    if (!is_writable($dir ??= sys_get_temp_dir())) {
-        throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $dir));
-    }
-
-    // Resolve the File Name
-    $name = trim($name ?? '');
-
-    if (empty($name) && is_file($data)) {
-        // Resolve the Name From URLs or Paths
-        $name = parse_url($data)['path'] ?? '';
-    }
-
-    // Remove Path Prefix
-    $name = basename($name);
-
-    // Normalize the Content MIME Type
-    $type = strtolower(trim($type ?? ''));
-
-    // Attempt to Read and Parse the Data
-    if (!$handle = @fopen($data, 'rb')) {
-        if (empty($type)) {
-            throw new InvalidArgumentException('The type cannot be empty when decoding data.');
-        }
-
-        $data = sprintf('data:%s;base64,%s', $type, $data);
-
-        if (!$handle = @fopen($data, 'rb')) {
-            throw new InvalidArgumentException('really cant read this thing');
-        }
-    }
-
-    $filesystem ??= new Filesystem();
+    $handle = null;
 
     try {
-        // Create a temporary file with a unique prefix
-        $temp = $filesystem->tempnam($dir, '__1n__datauri_');
-
-        if (false === $contents = stream_get_contents($handle)) {
-            throw new RuntimeException('Reading contents failed.');
+        if (is_dir($data)) {
+            throw new InvalidArgumentException('The data cannot be a directory.');
         }
 
-        // Write the data to the temporary file
-        $filesystem->dumpFile($temp, $contents);
+        if (!ctype_print($data)) {
+            throw new InvalidArgumentException('The data cannot contain non-printable or NULL bytes.');
+        }
+
+        if (!is_writable($directory ??= sys_get_temp_dir())) {
+            throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $directory));
+        }
+
+        if (\is_file($data) && !\is_readable($data)) {
+            throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
+        }
+
+        // Resolve the File Name
+        $name = trim($name ?? '');
+
+        if (empty($name) && is_file($data)) {
+            // Resolve the Name From URLs or Paths
+            $name = parse_url($data)['path'] ?? '';
+        }
+
+        // Remove Path Prefix
+        $name = basename($name);
+
+        // Attempt to Read and Parse the Data
+        if (!$handle = @fopen($data, 'rb')) {
+            if (is_file($data)) {
+                throw new InvalidArgumentException(sprintf('Failed to decode the file "%s".', $data));
+            }
+
+            throw new InvalidArgumentException('Failed to decode the data.');
+        }
+
+        $filesystem ??= new Filesystem();
+
+        try {
+            // Create Temporary File With Unique Prefix
+            $temp = $filesystem->tempnam($directory, '__1n__datauri_');
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
+        }
+
+        try {
+            if (false === $contents = stream_get_contents($handle)) {
+                throw new RuntimeException('Failed to get the data contents.');
+            }
+
+            // Write Data to Temporary File
+            $filesystem->dumpFile($temp, $contents);
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Failed to write data to file "%s".', $temp), previous: $e);
+        }
 
         // Attempt to Resolve the Extension
         if (!$extension = pathinfo($name, PATHINFO_EXTENSION)) {
             $exts = new \finfo(FILEINFO_EXTENSION)->file($temp);
 
-            if ($exts && str_contains($exts, '?')) {
+            if ($exts && !str_contains($exts, '?')) {
                 $extension = explode('/', $exts)[0];
             }
         }
 
-        // Rename the File With Extension
-        $path = implode('.', array_filter([
-            $temp, trim($extension, '?'),
-        ]));
+        try {
+            // Rename the File With Extension
+            $path = implode('.', array_filter([
+                $temp, trim($extension, '?'),
+            ]));
 
-        $filesystem->rename($temp, $path, true);
+            $filesystem->rename($temp, $path, true);
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Failed to append extension "%s" to file "%s".', $extension, $temp), previous: $e);
+        }
 
         if (false === $hash = hash_file('sha256', $path)) {
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $path));
         }
 
         // Resolve and Validate the Content Type
-        $type = $type ?: mime_content_type($path);
+        $type = mime_content_type($path) ?: null;
 
         if (!$type || !str_contains($type, '/')) {
             throw new RuntimeException(sprintf('The type "%s" is invalid.', $type));
         }
-    } catch (FilesystemExceptionInterface $e) {
-        throw new RuntimeException('Failed to parse the data.', previous: $e);
     } finally {
-        @fclose($handle);
+        if (is_resource($handle)) {
+            @fclose($handle);
+        }
 
         if (true === $delete) {
             @unlink($data);

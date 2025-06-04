@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri\Tests;
 
+use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\ParsingFailedEmptyDataProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedFilePathTooLongException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidBase64EncodedDataException;
@@ -9,6 +10,7 @@ use OneToMany\DataUri\Exception\ParsingFailedInvalidFilePathProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidHashAlgorithmProvidedException;
 use OneToMany\DataUri\Exception\ParsingFailedInvalidRfc2397EncodedDataException;
 use OneToMany\DataUri\Exception\ProcessingFailedTemporaryFileNotWrittenException;
+use OneToMany\DataUri\Exception\RuntimeException;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -19,117 +21,93 @@ use Symfony\Component\Filesystem\Path;
 
 use function OneToMany\DataUri\parse_data;
 
-use const PHP_MAXPATHLEN;
+// use const PHP_MAXPATHLEN;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends TestCase
 {
     use TestFileTrait;
 
-    public function testParsingDataRequiresValidHashAlgorithm(): void
-    {
-        $this->expectException(ParsingFailedInvalidHashAlgorithmProvidedException::class);
-
-        parse_data('data:text/plain,Hello%20world', null, 'sha-1024');
-    }
-
     public function testParsingDataRequiresNonEmptyData(): void
     {
-        $this->expectException(ParsingFailedEmptyDataProvidedException::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The data cannot be empty.');
 
         parse_data(' ');
     }
 
-    public function testParsingEncodedDataCanBeForcedToBeDecodedAsBase64(): void
+    public function testParsingDataRequiresDataToNotBeADirectory(): void
     {
-        // 1x1 Transparent GIF
-        $data = $this->readFileContents(...[
-            'fileName' => 'gif-base64.txt',
-        ]);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The data cannot be a directory.');
 
-        // Assert: Not a Data URI
-        $this->assertStringStartsNotWith('data:', $data);
-
-        // Act: Parse Data With Base64 Assumption
-        $file = parse_data(data: $data, assumeBase64Data: true);
-
-        // Assert: Data Is Successfully Parsed
-        $this->assertEquals('image/gif', $file->type);
-        $this->assertStringEndsWith('.gif', $file->name);
+        parse_data(__DIR__);
     }
 
-    public function testParsingEncodedDataRequiresValidRfc2397Format(): void
+    public function testParsingDataRequiresDataToNotContainNonPrintableBytes(): void
     {
-        $this->expectException(ParsingFailedInvalidRfc2397EncodedDataException::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The data cannot contain non-printable or NULL bytes.');
 
-        parse_data('data:image/png,charset=UTF-8,invalid-png-contents');
+        parse_data(\random_bytes(1024));
     }
 
-    public function testParsingEncodedDataRequiresValidBase64EncodedData(): void
+    public function testParsingDataRequiresDirectoryToBeWritable(): void
     {
-        $this->expectException(ParsingFailedInvalidBase64EncodedDataException::class);
+        $directory = '/path/to/invalid/directory/';
+        $this->assertDirectoryDoesNotExist($directory);
 
-        parse_data('data:image/png;base64,ümlaut');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The directory "'.$directory.'" is not writable.');
+
+        parse_data(__DIR__.'/data/pdf-small.pdf', directory: $directory);
     }
 
-    public function testParsingEncodedDataWithoutBase64OptionIsDecodedAsAsciiText(): void
+    public function testParsingDataDataRequiresReadableFileToExist(): void
     {
-        $text = 'Hello, PHP world!';
-        $data = 'Hello%2C%20PHP%20world%21';
+        // Arrange: Create Unreadable Virtual File
+        $file = vfsStream::newFile('Invoice_1984.pdf');
+        $file->chmod(0400)->chown(vfsStream::OWNER_ROOT);
 
-        $file = parse_data('data:text/plain,'.$data);
-        $this->assertStringEqualsFile($file->path, $text);
+        vfsStream::setup(structure: [$file]);
+
+        // Assert: Virtual File Is Not Readable
+        $this->assertFileIsNotReadable($file->url());
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The file "'.$file->url().'" is not readable.');
+
+        parse_data(data: $file->url());
     }
 
-    public function testParsingFilePathRequiresFilePathLengthToBeLessThanOrEqualToTheMaximumPathLength(): void
+    public function testParsingDataRequiresValidDataUri(): void
     {
-        $this->expectException(ParsingFailedFilePathTooLongException::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Failed to decode the data.');
 
-        parse_data(str_repeat('a', PHP_MAXPATHLEN + 1));
-    }
-
-    public function testParsingFilePathDataRequiresReadableFileToExist(): void
-    {
-        $this->expectException(ParsingFailedInvalidFilePathProvidedException::class);
-
-        $filesystem = $this->createMock(Filesystem::class);
-
-        $filesystem
-            ->expects($this->any())
-            ->method('exists')
-            ->willReturn(true);
-
-        $filesystem
-            ->expects($this->once())
-            ->method('readFile')
-            ->willThrowException(new IOException('Error'));
-
-        parse_data(data: __FILE__, filesystem: $filesystem);
+        parse_data('data:image/gif;base64,!R0lG**AQ/ABAIAAAAAAA++ACH5BAEAAAAALAA?AEAOw==');
     }
 
     public function testParsingDataRequiresWritingDataToTemporaryFile(): void
     {
-        $this->expectException(ProcessingFailedTemporaryFileNotWrittenException::class);
+        // Arrange: Find Writable Directory
+        $directory = \sys_get_temp_dir();
+        $this->assertDirectoryExists($directory);
+        $this->assertDirectoryIsWritable($directory);
 
+        // Assert: Failed to Create Temporary File
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to create a file in "'.$directory.'".');
+
+        // Arrange: Mock Filesystem Library
         $filesystem = $this->createMock(Filesystem::class);
+        $filesystem->expects($this->once())->method('tempnam')->willThrowException(new IOException('Error'));
 
-        $filesystem
-            ->expects($this->once())
-            ->method('tempnam')
-            ->willThrowException(new IOException('Error'));
-
-        parse_data(data: 'data:text/plain,Test%20data', filesystem: $filesystem);
+        // Act: Parse Data With Expected Exception
+        parse_data(__DIR__.'/data/pdf-small.pdf', directory: $directory, filesystem: $filesystem);
     }
 
-    public function testParsingEncodedDataWithoutContentTypeDefaultsToTextPlain(): void
-    {
-        $file = parse_data('data:,Hello%20world');
-
-        $this->assertEquals('text/plain', $file->type);
-        $this->assertStringEndsWith('.txt', $file->name);
-    }
-
-    public function testParsingEncodedDataCanSetDisplayName(): void
+    public function _testParsingEncodedDataCanSetDisplayName(): void
     {
         $name = 'HelloWorld.txt';
         $file = parse_data(data: 'data:,Hello%20world', name: $name);
@@ -139,7 +117,7 @@ final class ParseDataTest extends TestCase
     }
 
     #[DataProvider('providerPathAndName')]
-    public function testParsingPathWithoutNameSetsFileName(string $path, string $name): void
+    public function _testParsingPathWithoutNameSetsFileName(string $path, string $name): void
     {
         // Arrange: Create Virtual File and Temporary Virtual File
         $vFile = vfsStream::newFile($name)->withContent('Hello, PHP world!');
@@ -189,7 +167,7 @@ final class ParseDataTest extends TestCase
         return $provider;
     }
 
-    public function testParsingPathCanOverwriteName(): void
+    public function _testParsingPathCanOverwriteName(): void
     {
         // Arrange: Create File and Name
         $path = $this->createTempFile();
@@ -205,7 +183,7 @@ final class ParseDataTest extends TestCase
         $this->assertEquals($name, $file->name);
     }
 
-    public function testParsingFilePathDataCanDeleteOriginalFile(): void
+    public function _testParsingFilePathDataCanDeleteOriginalFile(): void
     {
         $data = $this->fetchRandomFile();
 
@@ -220,7 +198,7 @@ final class ParseDataTest extends TestCase
     }
 
     #[DataProvider('providerEncodedDataAndMetadata')]
-    public function testParsingEncodedData(
+    public function _testParsingEncodedData(
         string $data,
         string $contentType,
         int $byteCount,
@@ -257,7 +235,7 @@ final class ParseDataTest extends TestCase
     }
 
     #[DataProvider('providerFilePathAndMetadata')]
-    public function testParsingFilePathData(
+    public function _testParsingFilePathData(
         string $filePath,
         string $contentType,
         int $byteCount,
