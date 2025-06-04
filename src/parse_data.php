@@ -29,9 +29,8 @@ use const PATHINFO_EXTENSION;
 function parse_data(
     ?string $data,
     ?string $name = null,
-    // ?string $type = null,
     ?string $directory = null,
-    bool $delete = false,
+    bool $cleanup = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
     if (empty($data = trim($data ?? ''))) {
@@ -132,7 +131,7 @@ function parse_data(
             @fclose($handle);
         }
 
-        if (true === $delete) {
+        if (true === $cleanup) {
             @unlink($data);
         }
     }
@@ -140,11 +139,14 @@ function parse_data(
     return new SmartFile($hash, $path, $name ?: null, null, $type, true, true);
 }
 
-/*
-function parse_base64_data(string $data, ?string $type = null, ?string $name = null): SmartFile
+function parse_base64_data(
+    string $data,
+    string $type,
+    ?string $name = null,
+    ?string $directory = null,
+    bool $cleanup = false,
+    ?Filesystem $filesystem = null,
+): SmartFile
 {
-    if (!empty($type = trim($type ?? ''))) {
-        $data = sprintf('data:%s;base64,%s', $type, $data);
-    }
+    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $cleanup, $filesystem);
 }
-*/

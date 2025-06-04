@@ -11,11 +11,11 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
+use function assert;
 use function base64_encode;
 use function basename;
 use function OneToMany\DataUri\parse_data;
 use function random_bytes;
-use function str_ends_with;
 use function sys_get_temp_dir;
 use function vsprintf;
 
@@ -126,11 +126,11 @@ final class ParseDataTest extends TestCase
         // Arrange: Create Temp File
         $path = $this->createTempFile();
 
-        $name = basename($path);
-        $this->assertTrue(str_ends_with($path, $name));
+        assert(!empty($name = basename($path)));
+        $this->assertStringEndsWith($name, $path);
 
         // Act: Parse Data With Null Name
-        $file = parse_data($path, name: null, delete: true);
+        $file = parse_data($path, name: null, cleanup: true);
 
         // Assert: Both File Names Are Equal
         $this->assertEquals($name, $file->name);
@@ -144,7 +144,7 @@ final class ParseDataTest extends TestCase
         $this->assertFileExists($path);
 
         // Act: Parse Data and Delete File
-        $file = parse_data($path, delete: true);
+        $file = parse_data($path, cleanup: true);
 
         // Assert: Original File Is Deleted
         $this->assertFileExists($file->path);
