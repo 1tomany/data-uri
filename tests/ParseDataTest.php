@@ -15,10 +15,9 @@ use function base64_encode;
 use function basename;
 use function OneToMany\DataUri\parse_data;
 use function random_bytes;
+use function str_ends_with;
 use function sys_get_temp_dir;
 use function vsprintf;
-
-// use const PHP_MAXPATHLEN;
 
 #[Group('UnitTests')]
 final class ParseDataTest extends TestCase
@@ -74,7 +73,7 @@ final class ParseDataTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The file "'.$file->url().'" is not readable.');
 
-        parse_data(data: $file->url());
+        parse_data($file->url());
     }
 
     public function testParsingDataRequiresValidDataUri(): void
@@ -128,7 +127,7 @@ final class ParseDataTest extends TestCase
         $path = $this->createTempFile();
 
         $name = basename($path);
-        $this->assertStringEndsWith($name, $path);
+        $this->assertTrue(str_ends_with($path, $name));
 
         // Act: Parse Data With Null Name
         $file = parse_data($path, name: null, delete: true);
