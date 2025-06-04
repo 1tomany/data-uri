@@ -38,7 +38,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile With Null Name
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, false);
+        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
 
         // Assert: Name is Set to File Name
         $this->assertEquals(basename($path), $file->name);
@@ -72,7 +72,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile With Null Remote Key
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, false);
+        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
 
         // Assert: Remote Key Generated
         $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->key);
