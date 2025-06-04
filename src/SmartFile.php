@@ -98,17 +98,12 @@ final readonly class SmartFile implements \Stringable
             $this->hash, $this->extension,
         ]));
 
-        // Append the Extension If Not Null
-        // if (null !== $suffix = $this->extension) {
-        //     $key = implode('.', [$key, $suffix]);
-        // }
-
         if ($prefix = substr($this->hash, 2, 2)) {
-            $key = sprintf('%s/%s', $prefix, $key);
+            $key = implode('/', [$prefix, $key]);
         }
 
         if ($prefix = substr($this->hash, 0, 2)) {
-            $key = sprintf('%s/%s', $prefix, $key);
+            $key = implode('/', [$prefix, $key]);
         }
 
         $this->key = $key;
