@@ -56,8 +56,8 @@ final class ParseDataTest extends TestCase
         $file = parse_data(data: $data, assumeBase64Data: true);
 
         // Assert: Data Is Successfully Parsed
-        $this->assertEquals('image/gif', $file->contentType);
-        $this->assertStringEndsWith('.gif', $file->fileName);
+        $this->assertEquals('image/gif', $file->type);
+        $this->assertStringEndsWith('.gif', $file->name);
     }
 
     public function testParsingEncodedDataRequiresValidRfc2397Format(): void
@@ -80,7 +80,7 @@ final class ParseDataTest extends TestCase
         $data = 'Hello%2C%20PHP%20world%21';
 
         $file = parse_data('data:text/plain,'.$data);
-        $this->assertStringEqualsFile($file->filePath, $text);
+        $this->assertStringEqualsFile($file->path, $text);
     }
 
     public function testParsingFilePathRequiresFilePathLengthToBeLessThanOrEqualToTheMaximumPathLength(): void
@@ -127,8 +127,8 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_data('data:,Hello%20world');
 
-        $this->assertEquals('text/plain', $file->contentType);
-        $this->assertStringEndsWith('.txt', $file->fileName);
+        $this->assertEquals('text/plain', $file->type);
+        $this->assertStringEndsWith('.txt', $file->name);
     }
 
     public function testParsingEncodedDataCanSetDisplayName(): void
@@ -137,7 +137,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data(data: 'data:,Hello%20world', displayName: $name);
 
         $this->assertEquals($name, $file->displayName);
-        $this->assertNotEquals($name, $file->fileName);
+        $this->assertNotEquals($name, $file->name);
     }
 
     #[DataProvider('providerFilePathAndDisplayName')]
@@ -170,7 +170,7 @@ final class ParseDataTest extends TestCase
 
         // Assert: Display Name Equals Original File Name
         $this->assertEquals($displayName, $file->displayName);
-        $this->assertEquals($file->fileName, $file->displayName);
+        $this->assertEquals($file->name, $file->displayName);
     }
 
     /**
@@ -206,7 +206,7 @@ final class ParseDataTest extends TestCase
         $this->assertNotEquals($displayName, $data->displayName);
 
         // Act: Parse File With Unique Display Name
-        $file = parse_data(data: $data->filePath, displayName: $displayName);
+        $file = parse_data(data: $data->path, displayName: $displayName);
 
         // Assert: Display Name Equals Unique Display Name
         $this->assertEquals($displayName, $file->displayName);
@@ -217,13 +217,13 @@ final class ParseDataTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Assert: Original File Exists
-        $this->assertFileExists($data->filePath);
+        $this->assertFileExists($data->path);
 
         // Act: Parse Data and Delete Original File
-        $file = parse_data(data: $data->filePath, deleteOriginalFile: true);
+        $file = parse_data(data: $data->path, deleteOriginalFile: true);
 
-        $this->assertFileExists($file->filePath);
-        $this->assertFileDoesNotExist($data->filePath);
+        $this->assertFileExists($file->path);
+        $this->assertFileDoesNotExist($data->path);
     }
 
     #[DataProvider('providerEncodedDataAndMetadata')]
@@ -235,9 +235,9 @@ final class ParseDataTest extends TestCase
     ): void {
         $file = parse_data($data);
 
-        $this->assertFileExists($file->filePath);
-        $this->assertEquals($contentType, $file->contentType);
-        $this->assertEquals($byteCount, $file->byteCount);
+        $this->assertFileExists($file->path);
+        $this->assertEquals($contentType, $file->type);
+        $this->assertEquals($byteCount, $file->size);
         $this->assertEquals($extension, $file->extension);
     }
 
@@ -272,9 +272,9 @@ final class ParseDataTest extends TestCase
     ): void {
         $file = parse_data($filePath);
 
-        $this->assertFileExists($file->filePath);
-        $this->assertEquals($contentType, $file->contentType);
-        $this->assertEquals($byteCount, $file->byteCount);
+        $this->assertFileExists($file->path);
+        $this->assertEquals($contentType, $file->type);
+        $this->assertEquals($byteCount, $file->size);
         $this->assertEquals($extension, $file->extension);
     }
 

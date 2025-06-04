@@ -2,19 +2,10 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotCalculatedException;
-use OneToMany\DataUri\Exception\ConstructionFailedByteCountNotProvidedException;
-use OneToMany\DataUri\Exception\ConstructionFailedContentTypeNotProvidedException;
-use OneToMany\DataUri\Exception\ConstructionFailedFileContentsNotReadableException;
-use OneToMany\DataUri\Exception\ConstructionFailedFileDoesNotExistException;
-use OneToMany\DataUri\Exception\ConstructionFailedFileNotFileException;
-use OneToMany\DataUri\Exception\ConstructionFailedFileNotReadableException;
-use OneToMany\DataUri\Exception\ConstructionFailedFilePathNotProvidedException;
-use OneToMany\DataUri\Exception\ConstructionFailedHashNotProvidedException;
 use OneToMany\DataUri\Exception\EncodingFailedFileDoesNotExistException;
+use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\ReadingFailedFileDoesNotExistException;
 
-use function array_unshift;
 use function base64_encode;
 use function basename;
 use function file_exists;
@@ -22,8 +13,10 @@ use function file_get_contents;
 use function filesize;
 use function hash;
 use function implode;
+use function in_array;
 use function is_file;
 use function is_readable;
+use function max;
 use function pathinfo;
 use function random_bytes;
 use function random_int;
@@ -32,121 +25,127 @@ use function strtolower;
 use function substr;
 use function trim;
 use function unlink;
-use function vsprintf;
 
 use const PATHINFO_EXTENSION;
 
 final readonly class SmartFile implements \Stringable
 {
     public string $hash;
-    public string $filePath;
-    public string $fileName;
-    public string $contentType;
-    public int $byteCount;
-    public string $displayName;
-    public string $extension;
-    public string $remoteKey;
+    public string $path;
+    public string $name;
+    public ?string $extension;
+    public int $size;
+    public string $type;
+    public string $key;
 
     public function __construct(
-        string $filePath,
-        ?string $hash,
-        string $contentType,
-        ?int $byteCount = null,
-        ?string $displayName = null,
-        bool $checkExists = true,
-        public bool $selfDestruct = true,
+        string $hash,
+        string $path,
+        ?string $name,
+        ?int $size,
+        string $type,
+        bool $checkPath = true,
+        public bool $delete = true,
     ) {
-        $this->filePath = trim($filePath);
-
-        if (empty($this->filePath)) {
-            throw new ConstructionFailedFilePathNotProvidedException();
-        }
-
-        $this->fileName = basename($this->filePath);
-
-        if (true === $checkExists) {
-            if (!file_exists($this->filePath)) {
-                throw new ConstructionFailedFileDoesNotExistException($this->filePath);
-            }
-
-            if (!is_readable($this->filePath)) {
-                throw new ConstructionFailedFileNotReadableException($this->filePath);
-            }
-
-            if (!is_file($this->filePath)) {
-                throw new ConstructionFailedFileNotFileException($this->filePath);
-            }
-
-            if (null === $hash) {
-                if (false === $contents = @file_get_contents($this->filePath)) {
-                    throw new ConstructionFailedFileContentsNotReadableException($this->filePath);
-                }
-
-                $hash = hash('sha256', $contents);
-            }
-
-            if (false === $byteCount = ($byteCount ?? filesize($this->filePath))) {
-                throw new ConstructionFailedByteCountNotCalculatedException($this->filePath);
-            }
-        }
-
-        if (null === $hash) {
-            throw new ConstructionFailedHashNotProvidedException($this->filePath);
+        if (empty($hash = trim($hash))) {
+            throw new InvalidArgumentException('The hash cannot be empty.');
         }
 
         $this->hash = $hash;
 
-        if (null === $byteCount) {
-            throw new ConstructionFailedByteCountNotProvidedException($this->filePath);
+        if (empty($path = trim($path))) {
+            throw new InvalidArgumentException('The path can not be empty.');
         }
 
-        $this->byteCount = $byteCount;
+        $this->path = $path;
 
-        if (empty($contentType = trim($contentType))) {
-            throw new ConstructionFailedContentTypeNotProvidedException($this->filePath);
+        if (empty($name = trim($name ?? ''))) {
+            $name = basename($this->path);
         }
 
-        $this->contentType = strtolower($contentType);
+        $this->name = $name;
 
-        // Resolve the Display Name
-        $this->displayName = trim($displayName ?? '') ?: $this->fileName;
+        if ($checkPath && !file_exists($this->path)) {
+            throw new InvalidArgumentException(sprintf('The file "%s" does not exist.', $this->path));
+        }
 
-        // Resolve the File Extension
-        $this->extension = pathinfo($this->filePath, PATHINFO_EXTENSION);
+        if ($checkPath && !is_readable($this->path)) {
+            throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $this->path));
+        }
+
+        if ($checkPath && !is_file($this->path)) {
+            throw new InvalidArgumentException(sprintf('The path "%s" is not a file.', $this->path));
+        }
+
+        // Resolve the Extension If Present
+        $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+
+        // Resolve the File Size
+        if ($checkPath && null === $size) {
+            $size = @filesize($this->path);
+        }
+
+        $this->size = max(0, $size ?: 0);
+
+        if (empty($type = trim($type))) {
+            throw new InvalidArgumentException('The type cannot be empty.');
+        }
+
+        $this->type = strtolower($type);
 
         // Generate the Remote Key
-        $remoteKeyPrefix = vsprintf('%s.%s', [
+        $key = implode('.', array_filter([
             $this->hash, $this->extension,
-        ]);
+        ]));
 
-        $remoteKeyBits = [$remoteKeyPrefix];
+        // Append the Extension If Not Null
+        // if (null !== $suffix = $this->extension) {
+        //     $key = implode('.', [$key, $suffix]);
+        // }
 
-        if ($prefix = substr($hash, 2, 2)) {
-            array_unshift($remoteKeyBits, $prefix);
+        if ($prefix = substr($this->hash, 2, 2)) {
+            $key = sprintf('%s/%s', $prefix, $key);
         }
 
-        if ($prefix = substr($hash, 0, 2)) {
-            array_unshift($remoteKeyBits, $prefix);
+        if ($prefix = substr($this->hash, 0, 2)) {
+            $key = sprintf('%s/%s', $prefix, $key);
         }
 
-        $this->remoteKey = implode('/', $remoteKeyBits);
+        $this->key = $key;
     }
 
     public function __destruct()
     {
-        if ($this->selfDestruct) {
-            if (file_exists($this->filePath)) {
-                @unlink($this->filePath);
+        if ($this->delete) {
+            if (file_exists($this->path)) {
+                @unlink($this->path);
             }
         }
     }
 
+    /*
+    public function __get(string $name): mixed
+    {
+        $name = strtolower($name);
+
+        if (in_array($name, ['extension'])) {
+            return pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+        }
+
+        if (in_array($name, ['basename'])) {
+            return basename($this->path);
+        }
+
+        return null;
+    }
+    */
+
     public function __toString(): string
     {
-        return $this->filePath;
+        return $this->path;
     }
 
-    public static function createMock(string $filePath, string $contentType): self
+    public static function createMock(string $path, string $type): self
     {
         // Generate Random Size [1KB, 4MB]
         $size = random_int(1_024, 4_194_304);
@@ -154,7 +153,7 @@ final readonly class SmartFile implements \Stringable
         // Generate Random Hash Based on Size
         $hash = hash('sha256', random_bytes($size));
 
-        return new self($filePath, $hash, $contentType, $size, null, false, false);
+        return new self($hash, $path, null, $size, $type, false, false);
     }
 
     public function equals(self $data, bool $strict = false): bool
@@ -164,7 +163,7 @@ final readonly class SmartFile implements \Stringable
                 return true;
             }
 
-            return $this->filePath === $data->filePath;
+            return $this->path === $data->path;
         }
 
         return false;
@@ -172,8 +171,8 @@ final readonly class SmartFile implements \Stringable
 
     public function read(): string
     {
-        if (false === $contents = @file_get_contents($this->filePath)) {
-            throw new ReadingFailedFileDoesNotExistException($this->filePath);
+        if (false === $contents = @file_get_contents($this->path)) {
+            throw new ReadingFailedFileDoesNotExistException($this->path);
         }
 
         return $contents;
@@ -182,9 +181,9 @@ final readonly class SmartFile implements \Stringable
     public function toDataUri(): string
     {
         try {
-            return sprintf('data:%s;base64,%s', $this->contentType, base64_encode($this->read()));
+            return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->read()));
         } catch (ReadingFailedFileDoesNotExistException $e) {
-            throw new EncodingFailedFileDoesNotExistException($this->filePath, $e);
+            throw new EncodingFailedFileDoesNotExistException($this->path, $e);
         }
     }
 }

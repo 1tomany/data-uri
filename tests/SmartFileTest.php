@@ -37,10 +37,10 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile With Null Display Name
-        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, false);
+        $file = new SmartFile($data->path, null, $data->type, null, null, true, false);
 
         // Assert: File Name and Display Name Are Equal
-        $this->assertEquals($file->fileName, $file->displayName);
+        $this->assertEquals($file->name, $file->displayName);
     }
 
     public function testConstructorSetsDisplayNameWhenDisplayNameIsNotNull(): void
@@ -48,12 +48,12 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile With Non-Null Display Name
-        $file = new SmartFile($data->filePath, null, $data->contentType, null, $data->displayName, true, false);
+        $file = new SmartFile($data->path, null, $data->type, null, $data->displayName, true, false);
 
         // Assert: File Name and Display Name Are Different
         $this->assertEquals($data->displayName, $file->displayName);
-        $this->assertNotEquals($data->displayName, $file->fileName);
-        $this->assertNotEquals($file->displayName, $file->fileName);
+        $this->assertNotEquals($data->displayName, $file->name);
+        $this->assertNotEquals($file->displayName, $file->name);
     }
 
     public function testConstructorGeneratesRemoteKey(): void
@@ -61,10 +61,10 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile With Null Remote Key
-        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, false);
+        $file = new SmartFile($data->path, null, $data->type, null, null, true, false);
 
         // Assert: Remote Key Generated
-        $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->remoteKey);
+        $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->key);
     }
 
     public function testDestructorDeletesTemporaryFileWhenSelfDestructIsTrue(): void
@@ -72,17 +72,17 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile to Self Destruct
-        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, true);
+        $file = new SmartFile($data->path, null, $data->type, null, null, true, true);
 
-        // Assert: SmartFile to Self Destruct
-        $this->assertTrue($file->selfDestruct);
-        $this->assertFileExists($file->filePath);
+        // Assert: SmartFile to Delete
+        $this->assertTrue($file->delete);
+        $this->assertFileExists($file->path);
 
         // Act: Self Destruct
         $file->__destruct();
 
         // Assert: Destructor Deleted File
-        $this->assertFileDoesNotExist($file->filePath);
+        $this->assertFileDoesNotExist($file->path);
     }
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
@@ -90,21 +90,21 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile to Self Destruct
-        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, true);
+        $file = new SmartFile($data->path, null, $data->type, null, null, true, true);
 
-        // Assert: SmartFile to Self Destruct
-        $this->assertTrue($file->selfDestruct);
-        $this->assertFileExists($file->filePath);
+        // Assert: SmartFile to Delete
+        $this->assertTrue($file->delete);
+        $this->assertFileExists($file->path);
 
         // Act: Manually Delete File
-        unlink($file->filePath);
-        $this->assertFileDoesNotExist($file->filePath);
+        unlink($file->path);
+        $this->assertFileDoesNotExist($file->path);
 
         // Act: Self Destruct
         $file->__destruct();
 
         // Assert: Destructor Can Not Delete File
-        $this->assertFileDoesNotExist($file->filePath);
+        $this->assertFileDoesNotExist($file->path);
     }
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenSelfDestructIsFalse(): void
@@ -112,26 +112,26 @@ final class SmartFileTest extends TestCase
         $data = $this->fetchRandomFile();
 
         // Act: Construct SmartFile to Not Self Destruct
-        $file = new SmartFile($data->filePath, null, $data->contentType, null, null, true, false);
+        $file = new SmartFile($data->path, null, $data->type, null, null, true, false);
 
-        // Assert: SmartFile to Not Self Destruct
-        $this->assertFalse($file->selfDestruct);
-        $this->assertFileExists($file->filePath);
+        // Assert: SmartFile to Not Delete
+        $this->assertFalse($file->delete);
+        $this->assertFileExists($file->path);
 
         // Act: Self Destruct
         $file->__destruct();
 
         // Assert: Destructor Does Not Delete File
-        $this->assertFileExists($file->filePath);
+        $this->assertFileExists($file->path);
 
-        unlink($file->filePath);
+        unlink($file->path);
     }
 
     public function testToStringReturnsFilePath(): void
     {
         $file = new SmartFile('file.txt', 'hash', 'text/plain', 0, null, false);
 
-        $this->assertEquals($file->filePath, $file->__toString());
+        $this->assertEquals($file->path, $file->__toString());
     }
 
     public function testReadingFileRequiresFileToExist(): void

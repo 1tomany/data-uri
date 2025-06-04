@@ -37,7 +37,6 @@ use function sprintf;
 use function str_contains;
 use function str_ends_with;
 use function strlen;
-use function strval;
 use function substr;
 use function trim;
 
@@ -59,7 +58,7 @@ function parse_data(
         throw new ParsingFailedInvalidHashAlgorithmProvidedException($hashAlgorithm);
     }
 
-    $data = trim(strval($data));
+    $data = trim($data ?? '');
 
     if (empty($data)) {
         throw new ParsingFailedEmptyDataProvidedException();
@@ -184,12 +183,21 @@ function parse_data(
     }
 
     // Calculate the filesize in bytes
-    if (false === $byteCount = filesize($filePath)) {
+    if (false === $size = filesize($filePath)) {
         _cleanup_safely($filePath, new ProcessingFailedCalculatingFileSizeFailedException($filePath));
     }
 
-    return new SmartFile($filePath, $hash, $contentType, $byteCount, $displayName, true, $selfDestruct);
+    return new SmartFile($hash, $filePath, $displayName, $size, $contentType, true, $selfDestruct);
 }
+
+/*
+function parse_base64_data(string $data, ?string $type = null, ?string $name = null): SmartFile
+{
+    if (!empty($type = trim($type ?? ''))) {
+        $data = sprintf('data:%s;base64,%s', $type, $data);
+    }
+}
+*/
 
 /**
  * @return ($exception is not null ? never : void)
