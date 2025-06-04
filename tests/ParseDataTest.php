@@ -136,18 +136,16 @@ final class ParseDataTest extends TestCase
         $name = 'HelloWorld.txt';
         $file = parse_data(data: 'data:,Hello%20world', displayName: $name);
 
-        $this->assertEquals($name, $file->displayName);
-        $this->assertNotEquals($name, $file->name);
+        $this->assertEquals($name, $file->name);
+        $this->assertNotEquals($name, $file->basename);
     }
 
-    #[DataProvider('providerFilePathAndDisplayName')]
-    public function testParsingFilePathDataSetsFileNameAsDisplayName(
-        string $filePath,
-        string $displayName,
-    ): void {
+    #[DataProvider('providerPathAndName')]
+    public function testParsingPathWithoutNameSetsFileName(string $path, string $name): void
+    {
         // Arrange: Create Virtual File and Temporary Virtual File
-        $vFile = vfsStream::newFile($displayName)->withContent('Hello, PHP world!');
-        $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($displayName));
+        $vFile = vfsStream::newFile($name)->withContent('Hello, PHP world!');
+        $tFile = vfsStream::newFile(Path::getFilenameWithoutExtension($name));
 
         // Arrange: Create Virtual File System
         vfsStream::setup(structure: [$vFile, $tFile]);
@@ -166,17 +164,17 @@ final class ParseDataTest extends TestCase
             ->willReturn($tFile->url());
 
         // Act: Parse File With Null Display Name
-        $file = parse_data(data: $filePath, displayName: null, filesystem: $filesystem);
+        $file = parse_data(data: $path, displayName: null, filesystem: $filesystem);
 
-        // Assert: Display Name Equals Original File Name
-        $this->assertEquals($displayName, $file->displayName);
-        $this->assertEquals($file->name, $file->displayName);
+        // Assert: Both File Names Are Equal
+        $this->assertEquals($name, $file->name);
+        $this->assertEquals($name, $file->basename);
     }
 
     /**
      * @return list<list<non-empty-string>>
      */
-    public static function providerFilePathAndDisplayName(): array
+    public static function providerPathAndName(): array
     {
         $provider = [
             ['test.jpeg', 'test.jpeg'],
@@ -193,23 +191,20 @@ final class ParseDataTest extends TestCase
         return $provider;
     }
 
-    public function testParsingFilePathDataCanHaveDisplayNameOverwritten(): void
+    public function testParsingPathCanOverwriteName(): void
     {
-        $data = $this->fetchRandomFile();
+        // Arrange: Create File and Name
+        $path = $this->createTempFile();
+        $name = 'OverwrittenFileName.txt';
 
-        // Arrange: Create Unique Display Name
-        $displayName = vsprintf('test-%s.%s', [
-            uniqid('', true), $data->extension,
-        ]);
+        // Assert: Name Does Not Equal File Name
+        $this->assertStringEndsNotWith($name, $path);
 
-        // Assert: Display Name Is Unique
-        $this->assertNotEquals($displayName, $data->displayName);
+        // Act: Parse File With Non-Null Name
+        $file = parse_data(data: $path, displayName: $name);
 
-        // Act: Parse File With Unique Display Name
-        $file = parse_data(data: $data->path, displayName: $displayName);
-
-        // Assert: Display Name Equals Unique Display Name
-        $this->assertEquals($displayName, $file->displayName);
+        // Assert: File Name Equals Name
+        $this->assertEquals($name, $file->name);
     }
 
     public function testParsingFilePathDataCanDeleteOriginalFile(): void

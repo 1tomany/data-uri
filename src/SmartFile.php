@@ -31,6 +31,7 @@ final readonly class SmartFile implements \Stringable
     public string $hash;
     public string $path;
     public string $name;
+    public string $basename;
     public ?string $extension;
     public int $size;
     public string $type;
@@ -62,6 +63,9 @@ final readonly class SmartFile implements \Stringable
         }
 
         $this->name = $name;
+
+        // Resolve the Basename
+        $this->basename = basename($this->path);
 
         if ($checkPath && !file_exists($this->path)) {
             throw new InvalidArgumentException(sprintf('The file "%s" does not exist.', $this->path));
