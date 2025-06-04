@@ -11,7 +11,6 @@ use function array_filter;
 use function basename;
 use function ctype_print;
 use function explode;
-use function file_exists;
 use function fopen;
 use function hash_file;
 use function is_dir;
@@ -25,7 +24,6 @@ use function trim;
 
 use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
-// use const PHP_URL_PATH;
 
 function parse_data(
     ?string $data,
