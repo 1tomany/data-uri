@@ -135,6 +135,7 @@ final class ParseDataTest extends TestCase
 
         // Assert: Both File Names Are Equal
         $this->assertEquals($name, $file->name);
+        $this->assertNotEquals($file->name, $file->basename);
     }
 
     /**
