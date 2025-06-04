@@ -1,7 +1,7 @@
 # Data URI Parser for PHP
 This simple library exposes a single function, `OneToMany\DataUri\parse_data()` that allows you to easily parse URL or base64 encoded data URIs or valid file paths. During parsing, a temporary, uniquely named file will be stored on the local filesystem and an immutable value object of type `OneToMany\DataUri\SmartFile` will be created and returned.
 
-By default, instances of the `SmartFile` object will attempt to delete the temporary file it references upon object destruction. You can change this behavior by setting the `$selfDestruct` argument of the `SmartFile` constructor or `parse_data()` function to `false`.
+By default, instances of the `SmartFile` object will attempt to delete the temporary file it references upon object destruction. You can change this behavior by setting the `$delete` argument of the `SmartFile` constructor to `false`. `SmartFile` objects created by `parse_data()` are automatically set to self-destruct.
 
 ## Installation
 ```
@@ -18,7 +18,6 @@ In those instances, you can instantiate a `OneToMany\DataUri\SmartFile` object w
 
 If you _do_ wish to use the `parse_data()` function, you can write a unit test that does not interact with the filesystem by passing a mocked `Symfony\Component\Filesystem\Filesystem` object as the last parameter of the `parse_data()` method in your test. You will need to mock the following methods of the `Filesystem` class:
 
-- `string readFile(string $filename)`
 - `string tempnam(string $dir, string $prefix, string $suffix = '')`
 - `void dumpFile(string $filename, string|resource $content)`
 - `void rename(string $origin, string $target, bool $overwrite = false)`
