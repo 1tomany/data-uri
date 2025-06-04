@@ -137,7 +137,7 @@ function parse_data(
         }
     }
 
-    return new SmartFile($hash, $type, $path, $name ?: null, null, true, true);
+    return new SmartFile($hash, $path, $name ?: null, null, $type, true, true);
 }
 
 /*

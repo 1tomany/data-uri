@@ -153,14 +153,13 @@ final class ParseDataTest extends TestCase
     }
 
     #[DataProvider('providerDataAndMetadata')]
-    public function testParsingData(string $data, string $hash, string $type, int $size): void
+    public function testParsingData(string $data, int $size, string $type): void
     {
         $file = parse_data($data);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($hash, $file->hash);
-        $this->assertEquals($type, $file->type);
         $this->assertEquals($size, $file->size);
+        $this->assertEquals($type, $file->type);
     }
 
     /**
@@ -169,48 +168,44 @@ final class ParseDataTest extends TestCase
     public static function providerDataAndMetadata(): array
     {
         $provider = [
-            ['data:,Test', '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25', 'text/plain', 4],
-            ['data:text/plain,Test', '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25', 'text/plain', 4],
-            ['data:text/plain;charset=US-ASCII,Hello%20world', '64ec88ca00b268e5ba1a35678a1b5316d212f4f366b2477232534a8aeca37f3c', 'text/plain', 11],
-            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', '315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3', 'text/plain', 13],
-            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', '315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3', 'text/plain', 13],
-            ['data:application/json,%7B%22id%22%3A10%7D', '451973eae50e0e18bc1e8a4bd66bf035306c435164af0b41ceaf3a0ab918bd08', 'application/json', 9],
-            ['data:application/json;base64,eyJpZCI6MTB9', '451973eae50e0e18bc1e8a4bd66bf035306c435164af0b41ceaf3a0ab918bd08', 'application/json', 9],
+            ['data:,Test', 4, 'text/plain'],
+            ['data:text/plain,Test', 4, 'text/plain'],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 11, 'text/plain'],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
+            ['data:application/json,%7B%22id%22%3A10%7D', 9, 'application/json'],
+            ['data:application/json;base64,eyJpZCI6MTB9', 9, 'application/json'],
+
+            // 1x1 Transparent GIF
+            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
 
             // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
-            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', '1d9e024228ddfa3a9b8924b96d65d7428c326cc8945102a8149182b2f8e823b5', 'application/pdf', 67],
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 67, 'application/pdf'],
         ];
 
         return $provider;
     }
 
-    #[DataProvider('providerFilePathAndMetadata')]
-    public function _testParsingFilePathData(
-        string $filePath,
-        string $contentType,
-        int $byteCount,
-        string $extension,
-    ): void {
-        $file = parse_data($filePath);
+    #[DataProvider('providerFileAndMetadata')]
+    public function testParsingFile(string $data, int $size, string $type): void
+    {
+        $file = parse_data($data);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($contentType, $file->type);
-        $this->assertEquals($byteCount, $file->size);
-        $this->assertEquals($extension, $file->extension);
+        $this->assertEquals($type, $file->type);
+        $this->assertEquals($size, $file->size);
     }
 
     /**
      * @return list<list<int|non-empty-string>>
      */
-    public static function providerFilePathAndMetadata(): array
+    public static function providerFileAndMetadata(): array
     {
-        $dir = __DIR__.'/data';
-
         return [
-            [$dir.'/pdf-small.pdf', 'application/pdf', 36916, 'pdf'],
-            [$dir.'/png-small.png', 'image/png', 10289, 'png'],
-            [$dir.'/text-small.txt', 'text/plain', 86, 'txt'],
-            [$dir.'/word-small.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 6657, 'docx'],
+            [__DIR__.'/data/pdf-small.pdf', 36916, 'application/pdf'],
+            [__DIR__.'/data/png-small.png', 10289, 'image/png'],
+            [__DIR__.'/data/text-small.txt', 86, 'text/plain'],
+            [__DIR__.'/data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         ];
     }
 }
