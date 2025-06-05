@@ -1,7 +1,9 @@
 # Data URI Parser for PHP
-This simple library exposes a single function, `OneToMany\DataUri\parse_data()` that allows you to easily parse URL or base64 encoded data URIs or valid file paths. During parsing, a temporary, uniquely named file will be stored on the local filesystem and an immutable value object of type `OneToMany\DataUri\SmartFile` will be created and returned.
+This simple library exposes a single function, `OneToMany\DataUri\parse_data()` that allows you to easily convert strings formatted as a "data" URL outlined in [RFC2397](https://www.rfc-editor.org/rfc/rfc2397.html) to a file on the local filesystem. During parsing, a temporary, uniquely named file will be created with the decoded contents of the "data" URL. `parse_data()` will return an immutable value object of type `OneToMany\DataUri\SmartFile` which references the local file.
 
-By default, instances of the `SmartFile` object will attempt to delete the temporary file it references upon object destruction. You can change this behavior by setting the `$selfDestruct` argument of the `SmartFile` constructor or `parse_data()` function to `false`.
+Beneath the hood, `parse_data()` uses the `fopen()` function, which means the `$data` string passed to it can be any [stream](https://www.php.net/manual/en/wrappers.php) that PHP supports.
+
+By default, instances of the `SmartFile` object will attempt to delete the temporary file it references upon object destruction. You can change this behavior by setting the `$delete` argument of the `SmartFile` constructor to `false`. `SmartFile` objects created by `parse_data()` are automatically set to self-destruct.
 
 ## Installation
 ```
@@ -18,12 +20,11 @@ In those instances, you can instantiate a `OneToMany\DataUri\SmartFile` object w
 
 If you _do_ wish to use the `parse_data()` function, you can write a unit test that does not interact with the filesystem by passing a mocked `Symfony\Component\Filesystem\Filesystem` object as the last parameter of the `parse_data()` method in your test. You will need to mock the following methods of the `Filesystem` class:
 
-- `string readFile(string $filename)`
 - `string tempnam(string $dir, string $prefix, string $suffix = '')`
 - `void dumpFile(string $filename, string|resource $content)`
 - `void rename(string $origin, string $target, bool $overwrite = false)`
 
-An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingFilePathDataRequiresReadableFileToExist()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L93).
+An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingDataRequiresWritingDataToTemporaryFile()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L87).
 
 If you want to take your tests further, you can validate the data is "written" to the temporary file by combining the mocked `Filesystem` object with a library like [mikey179/vfsstream](https://packagist.org/packages/mikey179/vfsstream).
 
