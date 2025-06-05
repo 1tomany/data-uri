@@ -150,7 +150,6 @@ function parse_base64_data(
     ?string $directory = null,
     bool $cleanup = false,
     ?Filesystem $filesystem = null,
-): SmartFile
-{
+): SmartFile {
     return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $cleanup, $filesystem);
 }
