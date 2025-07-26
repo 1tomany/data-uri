@@ -39,11 +39,11 @@ function parse_data(
     bool $cleanup = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
-    if (!is_null($data) && !is_string($data)) {
-        throw new InvalidArgumentException('The data must be NULL or a string.');
+    if (!is_string($data)) {
+        throw new InvalidArgumentException('The data must be a non-NULL string.');
     }
 
-    if (empty($data = trim($data ?? ''))) {
+    if (empty($data = trim($data))) {
         throw new InvalidArgumentException('The data cannot be empty.');
     }
 
