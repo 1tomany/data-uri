@@ -173,7 +173,7 @@ function parse_text_data(
     $extension = '.txt';
 
     if (!$name || !str_ends_with(strtolower(trim($name)), $extension)) {
-        $name = sprintf('%s.%s', bin2hex(random_bytes(6)), $extension);
+        $name = implode('', [bin2hex(random_bytes(6)), $extension]);
     }
 
     return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, false, $filesystem);
