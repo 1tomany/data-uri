@@ -17,7 +17,9 @@ use function hash_file;
 use function implode;
 use function is_dir;
 use function is_file;
+use function is_null;
 use function is_readable;
+use function is_string;
 use function is_writable;
 use function parse_url;
 use function pathinfo;
@@ -37,7 +39,7 @@ function parse_data(
     bool $cleanup = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
-    if (!\is_null($data) && !\is_string($data)) {
+    if (!is_null($data) && !is_string($data)) {
         throw new InvalidArgumentException('The data must be NULL or a string.');
     }
 
