@@ -31,12 +31,16 @@ use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
 function parse_data(
-    ?string $data,
+    mixed $data,
     ?string $name = null,
     ?string $directory = null,
     bool $cleanup = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
+    if (!\is_null($data) && !\is_string($data)) {
+        throw new InvalidArgumentException('The data must be NULL or a string.');
+    }
+
     if (empty($data = trim($data ?? ''))) {
         throw new InvalidArgumentException('The data cannot be empty.');
     }
