@@ -8,7 +8,9 @@ use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExcep
 use Symfony\Component\Filesystem\Filesystem;
 
 use function array_filter;
+use function base64_encode;
 use function basename;
+use function bin2hex;
 use function ctype_print;
 use function explode;
 use function fclose;
@@ -17,12 +19,12 @@ use function hash_file;
 use function implode;
 use function is_dir;
 use function is_file;
-use function is_null;
 use function is_readable;
 use function is_string;
 use function is_writable;
 use function parse_url;
 use function pathinfo;
+use function random_bytes;
 use function sprintf;
 use function str_contains;
 use function stream_get_contents;
@@ -158,4 +160,13 @@ function parse_base64_data(
     ?Filesystem $filesystem = null,
 ): SmartFile {
     return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $cleanup, $filesystem);
+}
+
+function text_to_file(
+    string $text,
+    ?string $name = null,
+    ?string $directory = null,
+    ?Filesystem $filesystem = null,
+): SmartFile {
+    return parse_base64_data(base64_encode($text), $name ?? sprintf('%.txt', bin2hex(random_bytes(6))), $directory, $filesystem);
 }
