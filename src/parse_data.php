@@ -8,7 +8,9 @@ use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExcep
 use Symfony\Component\Filesystem\Filesystem;
 
 use function array_filter;
+use function base64_encode;
 use function basename;
+use function bin2hex;
 use function ctype_print;
 use function explode;
 use function fclose;
@@ -18,12 +20,16 @@ use function implode;
 use function is_dir;
 use function is_file;
 use function is_readable;
+use function is_string;
 use function is_writable;
 use function parse_url;
 use function pathinfo;
+use function random_bytes;
 use function sprintf;
 use function str_contains;
+use function str_ends_with;
 use function stream_get_contents;
+use function strtolower;
 use function trim;
 use function unlink;
 
@@ -31,13 +37,17 @@ use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
 function parse_data(
-    ?string $data,
+    mixed $data,
     ?string $name = null,
     ?string $directory = null,
     bool $cleanup = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
-    if (empty($data = trim($data ?? ''))) {
+    if (!is_string($data)) {
+        throw new InvalidArgumentException('The data must be a non-NULL string.');
+    }
+
+    if (empty($data = trim($data))) {
         throw new InvalidArgumentException('The data cannot be empty.');
     }
 
@@ -152,4 +162,19 @@ function parse_base64_data(
     ?Filesystem $filesystem = null,
 ): SmartFile {
     return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $cleanup, $filesystem);
+}
+
+function parse_text_data(
+    string $text,
+    ?string $name = null,
+    ?string $directory = null,
+    ?Filesystem $filesystem = null,
+): SmartFile {
+    $extension = '.txt';
+
+    if (!$name || !str_ends_with(strtolower(trim($name)), $extension)) {
+        $name = sprintf('%s.%s', bin2hex(random_bytes(6)), $extension);
+    }
+
+    return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, false, $filesystem);
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace OneToMany\DataUri\Exception;
+namespace OneToMany\DataUri\Contract\Exception;
 
 interface ExceptionInterface extends \Throwable
 {

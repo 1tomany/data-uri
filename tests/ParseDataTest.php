@@ -16,6 +16,7 @@ use function base64_encode;
 use function basename;
 use function OneToMany\DataUri\parse_base64_data;
 use function OneToMany\DataUri\parse_data;
+use function OneToMany\DataUri\parse_text_data;
 use function random_bytes;
 use function sys_get_temp_dir;
 use function vsprintf;
@@ -24,6 +25,14 @@ use function vsprintf;
 final class ParseDataTest extends TestCase
 {
     use TestFileTrait;
+
+    public function testParsingDataRequiresNonNullStringData(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The data must be a non-NULL string.');
+
+        parse_data(null);
+    }
 
     public function testParsingDataRequiresNonEmptyData(): void
     {
@@ -232,5 +241,31 @@ final class ParseDataTest extends TestCase
         ];
 
         return $provider;
+    }
+
+    public function testParsingTextDataGeneratesNameIfNameIsEmpty(): void
+    {
+        $this->assertNotEmpty(parse_text_data('Hello, world!', '')->name);
+    }
+
+    public function testParsingTextDataGeneratesNameIfNameExtensionIsNotDotTxt(): void
+    {
+        $name = 'parse_text_example';
+        $file = parse_text_data('Hello, world!', $name);
+
+        $this->assertNotEquals($name, $file->name);
+        $this->assertStringEndsWith('.txt', $file->name);
+    }
+
+    public function testParsingTextData(): void
+    {
+        $name = 'parse_text_example.txt';
+        $text = 'Hello, PHP developer!';
+
+        $file = parse_text_data($text, $name);
+
+        $this->assertFileExists($file->path);
+        $this->assertEquals($name, $file->name);
+        $this->assertEquals($text, $file->read());
     }
 }
