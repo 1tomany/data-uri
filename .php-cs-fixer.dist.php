@@ -2,16 +2,21 @@
 
 $finder = new PhpCsFixer\Finder()
     ->exclude([
-        'config',
-        'var',
+        './config/',
+        './var/',
     ])
     ->in([
-        './src',
-        './tests',
+        './src/',
+        './tests/',
     ]);
+
+$parallel = new PhpCsFixer\Runner\Parallel\ParallelConfig(...[
+    'maxProcesses' => 2, // Use two CPU cores
+]);
 
 return new PhpCsFixer\Config()
     ->setFinder($finder)
+    ->setParallelConfig($parallel)
     ->setRules([
         '@Symfony' => true,
         'global_namespace_import' => [
