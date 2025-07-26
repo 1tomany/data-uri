@@ -27,7 +27,9 @@ use function pathinfo;
 use function random_bytes;
 use function sprintf;
 use function str_contains;
+use function str_ends_with;
 use function stream_get_contents;
+use function strtolower;
 use function trim;
 use function unlink;
 
@@ -162,11 +164,17 @@ function parse_base64_data(
     return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $cleanup, $filesystem);
 }
 
-function text_to_file(
+function parse_text_data(
     string $text,
     ?string $name = null,
     ?string $directory = null,
     ?Filesystem $filesystem = null,
 ): SmartFile {
-    return parse_base64_data(base64_encode($text), $name ?? sprintf('%.txt', bin2hex(random_bytes(6))), $directory, $filesystem);
+    $extension = '.txt';
+
+    if (!$name || !str_ends_with(strtolower(trim($name)), $extension)) {
+        $name = sprintf('%s.%s', bin2hex(random_bytes(6)), $extension);
+    }
+
+    return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, false, $filesystem);
 }
