@@ -31,18 +31,18 @@ final readonly class SmartFile implements \Stringable
     public string $hash;
     public string $path;
     public string $name;
-    public string $basename;
+    public string $base;
     public ?string $extension;
-    public int $size;
     public string $type;
+    public int $size;
     public string $key;
 
     public function __construct(
         string $hash,
         string $path,
         ?string $name,
-        ?int $size,
         string $type,
+        ?int $size = null,
         bool $checkPath = true,
         public bool $delete = true,
     ) {
@@ -65,7 +65,7 @@ final readonly class SmartFile implements \Stringable
         $this->name = $name;
 
         // Resolve the Basename
-        $this->basename = basename($this->path);
+        $this->base = basename($this->path);
 
         if ($checkPath && !file_exists($this->path)) {
             throw new InvalidArgumentException(sprintf('The file "%s" does not exist.', $this->path));
@@ -131,7 +131,7 @@ final readonly class SmartFile implements \Stringable
         // Generate Random Hash Based on Size
         $hash = hash('sha256', random_bytes($size));
 
-        return new self($hash, $path, null, $size, $type, false, false);
+        return new self($hash, $path, null, $type, $size, false, false);
     }
 
     public function equals(self $data, bool $strict = false): bool

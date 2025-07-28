@@ -151,7 +151,7 @@ function parse_data(
         }
     }
 
-    return new SmartFile($hash, $path, $name ?: null, null, $type, true, true);
+    return new SmartFile($hash, $path, $name ?: null, $type, null, true, true);
 }
 
 function parse_base64_data(

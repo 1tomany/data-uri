@@ -21,7 +21,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The hash cannot be empty.');
 
-        new SmartFile('', '/path/to/file.txt', null, null, 'text/plain');
+        new SmartFile('', '/path/to/file.txt', null, 'text/plain');
     }
 
     public function testConstructorRequiresNonEmptyPath(): void
@@ -29,7 +29,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The path cannot be empty.');
 
-        new SmartFile('hash', '', null, null, 'text/plain');
+        new SmartFile('hash', '', null, 'text/plain');
     }
 
     public function testConstructorSetsNameToFileNameWhenNameIsNull(): void
@@ -38,7 +38,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile With Null Name
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
+        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Name is Set to File Name
         $this->assertEquals(basename($path), $file->name);
@@ -53,7 +53,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The file "'.$path.'" does not exist.');
 
-        new SmartFile('hash', $path, null, null, 'text/plain', true, false);
+        new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
     public function testConstructorRequiresPathToBeAFileWhenCheckPathIsTrue(): void
@@ -63,7 +63,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The path "'.$path.'" is not a file.');
 
-        new SmartFile('hash', $path, null, null, 'text/plain', true, false);
+        new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
     public function testConstructorGeneratesKey(): void
@@ -72,7 +72,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile With Null Remote Key
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
+        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Remote Key Generated
         $this->assertMatchesRegularExpression('/^[a-z0-9]{2}\/[a-z0-9]{2}\/[a-z0-9]+\.[a-z0-9]+$/', $file->key);
@@ -84,7 +84,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile to Self Destruct
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
+        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: SmartFile Set to Delete
         $this->assertTrue($file->delete);
@@ -103,7 +103,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile to Self Destruct
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
+        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: SmartFile to Delete
         $this->assertTrue($file->delete);
@@ -126,7 +126,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile to Self Destruct
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, false);
+        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, false);
 
         // Assert: SmartFile to Not Delete
         $this->assertFalse($file->delete);
@@ -146,7 +146,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct SmartFile With Valid Path
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
+        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Path Equals String Representation
         $this->assertEquals($path, $file->__toString());
@@ -162,7 +162,7 @@ final class SmartFileTest extends TestCase
         $this->expectExceptionMessage('Failed to read the file "'.$path.'".');
 
         // Act: Construct SmartFile and Attempt to Read the File
-        new SmartFile('hash', $path, null, null, 'text/plain', false, true)->read();
+        new SmartFile('hash', $path, null, 'text/plain', null, false, true)->read();
     }
 
     public function testReadingEmptyFile(): void
@@ -171,7 +171,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Arrange: Construct SmartFile
-        $file = new SmartFile('hash', $path, null, null, 'text/plain', true, true);
+        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         $this->assertEmpty($file->read());
     }
@@ -186,13 +186,13 @@ final class SmartFileTest extends TestCase
         $this->expectExceptionMessage('Failed to encode the file "'.$path.'".');
 
         // Act: Construct SmartFile and Attempt to Generate the Data URI
-        new SmartFile('hash', $path, null, null, 'text/plain', false, true)->toDataUri();
+        new SmartFile('hash', $path, null, 'text/plain', null, false, true)->toDataUri();
     }
 
     public function testSmartFilesWithDifferentHashesAreNotEqual(): void
     {
-        $file1 = new SmartFile('hash1', '1.txt', null, null, 'text/plain', false, false);
-        $file2 = new SmartFile('hash2', '2.txt', null, null, 'text/plain', false, false);
+        $file1 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
+        $file2 = new SmartFile('hash2', '2.txt', null, 'text/plain', null, false, false);
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
@@ -200,8 +200,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
     {
-        $file1 = new SmartFile('hash1', '1.txt', null, null, 'text/plain', false, false);
-        $file2 = new SmartFile('hash1', '2.txt', null, null, 'text/plain', false, false);
+        $file1 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
+        $file2 = new SmartFile('hash1', '2.txt', null, 'text/plain', null, false, false);
 
         $this->assertTrue($file1->equals($file2));
         $this->assertTrue($file2->equals($file1));
@@ -209,8 +209,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new SmartFile('hash1', '1.txt', null, null, 'text/plain', false, false);
-        $file2 = new SmartFile('hash1', '1.txt', null, null, 'text/plain', false, false);
+        $file1 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
+        $file2 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
 
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));

@@ -128,7 +128,7 @@ final class ParseDataTest extends TestCase
 
         // Assert: File Name Equals Name
         $this->assertEquals($name, $file->name);
-        $this->assertNotEquals($name, $file->basename);
+        $this->assertNotEquals($name, $file->base);
     }
 
     public function testParsingFileWithoutNameUsesFileName(): void
@@ -144,7 +144,7 @@ final class ParseDataTest extends TestCase
 
         // Assert: Both File Names Are Equal
         $this->assertEquals($name, $file->name);
-        $this->assertNotEquals($file->name, $file->basename);
+        $this->assertNotEquals($file->name, $file->base);
     }
 
     public function testParsingFileDataCanDeleteFile(): void
