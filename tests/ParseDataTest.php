@@ -26,10 +26,10 @@ final class ParseDataTest extends TestCase
 {
     use TestFileTrait;
 
-    public function testParsingDataRequiresNonNullStringData(): void
+    public function testParsingDataRequiresStringableData(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The data must be a non-NULL string.');
+        $this->expectExceptionMessage('The data must be a non-NULL string or implement the "\Stringable" interface.');
 
         parse_data(null);
     }
@@ -71,13 +71,13 @@ final class ParseDataTest extends TestCase
 
     public function testParsingDataDataRequiresReadableFileToExist(): void
     {
-        // Arrange: Create Unreadable Virtual File
+        // Arrange: Create unreadable virtual file
         $file = vfsStream::newFile('Invoice_1984.pdf');
         $file->chmod(0400)->chown(vfsStream::OWNER_ROOT);
 
         vfsStream::setup(structure: [$file]);
 
-        // Assert: Virtual File Is Not Readable
+        // Assert: Virtual file is not readable
         $this->assertFileIsNotReadable($file->url());
 
         $this->expectException(InvalidArgumentException::class);
@@ -96,67 +96,67 @@ final class ParseDataTest extends TestCase
 
     public function testParsingDataRequiresWritingDataToTemporaryFile(): void
     {
-        // Arrange: Writable Directory
+        // Arrange: Writable directory
         $directory = sys_get_temp_dir();
 
         $this->assertDirectoryExists($directory);
         $this->assertDirectoryIsWritable($directory);
 
-        // Assert: Failed to Create Temporary File
+        // Assert: Failed to create temporary file
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to create a file in "'.$directory.'".');
 
-        // Arrange: Mock Filesystem Library
+        // Arrange: Mock filesystem library
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects($this->once())->method('tempnam')->willThrowException(new IOException('Error'));
 
-        // Act: Parse Data With Expected Exception
+        // Act: Parse data with expected exception
         parse_data(__DIR__.'/data/pdf-small.pdf', directory: $directory, filesystem: $filesystem);
     }
 
     public function testParsingDataCanSetName(): void
     {
-        // Arrange: Name and Data
+        // Arrange: Name and data
         $name = 'Hello_World.txt';
 
         $data = vsprintf('data:text/plain;base64,%s', [
             base64_encode('Hello, PHP developer!'),
         ]);
 
-        // Act: Parse Data With Name
+        // Act: Parse data with name
         $file = parse_data($data, name: $name);
 
-        // Assert: File Name Equals Name
+        // Assert: File name equals name
         $this->assertEquals($name, $file->name);
-        $this->assertNotEquals($name, $file->basename);
+        $this->assertNotEquals($name, $file->base);
     }
 
     public function testParsingFileWithoutNameUsesFileName(): void
     {
-        // Arrange: Create Temp File
+        // Arrange: Create temp file
         $path = $this->createTempFile();
 
         assert(!empty($name = basename($path)));
         $this->assertStringEndsWith($name, $path);
 
-        // Act: Parse Data With Null Name
+        // Act: Parse data with null name
         $file = parse_data($path, name: null, cleanup: true);
 
-        // Assert: Both File Names Are Equal
+        // Assert: Both file names are equal
         $this->assertEquals($name, $file->name);
-        $this->assertNotEquals($file->name, $file->basename);
+        $this->assertNotEquals($file->name, $file->base);
     }
 
     public function testParsingFileDataCanDeleteFile(): void
     {
-        // Arrange: Create Temp File
+        // Arrange: Create temp file
         $path = $this->createTempFile();
         $this->assertFileExists($path);
 
-        // Act: Parse Data and Delete File
+        // Act: Parse data and delete file
         $file = parse_data($path, cleanup: true);
 
-        // Assert: Original File Is Deleted
+        // Assert: Original file is deleted
         $this->assertFileExists($file->path);
         $this->assertFileDoesNotExist($path);
     }

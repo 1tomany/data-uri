@@ -22,6 +22,7 @@ use function is_file;
 use function is_readable;
 use function is_string;
 use function is_writable;
+use function mime_content_type;
 use function parse_url;
 use function pathinfo;
 use function random_bytes;
@@ -43,8 +44,8 @@ function parse_data(
     bool $cleanup = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
-    if (!is_string($data)) {
-        throw new InvalidArgumentException('The data must be a non-NULL string.');
+    if (!is_string($data) && !$data instanceof \Stringable) {
+        throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
     }
 
     if (empty($data = trim($data))) {
@@ -150,7 +151,7 @@ function parse_data(
         }
     }
 
-    return new SmartFile($hash, $path, $name ?: null, null, $type, true, true);
+    return new SmartFile($hash, $path, $name ?: null, $type, null, true, true);
 }
 
 function parse_base64_data(
