@@ -18,6 +18,7 @@ use function max;
 use function pathinfo;
 use function random_bytes;
 use function random_int;
+use function rtrim;
 use function sprintf;
 use function strtolower;
 use function substr;
@@ -79,10 +80,10 @@ final readonly class SmartFile implements \Stringable
             throw new InvalidArgumentException(sprintf('The path "%s" is not a file.', $this->path));
         }
 
-        // Resolve the Extension If Present
+        // Resolve the extension if present
         $this->ext = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
 
-        // Resolve the File Size
+        // Resolve the file size
         if ($checkPath && null === $size) {
             $size = @filesize($this->path);
         }
@@ -95,8 +96,8 @@ final readonly class SmartFile implements \Stringable
 
         $this->type = strtolower($type);
 
-        // Generate the Remote Key
-        $key = \rtrim($this->hash . '.' . $this->ext, '.');
+        // Generate the remote key
+        $key = rtrim($this->hash.'.'.$this->ext, '.');
 
         if ($prefix = substr($this->hash, 2, 2)) {
             $key = implode('/', [$prefix, $key]);
@@ -123,10 +124,10 @@ final readonly class SmartFile implements \Stringable
 
     public static function createMock(string $path, string $type): self
     {
-        // Generate Random Size [1KB, 4MB]
+        // Generate random size [1KB, 4MB]
         $size = random_int(1_024, 4_194_304);
 
-        // Generate Random Hash Based on Size
+        // Generate random hash based on size
         $hash = hash('sha256', random_bytes($size));
 
         return new self($hash, $path, null, $type, $size, false, false);
