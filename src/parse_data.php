@@ -22,6 +22,7 @@ use function is_file;
 use function is_readable;
 use function is_string;
 use function is_writable;
+use function mime_content_type;
 use function parse_url;
 use function pathinfo;
 use function random_bytes;
@@ -135,7 +136,7 @@ function parse_data(
         }
 
         // Resolve and Validate the Content Type
-        $type = \mime_content_type($path) ?: null;
+        $type = mime_content_type($path) ?: null;
 
         if (!$type || !str_contains($type, '/')) {
             throw new RuntimeException(sprintf('The type "%s" is invalid.', $type));
