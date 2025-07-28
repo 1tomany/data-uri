@@ -32,7 +32,7 @@ final readonly class SmartFile implements \Stringable
     public string $path;
     public string $name;
     public string $base;
-    public ?string $extension;
+    public ?string $ext;
     public string $type;
     public int $size;
     public string $key;
@@ -80,7 +80,7 @@ final readonly class SmartFile implements \Stringable
         }
 
         // Resolve the Extension If Present
-        $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+        $this->ext = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
 
         // Resolve the File Size
         if ($checkPath && null === $size) {
@@ -96,9 +96,7 @@ final readonly class SmartFile implements \Stringable
         $this->type = strtolower($type);
 
         // Generate the Remote Key
-        $key = implode('.', array_filter([
-            $this->hash, $this->extension,
-        ]));
+        $key = \rtrim($this->hash . '.' . $this->ext, '.');
 
         if ($prefix = substr($this->hash, 2, 2)) {
             $key = implode('/', [$prefix, $key]);
