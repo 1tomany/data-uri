@@ -43,8 +43,8 @@ function parse_data(
     bool $cleanup = false,
     ?Filesystem $filesystem = null,
 ): SmartFile {
-    if (!is_string($data)) {
-        throw new InvalidArgumentException('The data must be a non-NULL string.');
+    if (!is_string($data) && !$data instanceof \Stringable) {
+        throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
     }
 
     if (empty($data = trim($data))) {
@@ -135,7 +135,7 @@ function parse_data(
         }
 
         // Resolve and Validate the Content Type
-        $type = mime_content_type($path) ?: null;
+        $type = \mime_content_type($path) ?: null;
 
         if (!$type || !str_contains($type, '/')) {
             throw new RuntimeException(sprintf('The type "%s" is invalid.', $type));

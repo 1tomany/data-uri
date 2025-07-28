@@ -26,10 +26,10 @@ final class ParseDataTest extends TestCase
 {
     use TestFileTrait;
 
-    public function testParsingDataRequiresNonNullStringData(): void
+    public function testParsingDataRequiresStringableData(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The data must be a non-NULL string.');
+        $this->expectExceptionMessage('The data must be a non-NULL string or implement the "\Stringable" interface.');
 
         parse_data(null);
     }
