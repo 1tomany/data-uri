@@ -30,6 +30,7 @@ use function sprintf;
 use function str_contains;
 use function str_ends_with;
 use function stream_get_contents;
+use function stripos;
 use function strtolower;
 use function trim;
 use function unlink;
@@ -74,9 +75,12 @@ function parse_data(
         // Resolve the File Name
         $name = trim($name ?? '');
 
-        if (empty($name) && is_file($data)) {
-            // Resolve the Name From URLs or Paths
-            $name = parse_url($data)['path'] ?? '';
+        if (empty($name)) {
+            if (is_file($data)) {
+                $name = $data;
+            } elseif (0 === stripos($data, 'http')) {
+                $name = parse_url($data)['path'] ?? '';
+            }
         }
 
         // Remove Path Prefix
