@@ -9,7 +9,7 @@ use function sys_get_temp_dir;
 
 trait TestFileTrait
 {
-    private ?Filesystem $fs = null;
+    private ?Filesystem $filesystem = null;
 
     private function createTempFile(string $suffix = '.txt', ?string $contents = null): string
     {
@@ -26,18 +26,14 @@ trait TestFileTrait
     {
         $files = glob(sys_get_temp_dir().'/'.$this->getTempFilePrefix());
 
-        if (!$files) {
-            $files = [];
-        }
-
-        $this->getFilesystem()->remove($files);
+        $this->getFilesystem()->remove($files ?: []);
     }
 
     private function getFilesystem(): Filesystem
     {
-        $this->fs ??= new Filesystem();
+        $this->filesystem ??= new Filesystem();
 
-        return $this->fs;
+        return $this->filesystem;
     }
 
     private function getTempFilePrefix(): string
