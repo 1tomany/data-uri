@@ -60,4 +60,9 @@ enum FileType
             self::Text,
         ]);
     }
+
+    public function isBinary(): bool
+    {
+        return self::Binary === $this;
+    }
 }
