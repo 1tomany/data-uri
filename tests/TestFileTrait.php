@@ -3,8 +3,10 @@
 namespace OneToMany\DataUri\Tests;
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function glob;
+use function sprintf;
 use function sys_get_temp_dir;
 
 trait TestFileTrait
@@ -24,7 +26,7 @@ trait TestFileTrait
 
     private function cleanupTempFiles(): void
     {
-        $this->getFilesystem()->remove(glob(sys_get_temp_dir().'/'.$this->getTempFilePrefix()) ?: []);
+        $this->getFilesystem()->remove(glob(sprintf('%s*', Path::join(sys_get_temp_dir(), $this->getTempFilePrefix()))) ?: []);
     }
 
     private function getFilesystem(): Filesystem
