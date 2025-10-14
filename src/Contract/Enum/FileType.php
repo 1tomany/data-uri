@@ -164,7 +164,4 @@ enum FileType
     {
         return in_array($this, [self::Tiff, self::Tif]);
     }
-
-
-
 }
