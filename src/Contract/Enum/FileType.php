@@ -22,6 +22,7 @@ enum FileType
     // Images
     case Bmp;
     case Gif;
+    case Heic;
     case Jpeg;
     case Jpg;
     case Png;
@@ -48,6 +49,7 @@ enum FileType
             'doc' => self::Doc,
             'docx' => self::Docx,
             'gif' => self::Gif,
+            'heic' => self::Heic,
             'html' => self::Html,
             'jpg' => self::Jpeg,
             'jpeg' => self::Jpeg,
@@ -81,13 +83,14 @@ enum FileType
     }
 
     /**
-     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Jpg|self::Jpeg|self::Png|self::Tif|self::Tiff $this
+     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Jpg|self::Jpeg|self::Png|self::Tif|self::Tiff $this
      */
     public function isImage(): bool
     {
         return in_array($this, [
             self::Bmp,
             self::Gif,
+            self::Heic,
             self::Jpeg,
             self::Jpg,
             self::Png,
@@ -150,6 +153,14 @@ enum FileType
     public function isGif(): bool
     {
         return self::Gif === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Heic $this
+     */
+    public function isHeic(): bool
+    {
+        return self::Heic === $this;
     }
 
     /**
