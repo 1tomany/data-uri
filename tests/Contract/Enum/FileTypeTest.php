@@ -12,6 +12,41 @@ use PHPUnit\Framework\TestCase;
 #[Group('EnumTests')]
 final class FileTypeTest extends TestCase
 {
+    #[DataProvider('providerExtensionAndFileType')]
+    public function testFromExtension(?string $extension, FileType $fileType): void
+    {
+        $this->assertSame(FileType::fromExtension($extension), $fileType);
+    }
+
+    public static function providerExtensionAndFileType(): array
+    {
+        $provider = [
+            [null, FileType::Other],
+            ['', FileType::Other],
+            [' ', FileType::Other],
+            ['bin', FileType::Binary],
+            ['.bin', FileType::Binary],
+            ['BIN', FileType::Binary],
+            ['bmp', FileType::Bmp],
+            ['css', FileType::Css],
+            ['csv', FileType::Csv],
+            ['doc', FileType::Doc],
+            ['docx', FileType::Docx],
+            ['gif', FileType::Gif],
+            ['html', FileType::Html],
+            ['jpg', FileType::Jpeg],
+            ['jpeg', FileType::Jpeg],
+            ['pdf', FileType::Pdf],
+            ['png', FileType::Png],
+            ['text', FileType::Text],
+            ['tif', FileType::Tiff],
+            ['tiff', FileType::Tiff],
+            ['txt', FileType::Text],
+        ];
+
+        return $provider;
+    }
+
     #[DataProvider('providerFileTypeAndIsDocument')]
     public function testIsDocument(FileType $fileType, bool $isDocument): void
     {
