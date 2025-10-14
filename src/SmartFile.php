@@ -162,7 +162,11 @@ final readonly class SmartFile implements \Stringable
 
     public function toBase64(): string
     {
-        return base64_encode($this->read());
+        try {
+            return base64_encode($this->read());
+        } catch (RuntimeException $e) {
+            throw new RuntimeException(sprintf('Failed to encode the file "%s".', $this->path), previous: $e);
+        }
     }
 
     public function toDataUri(): string
@@ -170,7 +174,7 @@ final readonly class SmartFile implements \Stringable
         try {
             return sprintf('data:%s;base64,%s', $this->type, $this->toBase64());
         } catch (RuntimeException $e) {
-            throw new RuntimeException(sprintf('Failed to encode the file "%s".', $this->path), previous: $e);
+            throw new RuntimeException(sprintf('Failed to generate a data URI representation of the file "%s".', $this->path), previous: $e);
         }
     }
 }
