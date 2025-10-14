@@ -11,7 +11,6 @@ use Symfony\Component\Filesystem\Path;
 
 use function base64_encode;
 use function basename;
-use function file_get_contents;
 use function OneToMany\DataUri\parse_data;
 use function unlink;
 
