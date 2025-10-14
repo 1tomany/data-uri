@@ -12,14 +12,35 @@ trait TestFileTrait
 
     private function createTempFile(string $suffix = '.txt', ?string $contents = null): string
     {
-        $this->fs ??= new Filesystem();
-
-        $path = $this->fs->tempnam(sys_get_temp_dir(), '__1n__test_', $suffix);
+        $path = $this->getFilesystem()->tempnam(sys_get_temp_dir(), $this->getTempFilePrefix(), $suffix);
 
         if (null !== $contents) {
-            $this->fs->dumpFile($path, $contents);
+            $this->getFilesystem()->dumpFile($path, $contents);
         }
 
         return $path;
+    }
+
+    private function cleanupTempFiles(): void
+    {
+        $files = \glob(sys_get_temp_dir().'/'.$this->getTempFilePrefix());
+
+        if (!$files) {
+            $files = [];
+        }
+
+        $this->getFilesystem()->remove($files);
+    }
+
+    private function getFilesystem(): Filesystem
+    {
+        $this->fs ??= new Filesystem();
+
+        return $this->fs;
+    }
+
+    private function getTempFilePrefix(): string
+    {
+        return '__1n__test_';
     }
 }
