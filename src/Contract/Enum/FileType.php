@@ -30,8 +30,9 @@ enum FileType
 
     // Other
     case Binary;
+    case Other;
 
-    public static function fromExtension(?string $extension): ?self
+    public static function fromExtension(?string $extension): self
     {
         // Clean up the extension by removing
         // any leading periods and whitespace
@@ -56,7 +57,7 @@ enum FileType
             'tif' => self::Tiff,
             'tiff' => self::Tiff,
             'txt' => self::Text,
-            default => null,
+            default => self::Other,
         };
 
         return $fileType;
@@ -165,6 +166,14 @@ enum FileType
     public function isJpeg(): bool
     {
         return in_array($this, [self::Jpeg, self::Jpg]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Other $this
+     */
+    public function isOther(): bool
+    {
+        return self::Other === $this;
     }
 
     /**
