@@ -20,6 +20,7 @@ use function implode;
 use function is_dir;
 use function is_file;
 use function is_readable;
+use function is_resource;
 use function is_string;
 use function is_writable;
 use function mime_content_type;
