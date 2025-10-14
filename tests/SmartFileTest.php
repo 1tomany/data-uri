@@ -205,8 +205,13 @@ final class SmartFileTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to encode the file "'.$path.'".');
 
-        // Act: Construct SmartFile and attempt to generate the data uri
+        // Act: Construct SmartFile and attempt to encode it as base64
         new SmartFile('hash', $path, null, 'text/plain', null, false, true)->toBase64();
+    }
+
+    public function testToBase64(): void
+    {
+
     }
 
     public function testToDataUriRequiresFileToExist(): void
@@ -218,7 +223,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to generate a data URI representation of the file "'.$path.'".');
 
-        // Act: Construct SmartFile and attempt to generate the data uri
+        // Act: Construct SmartFile and attempt to generate the data URI representation
         new SmartFile('hash', $path, null, 'text/plain', null, false, true)->toDataUri();
     }
 
