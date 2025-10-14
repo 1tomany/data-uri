@@ -162,13 +162,13 @@ final class ParseDataTest extends TestCase
     }
 
     #[DataProvider('providerDataAndMetadata')]
-    public function testParsingData(string $data, int $size, string $type): void
+    public function testParsingData(string $data, string $mimeType, int $size): void
     {
         $file = parse_data($data);
 
         $this->assertFileExists($file->path);
+        $this->assertEquals($mimeType, $file->mimeType);
         $this->assertEquals($size, $file->size);
-        $this->assertEquals($type, $file->mimeType);
     }
 
     /**
@@ -177,31 +177,31 @@ final class ParseDataTest extends TestCase
     public static function providerDataAndMetadata(): array
     {
         $provider = [
-            ['data:,Test', 4, 'text/plain'],
-            ['data:text/plain,Test', 4, 'text/plain'],
-            ['data:text/plain;charset=US-ASCII,Hello%20world', 11, 'text/plain'],
-            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
-            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
-            ['data:application/json,%7B%22id%22%3A10%7D', 9, 'application/json'],
-            ['data:application/json;base64,eyJpZCI6MTB9', 9, 'application/json'],
+            ['data:,Test', 'text/plain', 4],
+            ['data:text/plain,Test', 'text/plain', 4],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 11],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13],
+            ['data:application/json,%7B%22id%22%3A10%7D', 'application/json', 9],
+            ['data:application/json;base64,eyJpZCI6MTB9', 'application/json', 9],
 
             // 1x1 Transparent GIF
-            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
+            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'image/gif', 43],
 
             // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
-            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 67, 'application/pdf'],
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 67],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerFileAndMetadata')]
-    public function testParsingFile(string $data, int $size, string $type): void
+    public function testParsingFile(string $data, string $mimeType, int $size): void
     {
         $file = parse_data($data);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($type, $file->mimeType);
+        $this->assertEquals($mimeType, $file->mimeType);
         $this->assertEquals($size, $file->size);
     }
 
@@ -211,21 +211,21 @@ final class ParseDataTest extends TestCase
     public static function providerFileAndMetadata(): array
     {
         return [
-            [__DIR__.'/data/pdf-small.pdf', 36916, 'application/pdf'],
-            [__DIR__.'/data/png-small.png', 10289, 'image/png'],
-            [__DIR__.'/data/text-small.txt', 86, 'text/plain'],
-            [__DIR__.'/data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            [__DIR__.'/data/pdf-small.pdf', 'application/pdf', 36916],
+            [__DIR__.'/data/png-small.png', 'image/png', 10289],
+            [__DIR__.'/data/text-small.txt', 'text/plain', 86],
+            [__DIR__.'/data/word-small.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 6657],
         ];
     }
 
     #[DataProvider('providerBase64DataAndMetadata')]
-    public function testParsingBase64Data(string $data, int $size, string $type): void
+    public function testParsingBase64Data(string $data, string $mimeType, int $size): void
     {
-        $file = parse_base64_data($data, $type);
+        $file = parse_base64_data($data, $mimeType);
 
         $this->assertFileExists($file->path);
+        $this->assertEquals($mimeType, $file->mimeType);
         $this->assertEquals($size, $file->size);
-        $this->assertEquals($type, $file->mimeType);
     }
 
     /**
@@ -234,10 +234,10 @@ final class ParseDataTest extends TestCase
     public static function providerBase64DataAndMetadata(): array
     {
         $provider = [
-            ['eyJpZCI6MTB9', 9, 'application/json'],
-            ['SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
-            ['R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
-            ['iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 68, 'image/png'],
+            ['eyJpZCI6MTB9', 'application/json', 9],
+            ['SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13],
+            ['R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'image/gif', 43],
+            ['iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 'image/png', 68],
         ];
 
         return $provider;
