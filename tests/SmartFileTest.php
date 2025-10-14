@@ -9,13 +9,21 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Path;
 
+use function base64_encode;
 use function basename;
+use function file_get_contents;
+use function OneToMany\DataUri\parse_data;
 use function unlink;
 
 #[Group('UnitTests')]
 final class SmartFileTest extends TestCase
 {
     use TestFileTrait;
+
+    protected function tearDown(): void
+    {
+        $this->cleanupTempFiles();
+    }
 
     public function testConstructorRequiresNonEmptyHash(): void
     {
@@ -196,7 +204,7 @@ final class SmartFileTest extends TestCase
         $this->assertEmpty($file->read());
     }
 
-    public function testToDataUriRequiresFileToExist(): void
+    public function testToBase64RequiresFileToExist(): void
     {
         // Arrange: Create invalid file path
         $path = '/invalid/path/to/file.txt';
@@ -205,7 +213,34 @@ final class SmartFileTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to encode the file "'.$path.'".');
 
-        // Act: Construct SmartFile and attempt to generate the data uri
+        // Act: Construct SmartFile and attempt to encode it as base64
+        new SmartFile('hash', $path, null, 'text/plain', null, false, true)->toBase64();
+    }
+
+    public function testToBase64(): void
+    {
+        $contents = 'Hello, world!';
+
+        // Arrange: Create non-empty temp file
+        $path = $this->createTempFile(contents: $contents);
+
+        // Arrange: Construct non-empty SmartFile
+        $file = parse_data($path, cleanup: true);
+
+        // Assert: Base64 encodings are identical
+        $this->assertSame(base64_encode($contents), $file->toBase64());
+    }
+
+    public function testToDataUriRequiresFileToExist(): void
+    {
+        // Arrange: Create invalid file path
+        $path = '/invalid/path/to/file.txt';
+        $this->assertFileDoesNotExist($path);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to generate a data URI representation of the file "'.$path.'".');
+
+        // Act: Construct SmartFile and attempt to generate the data URI representation
         new SmartFile('hash', $path, null, 'text/plain', null, false, true)->toDataUri();
     }
 

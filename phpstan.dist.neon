@@ -1,8 +1,8 @@
 parameters:
-    level: 10
+    level: max
     paths:
-        - ./examples
-        - ./src
-        - ./tests
+        - ./examples/
+        - ./src/
+        - ./tests/
 
     treatPhpDocTypesAsCertain: false
