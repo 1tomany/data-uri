@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri;
 
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 
@@ -29,45 +30,65 @@ use const PATHINFO_EXTENSION;
 
 final readonly class SmartFile implements \Stringable
 {
+    /**
+     * @var non-empty-string
+     */
     public string $hash;
+
+    /**
+     * @var non-empty-string
+     */
     public string $path;
     public string $name;
-    public string $base;
-    public ?string $ext;
-    public string $type;
+    public string $basename;
+    public ?string $extension;
+    public ?FileType $type;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $mimeType;
+
+    /**
+     * @var int<0, max>
+     */
     public int $size;
-    public string $key;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $remoteKey;
 
     public function __construct(
         string $hash,
         string $path,
         ?string $name,
-        string $type,
+        string $mimeType,
         ?int $size = null,
         bool $checkPath = true,
         public bool $delete = true,
     ) {
+        // Validate non-empty hash
         if (empty($hash = trim($hash))) {
             throw new InvalidArgumentException('The hash cannot be empty.');
         }
 
         $this->hash = $hash;
 
+        // Validate non-empty path
         if (empty($path = trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
 
         $this->path = $path;
 
-        if (empty($name = trim($name ?? ''))) {
-            $name = basename($this->path);
-        }
+        // Resolve the basename
+        $this->basename = basename($this->path);
 
-        $this->name = $name;
+        // Resolve the name
+        $this->name = trim($name ?? '') ?: $this->basename;
 
-        // Resolve the Basename
-        $this->base = basename($this->path);
-
+        // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
             throw new InvalidArgumentException(sprintf('The file "%s" does not exist.', $this->path));
         }
@@ -80,8 +101,11 @@ final readonly class SmartFile implements \Stringable
             throw new InvalidArgumentException(sprintf('The path "%s" is not a file.', $this->path));
         }
 
-        // Resolve the extension if present
-        $this->ext = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+        // Resolve the extension if possible
+        $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+
+        // Resolve the file type
+        $this->type = FileType::fromExtension($this->extension);
 
         // Resolve the file size
         if ($checkPath && null === $size) {
@@ -90,24 +114,28 @@ final readonly class SmartFile implements \Stringable
 
         $this->size = max(0, $size ?: 0);
 
-        if (empty($type = trim($type))) {
+        if (empty($mimeType = trim($mimeType))) {
             throw new InvalidArgumentException('The type cannot be empty.');
         }
 
-        $this->type = strtolower($type);
+        $this->mimeType = strtolower($mimeType);
 
         // Generate the remote key
-        $key = rtrim($this->hash.'.'.$this->ext, '.');
+        $remoteKey = rtrim($this->hash.'.'.$this->extension, '.');
 
         if ($prefix = substr($this->hash, 2, 2)) {
-            $key = implode('/', [$prefix, $key]);
+            $remoteKey = implode('/', [$prefix, $remoteKey]);
         }
 
         if ($prefix = substr($this->hash, 0, 2)) {
-            $key = implode('/', [$prefix, $key]);
+            $remoteKey = implode('/', [$prefix, $remoteKey]);
         }
 
-        $this->key = $key;
+        if (strlen($remoteKey) < 8) {
+            throw new RuntimeException(sprintf('The remote key "%s" is invalid because it is too short. To fix this, ensure the hash "%s" is four or more characters.', $remoteKey, $hash));
+        }
+
+        $this->remoteKey = $remoteKey;
     }
 
     public function __destruct()
@@ -172,7 +200,7 @@ final readonly class SmartFile implements \Stringable
     public function toDataUri(): string
     {
         try {
-            return sprintf('data:%s;base64,%s', $this->type, $this->toBase64());
+            return sprintf('data:%s;base64,%s', $this->mimeType, $this->toBase64());
         } catch (RuntimeException $e) {
             throw new RuntimeException(sprintf('Failed to generate a data URI representation of the file "%s".', $this->path), previous: $e);
         }

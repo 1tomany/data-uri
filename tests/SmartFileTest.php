@@ -74,7 +74,17 @@ final class SmartFileTest extends TestCase
         new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
-    public function testConstructorGeneratesKeyWithoutExtension(): void
+    public function testConstructorRequiresValidRemoteKeyLength(): void
+    {
+        $hash = 'h';
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The remote key "'.$hash.'/'.$hash.'" is invalid because it is too short. To fix this, ensure the hash "'.$hash.'" is four or more characters.');
+
+        new SmartFile($hash, 'path', 'file', 'text/plain', 0, false, true);
+    }
+
+    public function testConstructorGeneratesRemoteKeyWithoutExtension(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile('');
@@ -86,10 +96,10 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Key has no extension
-        $this->assertEmpty(Path::getExtension($file->key));
+        $this->assertEmpty(Path::getExtension($file->remoteKey));
     }
 
-    public function testConstructorGeneratesKeyWithExtension(): void
+    public function testConstructorGeneratesRemoteKeyWithExtension(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
@@ -101,7 +111,7 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Remote key generated with extension
-        $this->assertNotEmpty(Path::getExtension($file->key));
+        $this->assertNotEmpty(Path::getExtension($file->remoteKey));
     }
 
     public function testDestructorDeletesTemporaryFileWhenDeleteIsTrue(): void
