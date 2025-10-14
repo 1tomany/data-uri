@@ -78,6 +78,11 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
+    public function testFileTypeBinaryIsBinary(): void
+    {
+        $this->assertTrue(FileType::Binary->isBinary()); // @phpstan-ignore-line
+    }
+
     public function testFileTypeJpgIsJpeg(): void
     {
         $this->assertTrue(FileType::Jpg->isJpeg()); // @phpstan-ignore-line

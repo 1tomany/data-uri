@@ -3,6 +3,9 @@
 namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
+use function ltrim;
+use function strtolower;
+use function trim;
 
 enum FileType
 {
@@ -27,6 +30,36 @@ enum FileType
 
     // Other
     case Binary;
+
+    public static function fromExtension(?string $extension): self
+    {
+        // Clean up the extension by removing
+        // any leading periods and whitespace
+        $extension = trim($extension ?? '');
+        $extension = ltrim($extension, '.');
+        $extension = strtolower($extension);
+
+        $fileType = match ($extension) {
+            'bmp' => self::Bmp,
+            'css' => self::Css,
+            'csv' => self::Csv,
+            'doc' => self::Doc,
+            'docx' => self::Docx,
+            'gif' => self::Gif,
+            'html' => self::Html,
+            'jpg' => self::Jpeg,
+            'jpeg' => self::Jpeg,
+            'pdf' => self::Pdf,
+            'png' => self::Png,
+            'text' => self::Text,
+            'tif' => self::Tiff,
+            'tiff' => self::Tiff,
+            'txt' => self::Text,
+            default => self::Binary,
+        };
+
+        return $fileType;
+    }
 
     /**
      * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Pdf|self::Txt|self::Text $this
