@@ -61,6 +61,9 @@ enum FileType
         ]);
     }
 
+    /**
+     * @phpstan-assert-if-true self::Binary $this
+     */
     public function isBinary(): bool
     {
         return self::Binary === $this;
