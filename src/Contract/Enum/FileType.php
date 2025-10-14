@@ -44,6 +44,9 @@ enum FileType
         ]);
     }
 
+    /**
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Pdf|self::Txt|self::Text $this
+     */
     public function isDocument(): bool
     {
         return in_array($this, [
