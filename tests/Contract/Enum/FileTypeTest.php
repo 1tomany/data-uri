@@ -18,6 +18,9 @@ final class FileTypeTest extends TestCase
         $this->assertSame(FileType::fromExtension($extension), $fileType);
     }
 
+    /**
+     * @return list<list<bool|string|FileType|null>>
+     */
     public static function providerExtensionAndFileType(): array
     {
         $provider = [
