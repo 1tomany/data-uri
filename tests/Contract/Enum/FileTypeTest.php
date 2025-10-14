@@ -18,6 +18,12 @@ final class FileTypeTest extends TestCase
         $this->assertSame($fileType->isDocument(), $isDocument);
     }
 
+    #[DataProvider('providerFileTypeAndIsImage')]
+    public function testIsImage(FileType $fileType, bool $isImage): void
+    {
+        $this->assertSame($fileType->isImage(), $isImage);
+    }
+
     /**
      * @return list<list<bool|FileType>>
      */
@@ -40,6 +46,33 @@ final class FileTypeTest extends TestCase
             [FileType::Txt, true],
             [FileType::Tif, false],
             [FileType::Tiff, false],
+        ];
+
+        return $provider;
+    }
+
+    /**
+     * @return list<list<bool|FileType>>
+     */
+    public static function providerFileTypeAndIsImage(): array
+    {
+        $provider = [
+            [FileType::Binary, false],
+            [FileType::Bmp, true],
+            [FileType::Css, false],
+            [FileType::Csv, false],
+            [FileType::Doc, false],
+            [FileType::Docx, false],
+            [FileType::Gif, true],
+            [FileType::Html, false],
+            [FileType::Jpeg, true],
+            [FileType::Jpg, true],
+            [FileType::Pdf, false],
+            [FileType::Png, true],
+            [FileType::Text, false],
+            [FileType::Txt, false],
+            [FileType::Tif, true],
+            [FileType::Tiff, true],
         ];
 
         return $provider;
