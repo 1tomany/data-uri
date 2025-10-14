@@ -13,14 +13,14 @@ enum FileType
     case Docx;
     case Html;
     case Pdf;
-    case Txt;
     case Text;
+    case Txt;
 
     // Images
     case Bmp;
     case Gif;
-    case Jpg;
     case Jpeg;
+    case Jpg;
     case Png;
     case Tif;
     case Tiff;
@@ -43,6 +43,38 @@ enum FileType
             self::Txt,
             self::Text,
         ]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Jpg|self::Jpeg|self::Png|self::Tif|self::Tiff $this
+     */
+    public function isImage(): bool
+    {
+        return in_array($this, [
+            self::Bmp,
+            self::Gif,
+            self::Jpeg,
+            self::Jpg,
+            self::Png,
+            self::Tif,
+            self::Tiff,
+        ]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Binary $this
+     */
+    public function isBinary(): bool
+    {
+        return self::Binary === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Bmp $this
+     */
+    public function isBmp(): bool
+    {
+        return self::Bmp === $this;
     }
 
     /**
@@ -78,6 +110,14 @@ enum FileType
     }
 
     /**
+     * @phpstan-assert-if-true self::Gif $this
+     */
+    public function isGif(): bool
+    {
+        return self::Gif === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Html $this
      */
     public function isHtml(): bool
@@ -86,26 +126,45 @@ enum FileType
     }
 
     /**
-     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Jpg|self::Jpeg|self::Png|self::Tif|self::Tiff $this
+     * @phpstan-assert-if-true self::Jpeg|self::Jpg $this
      */
-    public function isImage(): bool
+    public function isJpeg(): bool
     {
-        return in_array($this, [
-            self::Bmp,
-            self::Gif,
-            self::Jpg,
-            self::Jpeg,
-            self::Png,
-            self::Tif,
-            self::Tiff,
-        ]);
+        return in_array($this, [self::Jpeg, self::Jpg]);
     }
 
     /**
-     * @phpstan-assert-if-true self::Binary $this
+     * @phpstan-assert-if-true self::Pdf $this
      */
-    public function isBinary(): bool
+    public function isPdf(): bool
     {
-        return self::Binary === $this;
+        return self::Pdf === $this;
     }
+
+    /**
+     * @phpstan-assert-if-true self::Png $this
+     */
+    public function isPng(): bool
+    {
+        return self::Png === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Text|self::Txt $this
+     */
+    public function isText(): bool
+    {
+        return in_array($this, [self::Text, self::Txt]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Tiff|self::Tif $this
+     */
+    public function isTiff(): bool
+    {
+        return in_array($this, [self::Tiff, self::Tif]);
+    }
+
+
+
 }
