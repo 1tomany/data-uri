@@ -34,7 +34,7 @@ final readonly class SmartFile implements \Stringable
     public string $name;
     public string $basename;
     public ?string $extension;
-    public string $type;
+    public string $mimeType;
     public int $size;
     public string $key;
 
@@ -42,7 +42,7 @@ final readonly class SmartFile implements \Stringable
         string $hash,
         string $path,
         ?string $name,
-        string $type,
+        string $mimeType,
         ?int $size = null,
         bool $checkPath = true,
         public bool $delete = true,
@@ -59,15 +59,13 @@ final readonly class SmartFile implements \Stringable
 
         $this->path = $path;
 
-        if (empty($name = trim($name ?? ''))) {
-            $name = basename($this->path);
-        }
-
-        $this->name = $name;
-
-        // Resolve the Basename
+        // Resolve the basename
         $this->basename = basename($this->path);
 
+        // Resolve the name
+        $this->name = trim($name ?? '') ?: $this->basename;
+
+        // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
             throw new InvalidArgumentException(sprintf('The file "%s" does not exist.', $this->path));
         }
@@ -90,11 +88,11 @@ final readonly class SmartFile implements \Stringable
 
         $this->size = max(0, $size ?: 0);
 
-        if (empty($type = trim($type))) {
+        if (empty($mimeType = trim($mimeType))) {
             throw new InvalidArgumentException('The type cannot be empty.');
         }
 
-        $this->type = strtolower($type);
+        $this->mimeType = strtolower($mimeType);
 
         // Generate the remote key
         $key = rtrim($this->hash.'.'.$this->extension, '.');
@@ -172,7 +170,7 @@ final readonly class SmartFile implements \Stringable
     public function toDataUri(): string
     {
         try {
-            return sprintf('data:%s;base64,%s', $this->type, $this->toBase64());
+            return sprintf('data:%s;base64,%s', $this->mimeType, $this->toBase64());
         } catch (RuntimeException $e) {
             throw new RuntimeException(sprintf('Failed to generate a data URI representation of the file "%s".', $this->path), previous: $e);
         }

@@ -168,7 +168,7 @@ final class ParseDataTest extends TestCase
 
         $this->assertFileExists($file->path);
         $this->assertEquals($size, $file->size);
-        $this->assertEquals($type, $file->type);
+        $this->assertEquals($type, $file->mimeType);
     }
 
     /**
@@ -201,7 +201,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data($data);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($type, $file->type);
+        $this->assertEquals($type, $file->mimeType);
         $this->assertEquals($size, $file->size);
     }
 
@@ -225,7 +225,7 @@ final class ParseDataTest extends TestCase
 
         $this->assertFileExists($file->path);
         $this->assertEquals($size, $file->size);
-        $this->assertEquals($type, $file->type);
+        $this->assertEquals($type, $file->mimeType);
     }
 
     /**
