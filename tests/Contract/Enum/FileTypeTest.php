@@ -78,11 +78,15 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
+    public function testFileTypeJpgIsJpeg(): void
+    {
+        $this->assertTrue(FileType::Jpg->isJpeg()); // @phpstan-ignore-line
+    }
+
     public function testFileTypeTxtIsText(): void
     {
         $this->assertTrue(FileType::Txt->isText()); // @phpstan-ignore-line
     }
-
 
     public function testFileTypeTifIsTiff(): void
     {
