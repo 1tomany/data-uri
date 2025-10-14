@@ -212,8 +212,6 @@ final class SmartFileTest extends TestCase
     public function testToBase64(): void
     {
         $path = $this->createTempFile(contents: 'Hello, world!');
-
-
     }
 
     public function testToDataUriRequiresFileToExist(): void
