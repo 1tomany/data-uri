@@ -24,9 +24,7 @@ trait TestFileTrait
 
     private function cleanupTempFiles(): void
     {
-        $files = glob(sys_get_temp_dir().'/'.$this->getTempFilePrefix());
-
-        $this->getFilesystem()->remove($files ?: []);
+        $this->getFilesystem()->remove(glob(sys_get_temp_dir().'/'.$this->getTempFilePrefix()) ?: []);
     }
 
     private function getFilesystem(): Filesystem
