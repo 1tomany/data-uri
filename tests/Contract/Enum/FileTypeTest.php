@@ -82,4 +82,10 @@ final class FileTypeTest extends TestCase
     {
         $this->assertTrue(FileType::Txt->isText()); // @phpstan-ignore-line
     }
+
+
+    public function testFileTypeTifIsTiff(): void
+    {
+        $this->assertTrue(FileType::Tif->isTiff()); // @phpstan-ignore-line
+    }
 }
