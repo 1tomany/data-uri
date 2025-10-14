@@ -160,10 +160,15 @@ final readonly class SmartFile implements \Stringable
         return $contents;
     }
 
+    public function toBase64(): string
+    {
+        return base64_encode($this->read());
+    }
+
     public function toDataUri(): string
     {
         try {
-            return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->read()));
+            return sprintf('data:%s;base64,%s', $this->type, $this->toBase64());
         } catch (RuntimeException $e) {
             throw new RuntimeException(sprintf('Failed to encode the file "%s".', $this->path), previous: $e);
         }
