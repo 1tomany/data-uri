@@ -42,7 +42,7 @@ final readonly class SmartFile implements \Stringable
     public string $name;
     public string $basename;
     public ?string $extension;
-    public ?FileType $type;
+    public FileType $type;
 
     /**
      * @var non-empty-string
