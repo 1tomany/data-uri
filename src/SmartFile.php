@@ -127,7 +127,7 @@ final readonly class SmartFile implements \Stringable
         }
 
         if (strlen($remoteKey) < 8) {
-            throw new RuntimeException(sprintf('The remote key "%s" is invalid because it is too short.', $remoteKey));
+            throw new RuntimeException(sprintf('The remote key "%s" is invalid because it is too short. To fix this, ensure the hash "%s" is four or more characters.', $remoteKey, $hash));
         }
 
         $this->remoteKey = $remoteKey;
