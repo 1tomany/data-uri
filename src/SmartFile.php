@@ -29,14 +29,33 @@ use const PATHINFO_EXTENSION;
 
 final readonly class SmartFile implements \Stringable
 {
+    /**
+     * @var non-empty-string
+     */
     public string $hash;
+
+    /**
+     * @var non-empty-string
+     */
     public string $path;
     public string $name;
     public string $basename;
     public ?string $extension;
+
+    /**
+     * @var non-empty-string
+     */
     public string $mimeType;
+
+    /**
+     * @var int<0, max>
+     */
     public int $size;
-    public string $key;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $remoteKey;
 
     public function __construct(
         string $hash,
@@ -47,12 +66,14 @@ final readonly class SmartFile implements \Stringable
         bool $checkPath = true,
         public bool $delete = true,
     ) {
+        // Validate non-empty hash
         if (empty($hash = trim($hash))) {
             throw new InvalidArgumentException('The hash cannot be empty.');
         }
 
         $this->hash = $hash;
 
+        // Validate non-empty path
         if (empty($path = trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
@@ -78,7 +99,7 @@ final readonly class SmartFile implements \Stringable
             throw new InvalidArgumentException(sprintf('The path "%s" is not a file.', $this->path));
         }
 
-        // Resolve the extension if present
+        // Resolve the extension if possible
         $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
 
         // Resolve the file size
@@ -95,17 +116,21 @@ final readonly class SmartFile implements \Stringable
         $this->mimeType = strtolower($mimeType);
 
         // Generate the remote key
-        $key = rtrim($this->hash.'.'.$this->extension, '.');
+        $remoteKey = rtrim($this->hash.'.'.$this->extension, '.');
 
         if ($prefix = substr($this->hash, 2, 2)) {
-            $key = implode('/', [$prefix, $key]);
+            $remoteKey = implode('/', [$prefix, $remoteKey]);
         }
 
         if ($prefix = substr($this->hash, 0, 2)) {
-            $key = implode('/', [$prefix, $key]);
+            $remoteKey = implode('/', [$prefix, $remoteKey]);
         }
 
-        $this->key = $key;
+        if (strlen($remoteKey) < 8) {
+            throw new RuntimeException(sprintf('The remote key "%s" is invalid because it is too short.', $remoteKey));
+        }
+
+        $this->remoteKey = $remoteKey;
     }
 
     public function __destruct()

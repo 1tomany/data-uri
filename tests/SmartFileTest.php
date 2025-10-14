@@ -86,7 +86,7 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Key has no extension
-        $this->assertEmpty(Path::getExtension($file->key));
+        $this->assertEmpty(Path::getExtension($file->remoteKey));
     }
 
     public function testConstructorGeneratesKeyWithExtension(): void
@@ -101,7 +101,7 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Remote key generated with extension
-        $this->assertNotEmpty(Path::getExtension($file->key));
+        $this->assertNotEmpty(Path::getExtension($file->remoteKey));
     }
 
     public function testDestructorDeletesTemporaryFileWhenDeleteIsTrue(): void
