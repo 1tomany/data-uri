@@ -32,8 +32,8 @@ final readonly class SmartFile implements \Stringable
     public string $hash;
     public string $path;
     public string $name;
-    public string $base;
-    public ?string $ext;
+    public string $basename;
+    public ?string $extension;
     public string $type;
     public int $size;
     public string $key;
@@ -66,7 +66,7 @@ final readonly class SmartFile implements \Stringable
         $this->name = $name;
 
         // Resolve the Basename
-        $this->base = basename($this->path);
+        $this->basename = basename($this->path);
 
         if ($checkPath && !file_exists($this->path)) {
             throw new InvalidArgumentException(sprintf('The file "%s" does not exist.', $this->path));
@@ -81,7 +81,7 @@ final readonly class SmartFile implements \Stringable
         }
 
         // Resolve the extension if present
-        $this->ext = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+        $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
 
         // Resolve the file size
         if ($checkPath && null === $size) {
@@ -97,7 +97,7 @@ final readonly class SmartFile implements \Stringable
         $this->type = strtolower($type);
 
         // Generate the remote key
-        $key = rtrim($this->hash.'.'.$this->ext, '.');
+        $key = rtrim($this->hash.'.'.$this->extension, '.');
 
         if ($prefix = substr($this->hash, 2, 2)) {
             $key = implode('/', [$prefix, $key]);
