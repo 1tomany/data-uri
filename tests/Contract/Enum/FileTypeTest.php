@@ -38,6 +38,7 @@ final class FileTypeTest extends TestCase
             ['doc', FileType::Doc],
             ['docx', FileType::Docx],
             ['gif', FileType::Gif],
+            ['heic', FileType::Heic],
             ['html', FileType::Html],
             ['jpg', FileType::Jpeg],
             ['jpeg', FileType::Jpeg],
