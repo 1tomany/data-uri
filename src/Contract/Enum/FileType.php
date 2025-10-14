@@ -31,7 +31,7 @@ enum FileType
     // Other
     case Binary;
 
-    public static function fromExtension(?string $extension): self
+    public static function fromExtension(?string $extension): ?self
     {
         // Clean up the extension by removing
         // any leading periods and whitespace
@@ -40,6 +40,7 @@ enum FileType
         $extension = strtolower($extension);
 
         $fileType = match ($extension) {
+            'bin' => self::Binary,
             'bmp' => self::Bmp,
             'css' => self::Css,
             'csv' => self::Csv,
@@ -55,7 +56,7 @@ enum FileType
             'tif' => self::Tiff,
             'tiff' => self::Tiff,
             'txt' => self::Text,
-            default => self::Binary,
+            default => null,
         };
 
         return $fileType;

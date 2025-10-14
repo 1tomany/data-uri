@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri;
 
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 
@@ -41,6 +42,7 @@ final readonly class SmartFile implements \Stringable
     public string $name;
     public string $basename;
     public ?string $extension;
+    public ?FileType $type;
 
     /**
      * @var non-empty-string
@@ -101,6 +103,9 @@ final readonly class SmartFile implements \Stringable
 
         // Resolve the extension if possible
         $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+
+        // Resolve the file type
+        $this->type = FileType::fromExtension($this->extension);
 
         // Resolve the file size
         if ($checkPath && null === $size) {
