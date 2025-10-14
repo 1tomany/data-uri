@@ -9,7 +9,10 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Path;
 
+use function base64_encode;
 use function basename;
+use function file_get_contents;
+use function OneToMany\DataUri\parse_data;
 use function unlink;
 
 #[Group('UnitTests')]
@@ -19,8 +22,6 @@ final class SmartFileTest extends TestCase
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-
         $this->cleanupTempFiles();
     }
 
@@ -218,7 +219,16 @@ final class SmartFileTest extends TestCase
 
     public function testToBase64(): void
     {
-        $path = $this->createTempFile(contents: 'Hello, world!');
+        $contents = 'Hello, world!';
+
+        // Arrange: Create non-empty temp file
+        $path = $this->createTempFile(contents: $contents);
+
+        // Arrange: Construct non-empty SmartFile
+        $file = parse_data($path, cleanup: true);
+
+        // Assert: Base64 encodings are identical
+        $this->assertSame(base64_encode($contents), $file->toBase64());
     }
 
     public function testToDataUriRequiresFileToExist(): void
