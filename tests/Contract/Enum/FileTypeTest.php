@@ -18,12 +18,6 @@ final class FileTypeTest extends TestCase
         $this->assertSame($fileType->isDocument(), $isDocument);
     }
 
-    #[DataProvider('providerFileTypeAndIsImage')]
-    public function testIsImage(FileType $fileType, bool $isImage): void
-    {
-        $this->assertSame($fileType->isImage(), $isImage);
-    }
-
     /**
      * @return list<list<bool|FileType>>
      */
@@ -51,6 +45,12 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
+    #[DataProvider('providerFileTypeAndIsImage')]
+    public function testIsImage(FileType $fileType, bool $isImage): void
+    {
+        $this->assertSame($fileType->isImage(), $isImage);
+    }
+
     /**
      * @return list<list<bool|FileType>>
      */
@@ -76,5 +76,10 @@ final class FileTypeTest extends TestCase
         ];
 
         return $provider;
+    }
+
+    public function testFileTypeTxtIsText(): void
+    {
+        $this->assertTrue(FileType::Txt->isText()); // @phpstan-ignore-line
     }
 }
