@@ -27,6 +27,8 @@ final class FileTypeTest extends TestCase
             [null, FileType::Other],
             ['', FileType::Other],
             [' ', FileType::Other],
+            ['-', FileType::Other],
+            ['_', FileType::Other],
             ['bin', FileType::Binary],
             ['.bin', FileType::Binary],
             ['BIN', FileType::Binary],
