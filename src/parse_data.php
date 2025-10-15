@@ -2,12 +2,12 @@
 
 namespace OneToMany\DataUri;
 
+use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
-use function array_filter;
 use function base64_encode;
 use function basename;
 use function bin2hex;
@@ -39,13 +39,27 @@ use function unlink;
 use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
+/**
+ * Parses data from a wide variety of sources into an object that implements `OneToMany\DataUri\Contract\Record\SmartFileInterface`.
+ *
+ * @param mixed $data The data to parse: an existing file, a public URL, or a Data URL (eg. "data:image/png;base64,R0lGOD...")
+ * @param ?string $name Display name for the file, a randomly generated name is used if empty
+ * @param ?string $directory Create the temporary file in this directory, otherwise sys_get_temp_dir() is used
+ * @param bool $deleteOriginal Delete the original if file path is used
+ * @param bool $selfDestruct Indicate to the SmartFileInterface object created to self destruct
+ * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component useful for mocks in tests
+ *
+ * @throws InvalidArgumentException
+ * @throws RuntimeException
+ */
 function parse_data(
     mixed $data,
     ?string $name = null,
     ?string $directory = null,
-    bool $cleanup = false,
+    bool $deleteOriginal = false,
+    bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
-): SmartFile {
+): SmartFileInterface {
     if (!is_string($data) && !$data instanceof \Stringable) {
         throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
     }
@@ -73,7 +87,7 @@ function parse_data(
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // Resolve the File Name
+        // Resolve the file name
         $name = trim($name ?? '');
 
         if (empty($name)) {
@@ -84,10 +98,9 @@ function parse_data(
             }
         }
 
-        // Remove Path Prefix
         $name = basename($name);
 
-        // Attempt to Read and Parse the Data
+        // Attempt to parse the file data
         if (!$handle = @fopen($data, 'rb')) {
             if (is_file($data)) {
                 throw new InvalidArgumentException(sprintf('Failed to decode the file "%s".', $data));
@@ -99,7 +112,7 @@ function parse_data(
         $filesystem ??= new Filesystem();
 
         try {
-            // Create Temporary File With Unique Prefix
+            // Create temporary file with unique prefix
             $temp = $filesystem->tempnam($directory, '__1n__datauri_');
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
@@ -110,27 +123,27 @@ function parse_data(
                 throw new RuntimeException('Failed to get the data contents.');
             }
 
-            // Write Data to Temporary File
+            // Write data to the temporary file
             $filesystem->dumpFile($temp, $contents);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to write data to file "%s".', $temp), previous: $e);
         }
 
-        // Attempt to Resolve the Extension
+        // Attempt to resolve the extension
         if (!$extension = pathinfo($name, PATHINFO_EXTENSION)) {
             $exts = new \finfo(FILEINFO_EXTENSION)->file($temp);
 
             if ($exts && !str_contains($exts, '?')) {
                 $extension = explode('/', $exts)[0];
+            } else {
+                $extension = null;
             }
         }
 
-        try {
-            // Rename the File With Extension
-            $path = implode('.', array_filter([
-                $temp, trim($extension, '?'),
-            ]));
+        // Rename the file with extension
+        $path = !empty($extension) ? $temp.'.'.strtolower($extension) : $temp;
 
+        try {
             $filesystem->rename($temp, $path, true);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to append extension "%s" to file "%s".', $extension, $temp), previous: $e);
@@ -140,7 +153,7 @@ function parse_data(
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $path));
         }
 
-        // Resolve and Validate the Content Type
+        // Resolve and validate the MIME type
         $type = mime_content_type($path) ?: null;
 
         if (!$type || !str_contains($type, '/')) {
@@ -151,36 +164,49 @@ function parse_data(
             @fclose($handle);
         }
 
-        if (true === $cleanup) {
+        if ($deleteOriginal) {
             @unlink($data);
         }
     }
 
-    return new SmartFile($hash, $path, $name ?: null, $type, null, true, true);
+    return new SmartFile($hash, $path, $name ?: null, $type, null, true, $selfDestruct);
 }
 
+/**
+ * Parses data that is assumed to be base64 encoded, but not encoded as a Data URL.
+ *
+ * @throws InvalidArgumentException
+ * @throws RuntimeException
+ */
 function parse_base64_data(
     string $data,
     string $type,
     ?string $name = null,
     ?string $directory = null,
-    bool $cleanup = false,
+    bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
-): SmartFile {
-    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $cleanup, $filesystem);
+): SmartFileInterface {
+    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, false, $selfDestruct, $filesystem);
 }
 
+/**
+ * Parses data that is assumed to be plaintext.
+ *
+ * @throws InvalidArgumentException
+ * @throws RuntimeException
+ */
 function parse_text_data(
     string $text,
     ?string $name = null,
     ?string $directory = null,
+    bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
-): SmartFile {
+): SmartFileInterface {
     $extension = '.txt';
 
     if (!$name || !str_ends_with(strtolower(trim($name)), $extension)) {
         $name = implode('', [bin2hex(random_bytes(6)), $extension]);
     }
 
-    return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, false, $filesystem);
+    return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, $selfDestruct, $filesystem);
 }

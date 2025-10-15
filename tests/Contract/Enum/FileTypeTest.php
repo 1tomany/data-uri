@@ -29,9 +29,9 @@ final class FileTypeTest extends TestCase
             [' ', FileType::Other],
             ['-', FileType::Other],
             ['_', FileType::Other],
-            ['bin', FileType::Binary],
-            ['.bin', FileType::Binary],
-            ['BIN', FileType::Binary],
+            ['bin', FileType::Bin],
+            ['.bin', FileType::Bin],
+            ['BIN', FileType::Bin],
             ['bmp', FileType::Bmp],
             ['css', FileType::Css],
             ['csv', FileType::Csv],
@@ -53,6 +53,40 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
+    #[DataProvider('providerFileTypeAndIsBinary')]
+    public function testIsBinary(FileType $fileType, bool $isBinary): void
+    {
+        $this->assertSame($fileType->isBinary(), $isBinary);
+    }
+
+    /**
+     * @return list<list<bool|FileType>>
+     */
+    public static function providerFileTypeAndIsBinary(): array
+    {
+        $provider = [
+            [FileType::Bin, true],
+            [FileType::Bmp, true],
+            [FileType::Css, false],
+            [FileType::Csv, false],
+            [FileType::Doc, true],
+            [FileType::Docx, true],
+            [FileType::Gif, true],
+            [FileType::Heic, true],
+            [FileType::Html, false],
+            [FileType::Jpeg, true],
+            [FileType::Jpg, true],
+            [FileType::Pdf, true],
+            [FileType::Png, true],
+            [FileType::Text, false],
+            [FileType::Tif, true],
+            [FileType::Tiff, true],
+            [FileType::Txt, false],
+        ];
+
+        return $provider;
+    }
+
     #[DataProvider('providerFileTypeAndIsDocument')]
     public function testIsDocument(FileType $fileType, bool $isDocument): void
     {
@@ -65,7 +99,7 @@ final class FileTypeTest extends TestCase
     public static function providerFileTypeAndIsDocument(): array
     {
         $provider = [
-            [FileType::Binary, false],
+            [FileType::Bin, false],
             [FileType::Bmp, false],
             [FileType::Css, true],
             [FileType::Csv, true],
@@ -79,9 +113,9 @@ final class FileTypeTest extends TestCase
             [FileType::Pdf, true],
             [FileType::Png, false],
             [FileType::Text, true],
-            [FileType::Txt, true],
             [FileType::Tif, false],
             [FileType::Tiff, false],
+            [FileType::Txt, true],
         ];
 
         return $provider;
@@ -99,7 +133,7 @@ final class FileTypeTest extends TestCase
     public static function providerFileTypeAndIsImage(): array
     {
         $provider = [
-            [FileType::Binary, false],
+            [FileType::Bin, false],
             [FileType::Bmp, true],
             [FileType::Css, false],
             [FileType::Csv, false],
@@ -113,17 +147,46 @@ final class FileTypeTest extends TestCase
             [FileType::Pdf, false],
             [FileType::Png, true],
             [FileType::Text, false],
-            [FileType::Txt, false],
             [FileType::Tif, true],
             [FileType::Tiff, true],
+            [FileType::Txt, false],
         ];
 
         return $provider;
     }
 
-    public function testFileTypeBinaryIsBinary(): void
+    #[DataProvider('providerFileTypeAndIsPlainText')]
+    public function testIsPlainText(FileType $fileType, bool $isPlainText): void
     {
-        $this->assertTrue(FileType::Binary->isBinary()); // @phpstan-ignore-line
+        $this->assertSame($fileType->isPlainText(), $isPlainText);
+    }
+
+    /**
+     * @return list<list<bool|FileType>>
+     */
+    public static function providerFileTypeAndIsPlainText(): array
+    {
+        $provider = [
+            [FileType::Bin, false],
+            [FileType::Bmp, false],
+            [FileType::Css, true],
+            [FileType::Csv, true],
+            [FileType::Doc, false],
+            [FileType::Docx, false],
+            [FileType::Gif, false],
+            [FileType::Heic, false],
+            [FileType::Html, true],
+            [FileType::Jpeg, false],
+            [FileType::Jpg, false],
+            [FileType::Pdf, false],
+            [FileType::Png, false],
+            [FileType::Text, true],
+            [FileType::Tif, false],
+            [FileType::Tiff, false],
+            [FileType::Txt, true],
+        ];
+
+        return $provider;
     }
 
     public function testFileTypeJpgIsJpeg(): void

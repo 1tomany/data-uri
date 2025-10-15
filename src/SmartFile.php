@@ -3,11 +3,13 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 
 use function base64_encode;
 use function basename;
+use function dirname;
 use function file_exists;
 use function file_get_contents;
 use function filesize;
@@ -19,6 +21,7 @@ use function max;
 use function pathinfo;
 use function random_bytes;
 use function random_int;
+use function realpath;
 use function rtrim;
 use function sprintf;
 use function strtolower;
@@ -28,36 +31,43 @@ use function unlink;
 
 use const PATHINFO_EXTENSION;
 
-final readonly class SmartFile implements \Stringable
+readonly class SmartFile implements SmartFileInterface
 {
     /**
      * @var non-empty-string
      */
-    public string $hash;
+    protected string $hash;
 
     /**
      * @var non-empty-string
      */
-    public string $path;
-    public string $name;
-    public string $basename;
-    public ?string $extension;
-    public FileType $type;
+    protected string $path;
 
     /**
      * @var non-empty-string
      */
-    public string $mimeType;
+    protected string $name;
+
+    /**
+     * @var ?non-empty-string
+     */
+    protected ?string $extension;
+
+    /**
+     * @var non-empty-string
+     */
+    protected string $mimeType;
 
     /**
      * @var int<0, max>
      */
-    public int $size;
+    protected int $size;
 
     /**
      * @var non-empty-string
      */
-    public string $remoteKey;
+    protected string $remoteKey;
+    protected bool $selfDestruct;
 
     public function __construct(
         string $hash,
@@ -66,7 +76,7 @@ final readonly class SmartFile implements \Stringable
         string $mimeType,
         ?int $size = null,
         bool $checkPath = true,
-        public bool $delete = true,
+        bool $selfDestruct = true,
     ) {
         // Validate non-empty hash
         if (empty($hash = trim($hash))) {
@@ -82,11 +92,14 @@ final readonly class SmartFile implements \Stringable
 
         $this->path = $path;
 
-        // Resolve the basename
-        $this->basename = basename($this->path);
+        // Resolve and validate non-empty name
+        $name = trim($name ?? '') ?: $this->getBasename();
 
-        // Resolve the name
-        $this->name = trim($name ?? '') ?: $this->basename;
+        if (empty($name)) {
+            throw new InvalidArgumentException('The name cannot be empty.');
+        }
+
+        $this->name = $name;
 
         // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
@@ -101,11 +114,8 @@ final readonly class SmartFile implements \Stringable
             throw new InvalidArgumentException(sprintf('The path "%s" is not a file.', $this->path));
         }
 
-        // Resolve the extension if possible
-        $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
-
-        // Resolve the file type
-        $this->type = FileType::fromExtension($this->extension);
+        // Resolve the extension if available
+        $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
 
         // Resolve the file size
         if ($checkPath && null === $size) {
@@ -115,7 +125,7 @@ final readonly class SmartFile implements \Stringable
         $this->size = max(0, $size ?: 0);
 
         if (empty($mimeType = trim($mimeType))) {
-            throw new InvalidArgumentException('The type cannot be empty.');
+            throw new InvalidArgumentException('The MIME type cannot be empty.');
         }
 
         $this->mimeType = strtolower($mimeType);
@@ -136,12 +146,15 @@ final readonly class SmartFile implements \Stringable
         }
 
         $this->remoteKey = $remoteKey;
+        $this->selfDestruct = $selfDestruct;
     }
 
     public function __destruct()
     {
-        if ($this->delete && $this->exists()) {
-            @unlink($this->path);
+        if ($this->selfDestruct) {
+            if ($this->exists()) {
+                @unlink($this->path);
+            }
         }
     }
 
@@ -150,7 +163,7 @@ final readonly class SmartFile implements \Stringable
         return $this->path;
     }
 
-    public static function createMock(string $path, string $type): self
+    public static function createMock(string $path, string $mimeType): self
     {
         // Generate random size [1KB, 4MB]
         $size = random_int(1_024, 4_194_304);
@@ -158,27 +171,116 @@ final readonly class SmartFile implements \Stringable
         // Generate random hash based on size
         $hash = hash('sha256', random_bytes($size));
 
-        return new self($hash, $path, null, $type, $size, false, false);
+        return new self($hash, $path, null, $mimeType, $size, false, false);
     }
 
-    public function equals(self $data, bool $strict = false): bool
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getHash(): string
     {
-        if ($this->hash === $data->hash) {
+        return $this->hash;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getDirectory(): string
+    {
+        return dirname(realpath($this->path) ?: '/');
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getBasename(): string
+    {
+        return basename($this->path);
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getExtension(): ?string
+    {
+        return $this->extension;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getFileType(): FileType
+    {
+        return FileType::fromExtension($this->extension);
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getMimeType(): string
+    {
+        return $this->mimeType;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getSize(): int
+    {
+        return $this->size;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getRemoteKey(): string
+    {
+        return $this->remoteKey;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function equals(SmartFileInterface $file, bool $strict = false): bool
+    {
+        if ($this->hash === $file->getHash()) {
             if (false === $strict) {
                 return true;
             }
 
-            return $this->path === $data->path;
+            return $this->path === $file->getPath();
         }
 
         return false;
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function exists(): bool
     {
         return file_exists($this->path);
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function read(): string
     {
         if (false === $contents = @file_get_contents($this->path)) {
@@ -188,6 +290,17 @@ final readonly class SmartFile implements \Stringable
         return $contents;
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function shouldSelfDestruct(): bool
+    {
+        return $this->selfDestruct;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function toBase64(): string
     {
         try {
@@ -197,6 +310,9 @@ final readonly class SmartFile implements \Stringable
         }
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function toDataUri(): string
     {
         try {
