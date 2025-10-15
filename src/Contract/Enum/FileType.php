@@ -69,7 +69,9 @@ enum FileType
     {
         if ($this->isOther()) {
             return $this->name;
-        } elseif ($this->isText()) {
+        }
+
+        if ($this->isText()) {
             return self::Text->name;
         }
 
@@ -77,7 +79,9 @@ enum FileType
 
         if ($this->isJpg()) {
             $name = self::Jpeg->name;
-        } elseif ($this->isTif()) {
+        }
+
+        if ($this->isTif()) {
             $name = self::Tiff->name;
         }
 

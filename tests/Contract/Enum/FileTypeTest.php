@@ -117,6 +117,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, true],
             [FileType::Tiff, true],
             [FileType::Txt, false],
+            [FileType::Other, false],
         ];
 
         return $provider;
@@ -151,6 +152,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, false],
             [FileType::Tiff, false],
             [FileType::Txt, true],
+            [FileType::Other, false],
         ];
 
         return $provider;
@@ -185,6 +187,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, true],
             [FileType::Tiff, true],
             [FileType::Txt, false],
+            [FileType::Other, false],
         ];
 
         return $provider;
@@ -219,6 +222,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, false],
             [FileType::Tiff, false],
             [FileType::Txt, true],
+            [FileType::Other, false],
         ];
 
         return $provider;
