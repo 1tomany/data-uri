@@ -35,13 +35,17 @@ enum FileType
 
     public static function fromExtension(?string $extension): self
     {
-        // Clean up the extension by removing
-        // any leading periods and whitespace
         $extension = trim($extension ?? '');
-        $extension = ltrim($extension, '.');
-        $extension = strtolower($extension);
 
-        $fileType = match ($extension) {
+        if (empty($extension)) {
+            return self::Other;
+        }
+
+        $extension = strtolower(
+            ltrim($extension, '.')
+        );
+
+        $type = match ($extension) {
             'bin' => self::Binary,
             'bmp' => self::Bmp,
             'css' => self::Css,
@@ -62,7 +66,7 @@ enum FileType
             default => self::Other,
         };
 
-        return $fileType;
+        return $type;
     }
 
     /**

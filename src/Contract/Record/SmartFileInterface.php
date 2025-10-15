@@ -24,6 +24,11 @@ interface SmartFileInterface
     public function getName(): string;
 
     /**
+     * @return ?non-empty-string
+     */
+    public function getExtension(): ?string;
+
+    /**
      * @return non-empty-string
      */
     public function getMimeType(): string;

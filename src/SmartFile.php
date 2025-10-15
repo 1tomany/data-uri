@@ -47,7 +47,12 @@ class SmartFile implements \Stringable, SmartFileInterface
      * @var non-empty-string
      */
     protected string $name;
-    public ?string $extension;
+
+    /**
+     * @var ?non-empty-string
+     */
+    protected ?string $extension;
+
     public FileType $type;
 
     /**
@@ -64,7 +69,6 @@ class SmartFile implements \Stringable, SmartFileInterface
      * @var non-empty-string
      */
     protected string $remoteKey;
-
     protected bool $selfDestruct = true;
 
     public function __construct(
@@ -112,8 +116,8 @@ class SmartFile implements \Stringable, SmartFileInterface
             throw new InvalidArgumentException(sprintf('The path "%s" is not a file.', $this->path));
         }
 
-        // Resolve the extension if possible
-        $this->extension = pathinfo($this->path, PATHINFO_EXTENSION) ?: null;
+        // Resolve the extension if available
+        $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
 
         // Resolve the file type
         $this->type = FileType::fromExtension($this->extension);
@@ -225,6 +229,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getExtension(): ?string
+    {
+        return $this->extension;
     }
 
     /**
