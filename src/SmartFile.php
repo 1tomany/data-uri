@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 
@@ -28,7 +29,7 @@ use function unlink;
 
 use const PATHINFO_EXTENSION;
 
-final readonly class SmartFile implements \Stringable
+class SmartFile implements \Stringable, SmartFileInterface
 {
     /**
      * @var non-empty-string
@@ -39,6 +40,10 @@ final readonly class SmartFile implements \Stringable
      * @var non-empty-string
      */
     public string $path;
+
+    /**
+     * @var non-empty-string
+     */
     public string $name;
     public string $basename;
     public ?string $extension;
@@ -86,7 +91,13 @@ final readonly class SmartFile implements \Stringable
         $this->basename = basename($this->path);
 
         // Resolve the name
-        $this->name = trim($name ?? '') ?: $this->basename;
+        $name = trim($name ?? '') ?: $this->basename;
+
+        if (empty($name)) {
+            throw new InvalidArgumentException('The name cannot be empty.');
+        }
+
+        $this->name = $name;
 
         // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
@@ -150,6 +161,20 @@ final readonly class SmartFile implements \Stringable
         return $this->path;
     }
 
+    /*
+    public string $base64 {
+        get => $this->toBase64();
+    }
+
+    public string $dataUri {
+        get => $this->toDataUri();
+    }
+
+    public string $contents {
+        get => $this->read();
+    }
+    */
+
     public static function createMock(string $path, string $type): self
     {
         // Generate random size [1KB, 4MB]
@@ -159,6 +184,11 @@ final readonly class SmartFile implements \Stringable
         $hash = hash('sha256', random_bytes($size));
 
         return new self($hash, $path, null, $type, $size, false, false);
+    }
+
+    public function getHash(): string
+    {
+        return $this->hash;
     }
 
     public function equals(self $data, bool $strict = false): bool
