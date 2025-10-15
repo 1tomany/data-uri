@@ -31,43 +31,43 @@ use function unlink;
 
 use const PATHINFO_EXTENSION;
 
-class SmartFile implements \Stringable, SmartFileInterface
+readonly class SmartFile implements \Stringable, SmartFileInterface
 {
     /**
      * @var non-empty-string
      */
-    protected readonly string $hash;
+    protected string $hash;
 
     /**
      * @var non-empty-string
      */
-    protected readonly string $path;
+    protected string $path;
 
     /**
      * @var non-empty-string
      */
-    protected readonly string $name;
+    protected string $name;
 
     /**
      * @var ?non-empty-string
      */
-    protected readonly ?string $extension;
+    protected ?string $extension;
 
     /**
      * @var non-empty-string
      */
-    protected readonly string $mimeType;
+    protected string $mimeType;
 
     /**
      * @var int<0, max>
      */
-    protected readonly int $size;
+    protected int $size;
 
     /**
      * @var non-empty-string
      */
-    protected readonly string $remoteKey;
-    protected readonly bool $selfDestruct;
+    protected string $remoteKey;
+    protected bool $selfDestruct;
 
     public function __construct(
         string $hash,
