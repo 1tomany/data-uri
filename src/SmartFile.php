@@ -41,33 +41,33 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @var non-empty-string
      */
-    protected string $path;
+    protected readonly string $path;
 
     /**
      * @var non-empty-string
      */
-    protected string $name;
+    protected readonly string $name;
 
     /**
      * @var ?non-empty-string
      */
-    protected ?string $extension;
+    protected readonly ?string $extension;
 
     /**
      * @var non-empty-string
      */
-    protected string $mimeType;
+    protected readonly string $mimeType;
 
     /**
      * @var int<0, max>
      */
-    protected int $size;
+    protected readonly int $size;
 
     /**
      * @var non-empty-string
      */
-    protected string $remoteKey;
-    protected bool $selfDestruct = true;
+    protected readonly string $remoteKey;
+    protected readonly bool $selfDestruct;
 
     public function __construct(
         string $hash,
@@ -151,8 +151,10 @@ class SmartFile implements \Stringable, SmartFileInterface
 
     public function __destruct()
     {
-        if ($this->selfDestruct && $this->exists()) {
-            @unlink($this->path);
+        if ($this->selfDestruct) {
+            if ($this->exists()) {
+                @unlink($this->path);
+            }
         }
     }
 
