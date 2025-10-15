@@ -40,14 +40,7 @@ use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
 /**
- * Parses data from a wide variety of sources into a SmartFile object.
- *
- * The `$data` argument can be one of the following:
- *
- * * A path to an existing readable file
- * * An object that implements SmartFileInterface
- * * An HTTP or HTTPS URL to a publicly accessible file
- * * A Data URL (eg. "data:image/png;base64,R0lGOD...")
+ * Parses data from a wide variety of sources into an object that implements `OneToMany\DataUri\Contract\Record\SmartFileInterface`.
  *
  * @param mixed $data The data to parse: an existing file, a public URL, or a Data URL (eg. "data:image/png;base64,R0lGOD...")
  * @param ?string $name Display name for the file, a randomly generated name is used if empty
