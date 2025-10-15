@@ -205,7 +205,7 @@ class SmartFile implements \Stringable, SmartFileInterface
      */
     public function getDirectory(): string
     {
-        return dirname($this->path);
+        return dirname(realpath($this->path) ?: '/');
     }
 
     /**
