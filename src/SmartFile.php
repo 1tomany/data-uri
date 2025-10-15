@@ -58,7 +58,7 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @var int<0, max>
      */
-    public int $size;
+    protected int $size;
 
     /**
      * @var non-empty-string
@@ -230,6 +230,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     public function getMimeType(): string
     {
         return $this->mimeType;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getSize(): int
+    {
+        return $this->size;
     }
 
     public function equals(self $data, bool $strict = false): bool

@@ -27,4 +27,9 @@ interface SmartFileInterface
      * @return non-empty-string
      */
     public function getMimeType(): string;
+
+    /**
+     * @return int<0, max>
+     */
+    public function getSize(): int;
 }
