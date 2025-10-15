@@ -14,9 +14,6 @@ interface SmartFileInterface
      */
     public function getPath(): string;
 
-    /**
-     * @return non-empty-string
-     */
     public function getBasename(): string;
 
     /**

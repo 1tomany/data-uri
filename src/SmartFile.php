@@ -203,7 +203,7 @@ class SmartFile implements \Stringable, SmartFileInterface
      */
     public function getBasename(): string
     {
-        return basename($this->path) ?: $this->name;
+        return basename($this->path);
     }
 
     /**
