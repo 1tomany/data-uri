@@ -90,7 +90,7 @@ class SmartFile implements \Stringable, SmartFileInterface
 
         $this->path = $path;
 
-        // Resolve the name
+        // Resolve and validate non-empty name
         $name = trim($name ?? '') ?: $this->getBasename();
 
         if (empty($name)) {
