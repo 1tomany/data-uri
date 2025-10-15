@@ -46,14 +46,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @var non-empty-string
      */
-    public string $name;
+    protected string $name;
     public ?string $extension;
     public FileType $type;
 
     /**
      * @var non-empty-string
      */
-    public string $mimeType;
+    protected string $mimeType;
 
     /**
      * @var int<0, max>
@@ -82,8 +82,6 @@ class SmartFile implements \Stringable, SmartFileInterface
         $this->hash = $hash;
 
         // Validate non-empty path
-        $path = realpath($path) ?: '';
-
         if (empty($path = trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
