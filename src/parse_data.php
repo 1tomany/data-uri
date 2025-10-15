@@ -50,10 +50,10 @@ use const PATHINFO_EXTENSION;
  * * An HTTP or HTTPS URL to a publicly accessible file
  * * A Data URL (eg. "data:image/png;base64,R0lGOD...")
  *
- * @param ?string $name Display name for the file. This is useful for file uploads where the original filename is preferred to the random on PHP generates. If empty, a random filename will be generated.
- * @param ?string $directory Create the temporary file in this directory. If empty, sys_get_temp_dir() is used.
- * @param bool $deleteOriginal Delete the original file if true and a file path is used. Another sentence.
- * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component. This is useful when you want to use parse_data() in your tests.
+ * @param ?string $name Display name for the file, a randomly generated name is used if empty
+ * @param ?string $directory Create the temporary file in this directory, otherwise sys_get_temp_dir() is used
+ * @param bool $deleteOriginal Delete the original if file path is used
+ * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component useful for mocks in tests
  *
  * @throws InvalidArgumentException
  */
