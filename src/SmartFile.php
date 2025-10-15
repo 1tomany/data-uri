@@ -161,7 +161,7 @@ class SmartFile implements \Stringable, SmartFileInterface
         return $this->path;
     }
 
-    public static function createMock(string $path, string $type): self
+    public static function createMock(string $path, string $mimeType): self
     {
         // Generate random size [1KB, 4MB]
         $size = random_int(1_024, 4_194_304);
@@ -169,7 +169,7 @@ class SmartFile implements \Stringable, SmartFileInterface
         // Generate random hash based on size
         $hash = hash('sha256', random_bytes($size));
 
-        return new self($hash, $path, null, $type, $size, false, false);
+        return new self($hash, $path, null, $mimeType, $size, false, false);
     }
 
     /**
