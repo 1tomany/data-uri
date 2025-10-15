@@ -55,17 +55,17 @@ interface SmartFileInterface extends \Stringable
     public function exists(): bool;
 
     /**
-     * @throws RuntimeException when reading the file fails
+     * @throws RuntimeException When reading the file fails
      */
     public function read(): string;
 
     /**
-     * @throws RuntimeException when reading or encoding the file fails
+     * @throws RuntimeException When reading or encoding the file fails
      */
     public function toBase64(): string;
 
     /**
-     * @throws RuntimeException when reading or encoding the file fails
+     * @throws RuntimeException When reading or encoding the file fails
      */
     public function toDataUri(): string;
 }
