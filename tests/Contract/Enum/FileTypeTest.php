@@ -53,6 +53,40 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
+    #[DataProvider('providerFileTypeAndIsBinary')]
+    public function testIsBinary(FileType $fileType, bool $isBinary): void
+    {
+        $this->assertSame($fileType->isBinary(), $isBinary);
+    }
+
+    /**
+     * @return list<list<bool|FileType>>
+     */
+    public static function providerFileTypeAndIsBinary(): array
+    {
+        $provider = [
+            [FileType::Bin, true],
+            [FileType::Bmp, true],
+            [FileType::Css, false],
+            [FileType::Csv, false],
+            [FileType::Doc, true],
+            [FileType::Docx, true],
+            [FileType::Gif, true],
+            [FileType::Heic, true],
+            [FileType::Html, false],
+            [FileType::Jpeg, true],
+            [FileType::Jpg, true],
+            [FileType::Pdf, true],
+            [FileType::Png, true],
+            [FileType::Text, false],
+            [FileType::Txt, false],
+            [FileType::Tif, true],
+            [FileType::Tiff, true],
+        ];
+
+        return $provider;
+    }
+
     #[DataProvider('providerFileTypeAndIsDocument')]
     public function testIsDocument(FileType $fileType, bool $isDocument): void
     {
