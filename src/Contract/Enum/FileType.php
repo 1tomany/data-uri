@@ -67,19 +67,21 @@ enum FileType
 
     public function getName(): string
     {
-        if ($this->isJpg()) {
-            return self::Jpeg->getName();
-        }
-
-        if ($this->isTif()) {
-            return self::Tiff->getName();
-        }
-
         if ($this->isOther()) {
             return $this->name;
+        } elseif ($this->isText()) {
+            return self::Text->name;
         }
 
-        return strtoupper($this->name);
+        $name = $this->name;
+
+        if ($this->isJpg()) {
+            $name = self::Jpeg->name;
+        } elseif ($this->isTif()) {
+            $name = self::Tiff->name;
+        }
+
+        return strtoupper($name);
     }
 
     /**
