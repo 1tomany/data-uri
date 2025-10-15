@@ -65,6 +65,8 @@ class SmartFile implements \Stringable, SmartFileInterface
      */
     protected string $remoteKey;
 
+    protected bool $selfDestruct = true;
+
     public function __construct(
         string $hash,
         string $path,
@@ -72,7 +74,7 @@ class SmartFile implements \Stringable, SmartFileInterface
         string $mimeType,
         ?int $size = null,
         bool $checkPath = true,
-        protected bool $selfDestruct = true,
+        bool $selfDestruct = true,
     ) {
         // Validate non-empty hash
         if (empty($hash = trim($hash))) {
@@ -145,6 +147,7 @@ class SmartFile implements \Stringable, SmartFileInterface
         }
 
         $this->remoteKey = $remoteKey;
+        $this->selfDestruct = $selfDestruct;
     }
 
     public function __destruct()
