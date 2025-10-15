@@ -32,4 +32,11 @@ interface SmartFileInterface
      * @return int<0, max>
      */
     public function getSize(): int;
+
+    /**
+     * @return non-empty-string
+     */
+    public function getRemoteKey(): string;
+
+    public function shouldSelfDestruct(): bool;
 }

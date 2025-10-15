@@ -63,7 +63,7 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @var non-empty-string
      */
-    public string $remoteKey;
+    protected string $remoteKey;
 
     public function __construct(
         string $hash,
@@ -72,7 +72,7 @@ class SmartFile implements \Stringable, SmartFileInterface
         string $mimeType,
         ?int $size = null,
         bool $checkPath = true,
-        public bool $delete = true,
+        protected bool $selfDestruct = true,
     ) {
         // Validate non-empty hash
         if (empty($hash = trim($hash))) {
@@ -149,7 +149,7 @@ class SmartFile implements \Stringable, SmartFileInterface
 
     public function __destruct()
     {
-        if ($this->delete && $this->exists()) {
+        if ($this->selfDestruct && $this->exists()) {
             @unlink($this->path);
         }
     }
@@ -238,6 +238,22 @@ class SmartFile implements \Stringable, SmartFileInterface
     public function getSize(): int
     {
         return $this->size;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getRemoteKey(): string
+    {
+        return $this->remoteKey;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function shouldSelfDestruct(): bool
+    {
+        return $this->selfDestruct;
     }
 
     public function equals(self $data, bool $strict = false): bool
