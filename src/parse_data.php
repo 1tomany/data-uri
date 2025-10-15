@@ -43,15 +43,16 @@ use const PATHINFO_EXTENSION;
 /**
  * Parses data from a wide variety of sources into a SmartFile object.
  *
- * The `data` argument can be one of the following:
- * * A path to an existing readable file.
- * * An object that implements SmartFileInterface.
- * * A Data URL that follows the RFC 2397 standard (eg. "data:image/png;base64,R0lGOD...").
- * * An HTTP or HTTPS URL to a publicly accessible file.
+ * The `$data` argument can be one of the following:
  *
- * @param ?string $name The display name for the file. This is useful for file uploads where the original filename is preferred to the random on PHP generates. If empty, a random filename will be generated.
- * @param ?string $directory The directory to save the file. If empty, the output of sys_get_temp_dir() will be used.
- * @param bool $deleteOriginal if true, delete the original file if a file path is used
+ * * A path to an existing readable file
+ * * An object that implements SmartFileInterface
+ * * An HTTP or HTTPS URL to a publicly accessible file
+ * * A Data URL (eg. "data:image/png;base64,R0lGOD...")
+ *
+ * @param ?string $name Display name for the file. This is useful for file uploads where the original filename is preferred to the random on PHP generates. If empty, a random filename will be generated.
+ * @param ?string $directory Create the temporary file in this directory. If empty, sys_get_temp_dir() is used.
+ * @param bool $deleteOriginal Delete the original file if true and a file path is used. Another sentence.
  * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component. This is useful when you want to use parse_data() in your tests.
  *
  * @throws InvalidArgumentException
