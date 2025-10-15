@@ -39,7 +39,7 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @var non-empty-string
      */
-    public string $path;
+    protected string $path;
 
     /**
      * @var non-empty-string
@@ -200,6 +200,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     public function equals(self $data, bool $strict = false): bool
