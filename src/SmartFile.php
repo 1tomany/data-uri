@@ -45,7 +45,6 @@ class SmartFile implements \Stringable, SmartFileInterface
      * @var non-empty-string
      */
     public string $name;
-    public string $basename;
     public ?string $extension;
     public FileType $type;
 
@@ -87,11 +86,8 @@ class SmartFile implements \Stringable, SmartFileInterface
 
         $this->path = $path;
 
-        // Resolve the basename
-        $this->basename = basename($this->path);
-
         // Resolve the name
-        $name = trim($name ?? '') ?: $this->basename;
+        $name = trim($name ?? '') ?: $this->getBasename();
 
         if (empty($name)) {
             throw new InvalidArgumentException('The name cannot be empty.');
@@ -200,6 +196,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getBasename(): string
+    {
+        return basename($this->path) ?: $this->name;
     }
 
     /**
