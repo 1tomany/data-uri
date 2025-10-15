@@ -75,15 +75,11 @@ enum FileType
             return $this->name;
         }
 
-        $name = $this->name;
-
-        if ($this->isJpg()) {
-            $name = self::Jpeg->name;
-        }
-
-        if ($this->isTif()) {
-            $name = self::Tiff->name;
-        }
+        $name = match ($this) {
+            self::Jpg => self::Jpeg->name,
+            self::Tif => self::Tiff->name,
+            default => $this->name,
+        };
 
         return strtoupper($name);
     }
