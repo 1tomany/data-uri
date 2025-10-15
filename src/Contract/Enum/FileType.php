@@ -67,12 +67,12 @@ enum FileType
 
     public function getName(): string
     {
-        if ($this->isOther()) {
-            return $this->name;
-        }
-
         if ($this->isText()) {
             return self::Text->name;
+        }
+
+        if ($this->isOther()) {
+            return $this->name;
         }
 
         $name = $this->name;
