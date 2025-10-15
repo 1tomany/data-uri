@@ -49,7 +49,7 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Name is set to actual file name
-        $this->assertEquals(basename($path), $file->name);
+        $this->assertEquals(basename($path), $file->getName());
     }
 
     public function testConstructorRequiresFileToExistWhenCheckPathIsTrue(): void
