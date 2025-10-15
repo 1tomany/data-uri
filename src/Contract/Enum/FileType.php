@@ -9,28 +9,23 @@ use function trim;
 
 enum FileType
 {
-    // Documents
+    case Bin;
+    case Bmp;
     case Css;
     case Csv;
     case Doc;
     case Docx;
-    case Html;
-    case Pdf;
-    case Text;
-    case Txt;
-
-    // Images
-    case Bmp;
     case Gif;
     case Heic;
+    case Html;
     case Jpeg;
     case Jpg;
+    case Pdf;
     case Png;
+    case Text;
     case Tif;
     case Tiff;
-
-    // Other
-    case Binary;
+    case Txt;
     case Other;
 
     public static function fromExtension(?string $extension): self
@@ -46,7 +41,7 @@ enum FileType
         );
 
         $type = match ($extension) {
-            'bin' => self::Binary,
+            'bin' => self::Bin,
             'bmp' => self::Bmp,
             'css' => self::Css,
             'csv' => self::Csv,
@@ -104,11 +99,11 @@ enum FileType
     }
 
     /**
-     * @phpstan-assert-if-true self::Binary $this
+     * @phpstan-assert-if-true self::Bin $this
      */
-    public function isBinary(): bool
+    public function isBin(): bool
     {
-        return self::Binary === $this;
+        return self::Bin === $this;
     }
 
     /**

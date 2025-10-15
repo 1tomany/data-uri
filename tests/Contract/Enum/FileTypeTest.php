@@ -29,9 +29,9 @@ final class FileTypeTest extends TestCase
             [' ', FileType::Other],
             ['-', FileType::Other],
             ['_', FileType::Other],
-            ['bin', FileType::Binary],
-            ['.bin', FileType::Binary],
-            ['BIN', FileType::Binary],
+            ['bin', FileType::Bin],
+            ['.bin', FileType::Bin],
+            ['BIN', FileType::Bin],
             ['bmp', FileType::Bmp],
             ['css', FileType::Css],
             ['csv', FileType::Csv],
@@ -65,7 +65,7 @@ final class FileTypeTest extends TestCase
     public static function providerFileTypeAndIsDocument(): array
     {
         $provider = [
-            [FileType::Binary, false],
+            [FileType::Bin, false],
             [FileType::Bmp, false],
             [FileType::Css, true],
             [FileType::Csv, true],
@@ -99,7 +99,7 @@ final class FileTypeTest extends TestCase
     public static function providerFileTypeAndIsImage(): array
     {
         $provider = [
-            [FileType::Binary, false],
+            [FileType::Bin, false],
             [FileType::Bmp, true],
             [FileType::Css, false],
             [FileType::Csv, false],
@@ -119,11 +119,6 @@ final class FileTypeTest extends TestCase
         ];
 
         return $provider;
-    }
-
-    public function testFileTypeBinaryIsBinary(): void
-    {
-        $this->assertTrue(FileType::Binary->isBinary()); // @phpstan-ignore-line
     }
 
     public function testFileTypeJpgIsJpeg(): void
