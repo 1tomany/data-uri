@@ -8,7 +8,6 @@ use OneToMany\DataUri\Exception\RuntimeException;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
-use function array_filter;
 use function base64_encode;
 use function basename;
 use function bin2hex;
@@ -56,12 +55,14 @@ use const PATHINFO_EXTENSION;
  * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component useful for mocks in tests
  *
  * @throws InvalidArgumentException
+ * @throws RuntimeException
  */
 function parse_data(
     mixed $data,
     ?string $name = null,
     ?string $directory = null,
     bool $deleteOriginal = false,
+    bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
     if (!is_string($data) && !$data instanceof \Stringable) {
@@ -157,7 +158,7 @@ function parse_data(
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $path));
         }
 
-        // Resolve and Validate the Content Type
+        // Resolve and validate the MIME type
         $type = mime_content_type($path) ?: null;
 
         if (!$type || !str_contains($type, '/')) {
@@ -173,34 +174,37 @@ function parse_data(
         }
     }
 
-    return new SmartFile($hash, $path, $name ?: null, $type, null, true, true);
+    return new SmartFile($hash, $path, $name ?: null, $type, null, true, $selfDestruct);
 }
 
 /**
  * Parses data that is assumed to be base64 encoded, but not encoded as a Data URL.
  *
  * @throws InvalidArgumentException
+ * @throws RuntimeException
  */
 function parse_base64_data(
     string $data,
     string $type,
     ?string $name = null,
     ?string $directory = null,
-    bool $deleteOriginal = false,
+    bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
-    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $deleteOriginal, $filesystem);
+    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, false, $selfDestruct, $filesystem);
 }
 
 /**
  * Parses data that is assumed to be plaintext.
  *
  * @throws InvalidArgumentException
+ * @throws RuntimeException
  */
 function parse_text_data(
     string $text,
     ?string $name = null,
     ?string $directory = null,
+    bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
     $extension = '.txt';
@@ -209,5 +213,5 @@ function parse_text_data(
         $name = implode('', [bin2hex(random_bytes(6)), $extension]);
     }
 
-    return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, false, $filesystem);
+    return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, $selfDestruct, $filesystem);
 }
