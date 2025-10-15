@@ -50,8 +50,8 @@ enum FileType
             'gif' => self::Gif,
             'heic' => self::Heic,
             'html' => self::Html,
-            'jpg' => self::Jpeg,
             'jpeg' => self::Jpeg,
+            'jpg' => self::Jpeg,
             'pdf' => self::Pdf,
             'png' => self::Png,
             'text' => self::Text,
@@ -62,6 +62,27 @@ enum FileType
         };
 
         return $type;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Jpg|self::Jpeg|self::Pdf|self::Png|self::Tif|self::Tiff $this
+     */
+    public function isBinary(): bool
+    {
+        return in_array($this, [
+            self::Bin,
+            self::Bmp,
+            self::Doc,
+            self::Docx,
+            self::Gif,
+            self::Heic,
+            self::Jpeg,
+            self::Jpg,
+            self::Pdf,
+            self::Png,
+            self::Tif,
+            self::Tiff,
+        ]);
     }
 
     /**
