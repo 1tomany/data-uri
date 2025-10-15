@@ -49,11 +49,10 @@ use const PATHINFO_EXTENSION;
  * * A Data URL that follows the RFC 2397 standard (eg. "data:image/png;base64,R0lGOD...").
  * * An HTTP or HTTPS URL to a publicly accessible file.
  *
- * @param mixed $data the data to parse
- * @param ?string $name The original file name.
- *                      If empty, one will be generated.
+ * @param ?string $name The display name for the file. If empty, a random filename will be generated.
+ *                      This is useful for file uploads where the original filename is preferred to the random on PHP generates.
  * @param ?string $directory The directory to save the file. If empty, the temporary directory will be used.
- * @param bool $deleteOriginal delete the original file if a file path is used
+ * @param bool $deleteOriginal if true, delete the original file if a file path is used
  * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component. This is useful when you want to use parse_data() in your tests.
  *
  * @throws InvalidArgumentException
