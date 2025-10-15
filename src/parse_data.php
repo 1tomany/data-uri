@@ -91,7 +91,7 @@ function parse_data(
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // Resolve the File Name
+        // Resolve the file name
         $name = trim($name ?? '');
 
         if (empty($name)) {
@@ -102,10 +102,9 @@ function parse_data(
             }
         }
 
-        // Remove Path Prefix
         $name = basename($name);
 
-        // Attempt to Read and Parse the Data
+        // Attempt to parse the file data
         if (!$handle = @fopen($data, 'rb')) {
             if (is_file($data)) {
                 throw new InvalidArgumentException(sprintf('Failed to decode the file "%s".', $data));
@@ -117,7 +116,7 @@ function parse_data(
         $filesystem ??= new Filesystem();
 
         try {
-            // Create Temporary File With Unique Prefix
+            // Create temporary file with unique prefix
             $temp = $filesystem->tempnam($directory, '__1n__datauri_');
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
@@ -128,26 +127,26 @@ function parse_data(
                 throw new RuntimeException('Failed to get the data contents.');
             }
 
-            // Write Data to Temporary File
+            // Write data to the temporary file
             $filesystem->dumpFile($temp, $contents);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to write data to file "%s".', $temp), previous: $e);
         }
 
-        // Attempt to Resolve the Extension
+        // Attempt to resolve the extension
         if (!$extension = pathinfo($name, PATHINFO_EXTENSION)) {
             $exts = new \finfo(FILEINFO_EXTENSION)->file($temp);
 
             if ($exts && !str_contains($exts, '?')) {
                 $extension = explode('/', $exts)[0];
+            } else {
+                $extension = null;
             }
         }
 
         try {
-            // Rename the File With Extension
-            $path = implode('.', array_filter([
-                $temp, trim($extension, '?'),
-            ]));
+            // Rename the file with extension
+            $path = !empty($extension) ? $temp.'.'.strtolower($extension) : $temp;
 
             $filesystem->rename($temp, $path, true);
         } catch (FilesystemExceptionInterface $e) {
