@@ -5,7 +5,7 @@ namespace OneToMany\DataUri\Contract\Record;
 use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Exception\RuntimeException;
 
-interface SmartFileInterface
+interface SmartFileInterface extends \Stringable
 {
     /**
      * @return non-empty-string

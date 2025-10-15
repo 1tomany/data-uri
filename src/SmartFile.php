@@ -31,7 +31,7 @@ use function unlink;
 
 use const PATHINFO_EXTENSION;
 
-readonly class SmartFile implements \Stringable, SmartFileInterface
+readonly class SmartFile implements SmartFileInterface
 {
     /**
      * @var non-empty-string
