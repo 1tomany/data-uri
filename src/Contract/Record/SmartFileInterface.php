@@ -2,6 +2,8 @@
 
 namespace OneToMany\DataUri\Contract\Record;
 
+use OneToMany\DataUri\Contract\Enum\FileType;
+
 interface SmartFileInterface
 {
     /**
@@ -14,19 +16,21 @@ interface SmartFileInterface
      */
     public function getPath(): string;
 
-    public function getDirectory(): string;
-
-    public function getBasename(): string;
-
     /**
      * @return non-empty-string
      */
     public function getName(): string;
 
+    public function getDirectory(): string;
+
+    public function getBasename(): string;
+
     /**
      * @return ?non-empty-string
      */
     public function getExtension(): ?string;
+
+    public function getFileType(): FileType;
 
     /**
      * @return non-empty-string

@@ -53,8 +53,6 @@ class SmartFile implements \Stringable, SmartFileInterface
      */
     protected ?string $extension;
 
-    public FileType $type;
-
     /**
      * @var non-empty-string
      */
@@ -119,9 +117,6 @@ class SmartFile implements \Stringable, SmartFileInterface
         // Resolve the extension if available
         $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
 
-        // Resolve the file type
-        $this->type = FileType::fromExtension($this->extension);
-
         // Resolve the file size
         if ($checkPath && null === $size) {
             $size = @filesize($this->path);
@@ -166,20 +161,6 @@ class SmartFile implements \Stringable, SmartFileInterface
         return $this->path;
     }
 
-    /*
-    public string $base64 {
-        get => $this->toBase64();
-    }
-
-    public string $dataUri {
-        get => $this->toDataUri();
-    }
-
-    public string $contents {
-        get => $this->read();
-    }
-    */
-
     public static function createMock(string $path, string $type): self
     {
         // Generate random size [1KB, 4MB]
@@ -210,6 +191,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function getDirectory(): string
     {
         return dirname(realpath($this->path) ?: '/');
@@ -226,17 +215,17 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function getName(): string
+    public function getExtension(): ?string
     {
-        return $this->name;
+        return $this->extension;
     }
 
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function getExtension(): ?string
+    public function getFileType(): FileType
     {
-        return $this->extension;
+        return FileType::fromExtension($this->extension);
     }
 
     /**
