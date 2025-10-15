@@ -65,6 +65,8 @@ interface SmartFileInterface extends \Stringable
     public function toBase64(): string;
 
     /**
+     * @return non-empty-string
+     *
      * @throws RuntimeException When reading or encoding the file fails
      */
     public function toDataUri(): string;
