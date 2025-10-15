@@ -126,7 +126,7 @@ class SmartFile implements \Stringable, SmartFileInterface
         $this->size = max(0, $size ?: 0);
 
         if (empty($mimeType = trim($mimeType))) {
-            throw new InvalidArgumentException('The type cannot be empty.');
+            throw new InvalidArgumentException('The MIME type cannot be empty.');
         }
 
         $this->mimeType = strtolower($mimeType);
@@ -224,6 +224,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getMimeType(): string
+    {
+        return $this->mimeType;
     }
 
     public function equals(self $data, bool $strict = false): bool
