@@ -222,14 +222,6 @@ enum FileType
     }
 
     /**
-     * @phpstan-assert-if-true self::Other $this
-     */
-    public function isOther(): bool
-    {
-        return self::Other === $this;
-    }
-
-    /**
      * @phpstan-assert-if-true self::Pdf $this
      */
     public function isPdf(): bool
@@ -259,5 +251,13 @@ enum FileType
     public function isTiff(): bool
     {
         return in_array($this, [self::Tiff, self::Tif]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Other $this
+     */
+    public function isOther(): bool
+    {
+        return self::Other === $this;
     }
 }
