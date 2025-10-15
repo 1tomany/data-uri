@@ -144,10 +144,10 @@ function parse_data(
             }
         }
 
-        try {
-            // Rename the file with extension
-            $path = !empty($extension) ? $temp.'.'.strtolower($extension) : $temp;
+        // Rename the file with extension
+        $path = !empty($extension) ? $temp.'.'.strtolower($extension) : $temp;
 
+        try {
             $filesystem->rename($temp, $path, true);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to append extension "%s" to file "%s".', $extension, $temp), previous: $e);
