@@ -157,7 +157,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data($path, cleanup: true);
 
         // Assert: Original file is deleted
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
         $this->assertFileDoesNotExist($path);
     }
 
@@ -166,7 +166,7 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_data($data);
 
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
         $this->assertEquals($mimeType, $file->mimeType);
         $this->assertEquals($size, $file->size);
     }
@@ -200,7 +200,7 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_data($data);
 
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
         $this->assertEquals($mimeType, $file->mimeType);
         $this->assertEquals($size, $file->size);
     }
@@ -223,7 +223,7 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_base64_data($data, $mimeType);
 
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
         $this->assertEquals($mimeType, $file->mimeType);
         $this->assertEquals($size, $file->size);
     }
@@ -264,7 +264,7 @@ final class ParseDataTest extends TestCase
 
         $file = parse_text_data($text, $name);
 
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
         $this->assertEquals($name, $file->name);
         $this->assertEquals($text, $file->read());
     }

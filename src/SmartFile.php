@@ -186,9 +186,20 @@ class SmartFile implements \Stringable, SmartFileInterface
         return new self($hash, $path, null, $type, $size, false, false);
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function getHash(): string
     {
         return $this->hash;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getPath(): string
+    {
+        return $this->path;
     }
 
     public function equals(self $data, bool $strict = false): bool

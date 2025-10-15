@@ -124,13 +124,13 @@ final class SmartFileTest extends TestCase
 
         // Assert: SmartFile set to delete
         $this->assertTrue($file->delete);
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
 
         // Act: Self destruct
         $file->__destruct();
 
         // Assert: Destructor deleted file
-        $this->assertFileDoesNotExist($file->path);
+        $this->assertFileDoesNotExist($file->getPath());
     }
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
@@ -143,17 +143,17 @@ final class SmartFileTest extends TestCase
 
         // Assert: SmartFile to delete
         $this->assertTrue($file->delete);
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
 
         // Act: Manually delete file
-        $this->assertTrue(unlink($file->path));
-        $this->assertFileDoesNotExist($file->path);
+        $this->assertTrue(unlink($file->getPath()));
+        $this->assertFileDoesNotExist($file->getPath());
 
         // Act: Self destruct
         $file->__destruct();
 
         // Assert: Destructor can not delete file
-        $this->assertFileDoesNotExist($file->path);
+        $this->assertFileDoesNotExist($file->getPath());
     }
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenDestroyIsFalse(): void
@@ -166,14 +166,14 @@ final class SmartFileTest extends TestCase
 
         // Assert: SmartFile to not delete
         $this->assertFalse($file->delete);
-        $this->assertFileExists($file->path);
+        $this->assertFileExists($file->getPath());
 
         // Act: Self destruct
         $file->__destruct();
 
         // Assert: Destructor ignored file
-        $this->assertFileExists($file->path);
-        $this->assertTrue(unlink($file->path));
+        $this->assertFileExists($file->getPath());
+        $this->assertTrue(unlink($file->getPath()));
     }
 
     public function testToStringReturnsPath(): void

@@ -8,4 +8,9 @@ interface SmartFileInterface
      * @return non-empty-string
      */
     public function getHash(): string;
+
+    /**
+     * @return non-empty-string
+     */
+    public function getPath(): string;
 }
