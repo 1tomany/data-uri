@@ -5,6 +5,7 @@ namespace OneToMany\DataUri\Contract\Enum;
 use function in_array;
 use function ltrim;
 use function strtolower;
+use function strtoupper;
 use function trim;
 
 enum FileType
@@ -62,6 +63,25 @@ enum FileType
         };
 
         return $type;
+    }
+
+    public function getName(): string
+    {
+        if ($this->isText()) {
+            return self::Text->name;
+        }
+
+        if ($this->isOther()) {
+            return $this->name;
+        }
+
+        $name = match ($this) {
+            self::Jpg => self::Jpeg->name,
+            self::Tif => self::Tiff->name,
+            default => $this->name,
+        };
+
+        return strtoupper($name);
     }
 
     /**
@@ -222,6 +242,14 @@ enum FileType
     }
 
     /**
+     * @phpstan-assert-if-true self::Jpg $this
+     */
+    public function isJpg(): bool
+    {
+        return self::Jpg === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Pdf $this
      */
     public function isPdf(): bool
@@ -243,6 +271,14 @@ enum FileType
     public function isText(): bool
     {
         return in_array($this, [self::Text, self::Txt]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Tif $this
+     */
+    public function isTif(): bool
+    {
+        return self::Tif === $this;
     }
 
     /**
