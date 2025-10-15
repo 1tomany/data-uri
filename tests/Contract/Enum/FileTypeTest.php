@@ -79,9 +79,9 @@ final class FileTypeTest extends TestCase
             [FileType::Pdf, true],
             [FileType::Png, true],
             [FileType::Text, false],
-            [FileType::Txt, false],
             [FileType::Tif, true],
             [FileType::Tiff, true],
+            [FileType::Txt, false],
         ];
 
         return $provider;
@@ -113,9 +113,9 @@ final class FileTypeTest extends TestCase
             [FileType::Pdf, true],
             [FileType::Png, false],
             [FileType::Text, true],
-            [FileType::Txt, true],
             [FileType::Tif, false],
             [FileType::Tiff, false],
+            [FileType::Txt, true],
         ];
 
         return $provider;
@@ -147,9 +147,43 @@ final class FileTypeTest extends TestCase
             [FileType::Pdf, false],
             [FileType::Png, true],
             [FileType::Text, false],
-            [FileType::Txt, false],
             [FileType::Tif, true],
             [FileType::Tiff, true],
+            [FileType::Txt, false],
+        ];
+
+        return $provider;
+    }
+
+    #[DataProvider('providerFileTypeAndIsPlainText')]
+    public function testIsPlainText(FileType $fileType, bool $isPlainText): void
+    {
+        $this->assertSame($fileType->isPlainText(), $isPlainText);
+    }
+
+    /**
+     * @return list<list<bool|FileType>>
+     */
+    public static function providerFileTypeAndIsPlainText(): array
+    {
+        $provider = [
+            [FileType::Bin, false],
+            [FileType::Bmp, false],
+            [FileType::Css, true],
+            [FileType::Csv, true],
+            [FileType::Doc, false],
+            [FileType::Docx, false],
+            [FileType::Gif, false],
+            [FileType::Heic, false],
+            [FileType::Html, true],
+            [FileType::Jpeg, false],
+            [FileType::Jpg, false],
+            [FileType::Pdf, false],
+            [FileType::Png, false],
+            [FileType::Text, true],
+            [FileType::Tif, false],
+            [FileType::Tiff, false],
+            [FileType::Txt, true],
         ];
 
         return $provider;

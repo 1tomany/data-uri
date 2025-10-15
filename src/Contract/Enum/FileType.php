@@ -65,6 +65,8 @@ enum FileType
     }
 
     /**
+     * Returns true if the file is not plaintext, false otherwise.
+     *
      * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Jpg|self::Jpeg|self::Pdf|self::Png|self::Tif|self::Tiff $this
      */
     public function isBinary(): bool
@@ -86,7 +88,9 @@ enum FileType
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Pdf|self::Txt|self::Text $this
+     * Returns true if the file represents a document, false otherwise.
+     *
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Pdf|self::Text|self::Txt $this
      */
     public function isDocument(): bool
     {
@@ -97,12 +101,14 @@ enum FileType
             self::Docx,
             self::Html,
             self::Pdf,
-            self::Txt,
             self::Text,
+            self::Txt,
         ]);
     }
 
     /**
+     * Returns true if the file represents an image, false otherwise.
+     *
      * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Jpg|self::Jpeg|self::Png|self::Tif|self::Tiff $this
      */
     public function isImage(): bool
@@ -116,6 +122,22 @@ enum FileType
             self::Png,
             self::Tif,
             self::Tiff,
+        ]);
+    }
+
+    /**
+     * Returns true if the file is plaintext, false otherwise.
+     *
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Text|self::Txt $this
+     */
+    public function isPlainText(): bool
+    {
+        return in_array($this, [
+            self::Css,
+            self::Csv,
+            self::Html,
+            self::Text,
+            self::Txt,
         ]);
     }
 
