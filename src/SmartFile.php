@@ -9,6 +9,7 @@ use OneToMany\DataUri\Exception\RuntimeException;
 
 use function base64_encode;
 use function basename;
+use function dirname;
 use function file_exists;
 use function file_get_contents;
 use function filesize;
@@ -20,6 +21,7 @@ use function max;
 use function pathinfo;
 use function random_bytes;
 use function random_int;
+use function realpath;
 use function rtrim;
 use function sprintf;
 use function strtolower;
@@ -80,6 +82,8 @@ class SmartFile implements \Stringable, SmartFileInterface
         $this->hash = $hash;
 
         // Validate non-empty path
+        $path = realpath($path) ?: '';
+
         if (empty($path = trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
@@ -196,6 +200,14 @@ class SmartFile implements \Stringable, SmartFileInterface
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function getDirectory(): string
+    {
+        return dirname($this->path);
     }
 
     /**
