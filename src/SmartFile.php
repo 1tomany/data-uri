@@ -36,7 +36,7 @@ class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @var non-empty-string
      */
-    protected string $hash;
+    protected readonly string $hash;
 
     /**
      * @var non-empty-string
