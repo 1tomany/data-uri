@@ -257,14 +257,6 @@ readonly class SmartFile implements SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function shouldSelfDestruct(): bool
-    {
-        return $this->selfDestruct;
-    }
-
-    /**
-     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
-     */
     public function equals(SmartFileInterface $file, bool $strict = false): bool
     {
         if ($this->hash === $file->getHash()) {
@@ -296,6 +288,14 @@ readonly class SmartFile implements SmartFileInterface
         }
 
         return $contents;
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function shouldSelfDestruct(): bool
+    {
+        return $this->selfDestruct;
     }
 
     /**

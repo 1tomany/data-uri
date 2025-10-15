@@ -48,8 +48,6 @@ interface SmartFileInterface extends \Stringable
      */
     public function getRemoteKey(): string;
 
-    public function shouldSelfDestruct(): bool;
-
     public function equals(self $file, bool $strict = false): bool;
 
     public function exists(): bool;
@@ -58,6 +56,8 @@ interface SmartFileInterface extends \Stringable
      * @throws RuntimeException When reading the file fails
      */
     public function read(): string;
+
+    public function shouldSelfDestruct(): bool;
 
     /**
      * @throws RuntimeException When reading or encoding the file fails
