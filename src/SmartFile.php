@@ -260,24 +260,33 @@ class SmartFile implements \Stringable, SmartFileInterface
         return $this->selfDestruct;
     }
 
-    public function equals(self $data, bool $strict = false): bool
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
+    public function equals(SmartFileInterface $file, bool $strict = false): bool
     {
-        if ($this->hash === $data->hash) {
+        if ($this->hash === $file->getHash()) {
             if (false === $strict) {
                 return true;
             }
 
-            return $this->path === $data->path;
+            return $this->path === $file->getPath();
         }
 
         return false;
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function exists(): bool
     {
         return file_exists($this->path);
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function read(): string
     {
         if (false === $contents = @file_get_contents($this->path)) {
@@ -287,6 +296,9 @@ class SmartFile implements \Stringable, SmartFileInterface
         return $contents;
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function toBase64(): string
     {
         try {
@@ -296,6 +308,9 @@ class SmartFile implements \Stringable, SmartFileInterface
         }
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
+     */
     public function toDataUri(): string
     {
         try {

@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri\Contract\Record;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Exception\RuntimeException;
 
 interface SmartFileInterface
 {
@@ -48,4 +49,23 @@ interface SmartFileInterface
     public function getRemoteKey(): string;
 
     public function shouldSelfDestruct(): bool;
+
+    public function equals(self $file, bool $strict = false): bool;
+
+    public function exists(): bool;
+
+    /**
+     * @throws RuntimeException when reading the file fails
+     */
+    public function read(): string;
+
+    /**
+     * @throws RuntimeException when reading or encoding the file fails
+     */
+    public function toBase64(): string;
+
+    /**
+     * @throws RuntimeException when reading or encoding the file fails
+     */
+    public function toDataUri(): string;
 }
