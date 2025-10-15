@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri;
 
+use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
@@ -39,13 +40,31 @@ use function unlink;
 use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
+/**
+ * Parses data from a wide variety of sources into a SmartFile object.
+ *
+ * The `data` argument can be one of the following:
+ * * A path to an existing readable file.
+ * * An object that implements SmartFileInterface.
+ * * A Data URL that follows the RFC 2397 standard (eg. "data:image/png;base64,R0lGOD...").
+ * * An HTTP or HTTPS URL to a publicly accessible file.
+ *
+ * @param mixed $data the data to parse
+ * @param ?string $name The original file name.
+ *                      If empty, one will be generated.
+ * @param ?string $directory The directory to save the file. If empty, the temporary directory will be used.
+ * @param bool $deleteOriginal delete the original file if a file path is used
+ * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component. This is useful when you want to use parse_data() in your tests.
+ *
+ * @throws InvalidArgumentException
+ */
 function parse_data(
     mixed $data,
     ?string $name = null,
     ?string $directory = null,
-    bool $cleanup = false,
+    bool $deleteOriginal = false,
     ?Filesystem $filesystem = null,
-): SmartFile {
+): SmartFileInterface {
     if (!is_string($data) && !$data instanceof \Stringable) {
         throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
     }
@@ -151,7 +170,7 @@ function parse_data(
             @fclose($handle);
         }
 
-        if (true === $cleanup) {
+        if ($deleteOriginal) {
             @unlink($data);
         }
     }
@@ -159,23 +178,33 @@ function parse_data(
     return new SmartFile($hash, $path, $name ?: null, $type, null, true, true);
 }
 
+/**
+ * Parses data that is assumed to be base64 encoded, but not encoded as a Data URL.
+ *
+ * @throws InvalidArgumentException
+ */
 function parse_base64_data(
     string $data,
     string $type,
     ?string $name = null,
     ?string $directory = null,
-    bool $cleanup = false,
+    bool $deleteOriginal = false,
     ?Filesystem $filesystem = null,
-): SmartFile {
-    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $cleanup, $filesystem);
+): SmartFileInterface {
+    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, $deleteOriginal, $filesystem);
 }
 
+/**
+ * Parses data that is assumed to be plaintext.
+ *
+ * @throws InvalidArgumentException
+ */
 function parse_text_data(
     string $text,
     ?string $name = null,
     ?string $directory = null,
     ?Filesystem $filesystem = null,
-): SmartFile {
+): SmartFileInterface {
     $extension = '.txt';
 
     if (!$name || !str_ends_with(strtolower(trim($name)), $extension)) {

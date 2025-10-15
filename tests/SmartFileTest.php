@@ -234,7 +234,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile(contents: $contents);
 
         // Arrange: Construct non-empty SmartFile
-        $file = parse_data($path, cleanup: true);
+        $file = parse_data($path, deleteOriginal: true);
 
         // Assert: Base64 encodings are identical
         $this->assertSame(base64_encode($contents), $file->toBase64());
