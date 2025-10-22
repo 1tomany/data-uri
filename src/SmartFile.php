@@ -99,7 +99,7 @@ readonly class SmartFile implements SmartFileInterface
             throw new InvalidArgumentException('The MIME type cannot be empty.');
         }
 
-        if (!\str_contains($mimeType, '/')) {
+        if (!\preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
         }
 
