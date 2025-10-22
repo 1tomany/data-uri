@@ -282,14 +282,6 @@ readonly class SmartFile implements SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function shouldAutoDelete(): bool
-    {
-        return $this->autoDelete;
-    }
-
-    /**
-     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
-     */
     public function toBase64(): string
     {
         try {

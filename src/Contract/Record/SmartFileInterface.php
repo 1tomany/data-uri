@@ -106,8 +106,6 @@ interface SmartFileInterface extends \Stringable
      */
     public function read(): string;
 
-    public function shouldAutoDelete(): bool;
-
     /**
      * @throws RuntimeException When reading or encoding the file fails
      */
