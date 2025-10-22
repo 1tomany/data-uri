@@ -19,6 +19,7 @@ use function is_file;
 use function is_readable;
 use function max;
 use function pathinfo;
+use function preg_match;
 use function random_bytes;
 use function random_int;
 use function realpath;
@@ -99,7 +100,7 @@ readonly class SmartFile implements SmartFileInterface
             throw new InvalidArgumentException('The MIME type cannot be empty.');
         }
 
-        if (!\preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
+        if (!preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
         }
 
