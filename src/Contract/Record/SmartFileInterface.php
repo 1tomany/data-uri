@@ -18,6 +18,32 @@ interface SmartFileInterface extends \Stringable
     public string $path { get; }
 
     /**
+     * @var non-empty-string
+     */
+    public string $name { get; }
+
+    /**
+     * @var ?non-empty-string
+     */
+    public ?string $extension { get; }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $mimeType { get; }
+
+    /**
+     * @var int<0, max>
+     */
+    public int $size { get; }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $remoteKey { get; }
+    public bool $selfDestruct { get; }
+
+    /**
      * @return non-empty-string
      */
     public function getHash(): string;
