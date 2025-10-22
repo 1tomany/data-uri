@@ -97,6 +97,15 @@ final class SmartFileTest extends TestCase
         $this->assertSame(0, new SmartFile('hash', 'file.txt', null, 'text/plain', null, false, false)->size);
     }
 
+    public function testConstructorSetsSizeWhenSizeIsNullAndCheckPathIsTrue(): void
+    {
+        // Arrange: Create temp file
+        $path = $this->createTempFile(contents: \bin2hex(\random_bytes(\random_int(100, 1000))));
+
+        // Assert: Filesize is calculated
+        $this->assertSame(\filesize($path), new SmartFile('hash', $path, null, 'text/plain', null, true, true)->size);
+    }
+
     public function testConstructorRequiresValidRemoteKeyLength(): void
     {
         $hash = 'h';
