@@ -35,30 +35,10 @@ readonly class SmartFile implements SmartFileInterface
 {
     public string $hash;
     public string $path;
-
-    /**
-     * @var non-empty-string
-     */
     public string $name;
-
-    /**
-     * @var ?non-empty-string
-     */
     public ?string $extension;
-
-    /**
-     * @var non-empty-string
-     */
     public string $mimeType;
-
-    /**
-     * @var int<0, max>
-     */
     public int $size;
-
-    /**
-     * @var non-empty-string
-     */
     public string $remoteKey;
     public bool $selfDestruct;
 
