@@ -44,8 +44,6 @@ interface SmartFileInterface extends \Stringable
 
     /**
      * If the object should delete the file it references when the destructor is called.
-     *
-     * @var bool
      */
     public bool $autoDelete { get; }
 
