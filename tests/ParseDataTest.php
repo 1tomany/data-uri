@@ -223,9 +223,9 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_base64_data($data, $mimeType);
 
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals($mimeType, $file->getMimeType());
-        $this->assertEquals($size, $file->getSize());
+        $this->assertFileExists($file->path);
+        $this->assertEquals($mimeType, $file->mimeType);
+        $this->assertEquals($size, $file->size);
     }
 
     /**
@@ -245,7 +245,7 @@ final class ParseDataTest extends TestCase
 
     public function testParsingTextDataGeneratesNameIfNameIsEmpty(): void
     {
-        $this->assertNotEmpty(parse_text_data('Hello, world!', '')->getName());
+        $this->assertNotEmpty(parse_text_data('Hello, world!', '')->name);
     }
 
     public function testParsingTextDataGeneratesNameIfNameExtensionIsNotDotTxt(): void
@@ -253,8 +253,8 @@ final class ParseDataTest extends TestCase
         $name = 'parse_text_example';
         $file = parse_text_data('Hello, world!', $name);
 
-        $this->assertNotEquals($name, $file->getName());
-        $this->assertStringEndsWith('.txt', $file->getName());
+        $this->assertNotEquals($name, $file->name);
+        $this->assertStringEndsWith('.txt', $file->name);
     }
 
     public function testParsingTextData(): void
@@ -264,8 +264,8 @@ final class ParseDataTest extends TestCase
 
         $file = parse_text_data($text, $name);
 
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals($name, $file->getName());
+        $this->assertFileExists($file->path);
+        $this->assertEquals($name, $file->name);
         $this->assertEquals($text, $file->read());
     }
 }
