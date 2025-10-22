@@ -127,8 +127,8 @@ final class ParseDataTest extends TestCase
         $file = parse_data($data, name: $name);
 
         // Assert: File name equals name
-        $this->assertEquals($name, $file->getName());
-        $this->assertNotEquals($name, $file->getBasename());
+        $this->assertEquals($name, $file->name);
+        $this->assertNotEquals($name, $file->basename);
     }
 
     public function testParsingFileWithoutNameUsesFileName(): void
@@ -143,8 +143,8 @@ final class ParseDataTest extends TestCase
         $file = parse_data($path, name: null, deleteOriginal: true);
 
         // Assert: Both file names are equal
-        $this->assertEquals($name, $file->getName());
-        $this->assertNotEquals($file->getName(), $file->getBasename());
+        $this->assertEquals($name, $file->name);
+        $this->assertNotEquals($file->name, $file->basename);
     }
 
     public function testParsingFileDataCanDeleteFile(): void
@@ -157,7 +157,7 @@ final class ParseDataTest extends TestCase
         $file = parse_data($path, deleteOriginal: true);
 
         // Assert: Original file is deleted
-        $this->assertFileExists($file->getPath());
+        $this->assertFileExists($file->path);
         $this->assertFileDoesNotExist($path);
     }
 
@@ -166,9 +166,9 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_data($data);
 
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals($mimeType, $file->getMimeType());
-        $this->assertEquals($size, $file->getSize());
+        $this->assertFileExists($file->path);
+        $this->assertEquals($mimeType, $file->mimeType);
+        $this->assertEquals($size, $file->size);
     }
 
     /**
@@ -200,9 +200,9 @@ final class ParseDataTest extends TestCase
     {
         $file = parse_data($data);
 
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals($mimeType, $file->getMimeType());
-        $this->assertEquals($size, $file->getSize());
+        $this->assertFileExists($file->path);
+        $this->assertEquals($mimeType, $file->mimeType);
+        $this->assertEquals($size, $file->size);
     }
 
     /**
