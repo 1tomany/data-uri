@@ -52,7 +52,7 @@ interface SmartFileInterface extends \Stringable
     public string $remoteKey { get; }
 
     /**
-     * If the object should delete the file it references when the destructor is called.
+     * If true, the file is deleted when the destructor is called.
      */
     public bool $autoDelete { get; }
 
