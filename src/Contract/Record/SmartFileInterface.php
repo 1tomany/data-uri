@@ -27,6 +27,8 @@ interface SmartFileInterface extends \Stringable
      */
     public ?string $extension { get; }
 
+    public FileType $fileType { get; }
+
     /**
      * @var non-empty-string
      */

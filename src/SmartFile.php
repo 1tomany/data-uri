@@ -37,6 +37,7 @@ readonly class SmartFile implements SmartFileInterface
     public string $path;
     public string $name;
     public ?string $extension;
+    public FileType $fileType;
     public string $mimeType;
     public int $size;
     public string $remoteKey;
@@ -90,18 +91,22 @@ readonly class SmartFile implements SmartFileInterface
         // Resolve the extension if available
         $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
 
+        // Determine the FileType based on the extension
+        $this->fileType = FileType::fromExtension($this->extension);
+
+        // Validate a non-empty MIME type
+        if (empty($mimeType = trim($mimeType))) {
+            throw new InvalidArgumentException('The MIME type cannot be empty.');
+        }
+
+        $this->mimeType = strtolower($mimeType);
+
         // Resolve the file size
         if ($checkPath && null === $size) {
             $size = @filesize($this->path);
         }
 
         $this->size = max(0, $size ?: 0);
-
-        if (empty($mimeType = trim($mimeType))) {
-            throw new InvalidArgumentException('The MIME type cannot be empty.');
-        }
-
-        $this->mimeType = strtolower($mimeType);
 
         // Generate the remote key
         $remoteKey = rtrim($this->hash.'.'.$this->extension, '.');
@@ -200,7 +205,7 @@ readonly class SmartFile implements SmartFileInterface
      */
     public function getFileType(): FileType
     {
-        return FileType::fromExtension($this->extension);
+        return $this->fileType;
     }
 
     /**
