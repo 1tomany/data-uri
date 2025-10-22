@@ -27,8 +27,8 @@ The `parse_data()` function has the following arguments:
 * `mixed $data` The data to parse.
 * `?string $name` The display name for the temporary file. This is useful for handling file uploads where the original filename is preferred over the random name PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved. This is `null` by default.
 * `?string $directory` The directory to save the temporary file in. If empty, the temporary file is saved in the directory defined by `sys_get_temp_dir()`. This is `null` by default.
-* `bool $deleteOriginal` If a file was used as the data to parse, and this is `true`, the original file will be deleted after the temporary one is created. This is `false` by default.
-* `bool $selfDestruct` Indicates to the object created if it should self destruct or not. This is `true` by default.
+* `bool $deleteOriginal` If true, and a file was used as the data, the original file will be deleted after the temporary one is created. This is `false` by default.
+* `bool $selfDestruct` If true, the object will delete the temporary file it references when the destructor is called. This is `true` by default.
 * `?Filesystem $filesystem` An instance of the Symfony Filesystem component. This is useful if you wish to use `parse_data()` in tests and want to mock the Symfony Filesystem component.
 
 #### Inside `parse_data()`
