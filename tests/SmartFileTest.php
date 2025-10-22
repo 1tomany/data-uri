@@ -11,7 +11,11 @@ use Symfony\Component\Filesystem\Path;
 
 use function base64_encode;
 use function basename;
+use function bin2hex;
+use function filesize;
 use function OneToMany\DataUri\parse_data;
+use function random_bytes;
+use function random_int;
 use function unlink;
 
 #[Group('UnitTests')]
@@ -100,10 +104,10 @@ final class SmartFileTest extends TestCase
     public function testConstructorSetsSizeWhenSizeIsNullAndCheckPathIsTrue(): void
     {
         // Arrange: Create temp file
-        $path = $this->createTempFile(contents: \bin2hex(\random_bytes(\random_int(100, 1000))));
+        $path = $this->createTempFile(contents: bin2hex(random_bytes(random_int(100, 1000))));
 
         // Assert: Filesize is calculated
-        $this->assertSame(\filesize($path), new SmartFile('hash', $path, null, 'text/plain', null, true, true)->size);
+        $this->assertSame(filesize($path), new SmartFile('hash', $path, null, 'text/plain', null, true, true)->size);
     }
 
     public function testConstructorRequiresValidRemoteKeyLength(): void
