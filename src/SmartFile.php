@@ -94,9 +94,13 @@ readonly class SmartFile implements SmartFileInterface
         // Determine the FileType based on the extension
         $this->fileType = FileType::fromExtension($this->extension);
 
-        // Validate a non-empty MIME type
+        // Validate the MIME type
         if (empty($mimeType = trim($mimeType))) {
             throw new InvalidArgumentException('The MIME type cannot be empty.');
+        }
+
+        if (!\str_contains($mimeType, '/')) {
+            throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
         }
 
         $this->mimeType = strtolower($mimeType);
