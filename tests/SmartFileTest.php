@@ -114,16 +114,16 @@ final class SmartFileTest extends TestCase
         $this->assertNotEmpty(Path::getExtension($file->getRemoteKey()));
     }
 
-    public function testDestructorDeletesTemporaryFileWhenSelfDestructIsTrue(): void
+    public function testDestructorDeletesTemporaryFileWhenAutoDeleteIsTrue(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to self destruct
+        // Act: Construct SmartFile to auto delete
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
-        // Assert: SmartFile set to delete
-        $this->assertTrue($file->shouldSelfDestruct());
+        // Assert: SmartFile set to auto delete
+        $this->assertTrue($file->shouldAutoDelete());
         $this->assertFileExists($file->getPath());
 
         // Act: Self destruct
@@ -133,17 +133,17 @@ final class SmartFileTest extends TestCase
         $this->assertFileDoesNotExist($file->getPath());
     }
 
-    public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
+    public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExistDeleted(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to self destruct
+        // Act: Construct SmartFile to auto delete
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
-        // Assert: SmartFile to delete
+        // Assert: SmartFile to auto delete
         $this->assertFileExists($file->getPath());
-        $this->assertTrue($file->shouldSelfDestruct());
+        $this->assertTrue($file->shouldAutoDelete());
 
         // Act: Manually delete file
         $this->assertTrue(unlink($file->getPath()));
@@ -156,17 +156,17 @@ final class SmartFileTest extends TestCase
         $this->assertFileDoesNotExist($file->getPath());
     }
 
-    public function testDestructorDoesNotDeleteTemporaryFileWhenSelfDestructIsFalse(): void
+    public function testDestructorDoesNotDeleteTemporaryFileWhenAutoDeleteIsFalse(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to self destruct
+        // Act: Construct SmartFile to not auto delete
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, false);
 
-        // Assert: SmartFile to not delete
+        // Assert: SmartFile to not auto delete
         $this->assertFileExists($file->getPath());
-        $this->assertFalse($file->shouldSelfDestruct());
+        $this->assertFalse($file->shouldAutoDelete());
 
         // Act: Self destruct
         $file->__destruct();

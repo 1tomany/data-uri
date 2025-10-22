@@ -40,7 +40,7 @@ readonly class SmartFile implements SmartFileInterface
     public string $mimeType;
     public int $size;
     public string $remoteKey;
-    public bool $selfDestruct;
+    public bool $autoDelete;
 
     public function __construct(
         string $hash,
@@ -49,7 +49,7 @@ readonly class SmartFile implements SmartFileInterface
         string $mimeType,
         ?int $size = null,
         bool $checkPath = true,
-        bool $selfDestruct = true,
+        bool $autoDelete = true,
     ) {
         // Validate non-empty hash
         if (empty($hash = trim($hash))) {
@@ -119,12 +119,12 @@ readonly class SmartFile implements SmartFileInterface
         }
 
         $this->remoteKey = $remoteKey;
-        $this->selfDestruct = $selfDestruct;
+        $this->autoDelete = $autoDelete;
     }
 
     public function __destruct()
     {
-        if ($this->selfDestruct) {
+        if ($this->autoDelete) {
             if ($this->exists()) {
                 @unlink($this->path);
             }
@@ -266,9 +266,9 @@ readonly class SmartFile implements SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function shouldSelfDestruct(): bool
+    public function shouldAutoDelete(): bool
     {
-        return $this->selfDestruct;
+        return $this->autoDelete;
     }
 
     /**

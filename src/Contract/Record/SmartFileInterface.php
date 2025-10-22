@@ -41,7 +41,7 @@ interface SmartFileInterface extends \Stringable
      * @var non-empty-string
      */
     public string $remoteKey { get; }
-    public bool $selfDestruct { get; }
+    public bool $autoDelete { get; }
 
     /**
      * @return non-empty-string
@@ -93,7 +93,7 @@ interface SmartFileInterface extends \Stringable
      */
     public function read(): string;
 
-    public function shouldSelfDestruct(): bool;
+    public function shouldAutoDelete(): bool;
 
     /**
      * @throws RuntimeException When reading or encoding the file fails
