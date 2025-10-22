@@ -33,41 +33,34 @@ use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements SmartFileInterface
 {
-    /**
-     * @var non-empty-string
-     */
-    protected string $hash;
+    public string $hash;
+    public string $path;
 
     /**
      * @var non-empty-string
      */
-    protected string $path;
-
-    /**
-     * @var non-empty-string
-     */
-    protected string $name;
+    public string $name;
 
     /**
      * @var ?non-empty-string
      */
-    protected ?string $extension;
+    public ?string $extension;
 
     /**
      * @var non-empty-string
      */
-    protected string $mimeType;
+    public string $mimeType;
 
     /**
      * @var int<0, max>
      */
-    protected int $size;
+    public int $size;
 
     /**
      * @var non-empty-string
      */
-    protected string $remoteKey;
-    protected bool $selfDestruct;
+    public string $remoteKey;
+    public bool $selfDestruct;
 
     public function __construct(
         string $hash,

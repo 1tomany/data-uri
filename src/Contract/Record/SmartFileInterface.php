@@ -8,6 +8,16 @@ use OneToMany\DataUri\Exception\RuntimeException;
 interface SmartFileInterface extends \Stringable
 {
     /**
+     * @var non-empty-string
+     */
+    public string $hash { get; }
+
+    /**
+    * @var non-empty-string
+    */
+    public string $path { get; }
+
+    /**
      * @return non-empty-string
      */
     public function getHash(): string;
