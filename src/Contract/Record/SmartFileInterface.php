@@ -13,8 +13,8 @@ interface SmartFileInterface extends \Stringable
     public string $hash { get; }
 
     /**
-    * @var non-empty-string
-    */
+     * @var non-empty-string
+     */
     public string $path { get; }
 
     /**
@@ -41,6 +41,12 @@ interface SmartFileInterface extends \Stringable
      * @var non-empty-string
      */
     public string $remoteKey { get; }
+
+    /**
+     * If the object should delete the file it references when the destructor is called.
+     *
+     * @var bool
+     */
     public bool $autoDelete { get; }
 
     /**
