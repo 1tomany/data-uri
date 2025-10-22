@@ -74,6 +74,29 @@ final class SmartFileTest extends TestCase
         new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
+    public function testConstructorRequiresNonEmptyMimeType(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The MIME type cannot be empty.');
+
+        new SmartFile('hash', 'file.txt', null, '', null, false, false);
+    }
+
+    public function testConstructorRequiresLooselyValidMimeType(): void
+    {
+        $mimeType = 'invalid_mime_type';
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The MIME type "'.$mimeType.'" is not valid.');
+
+        new SmartFile('hash', 'file.txt', null, $mimeType, null, false, false);
+    }
+
+    public function testConstructorSetsSizeToZeroWhenSizeIsNullAndCheckPathIsFalse(): void
+    {
+        $this->assertSame(0, new SmartFile('hash', 'file.txt', null, 'text/plain', null, false, false)->size);
+    }
+
     public function testConstructorRequiresValidRemoteKeyLength(): void
     {
         $hash = 'h';
