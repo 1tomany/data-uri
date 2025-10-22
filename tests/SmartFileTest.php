@@ -11,7 +11,11 @@ use Symfony\Component\Filesystem\Path;
 
 use function base64_encode;
 use function basename;
+use function bin2hex;
+use function filesize;
 use function OneToMany\DataUri\parse_data;
+use function random_bytes;
+use function random_int;
 use function unlink;
 
 #[Group('UnitTests')]
@@ -49,7 +53,7 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Name is set to actual file name
-        $this->assertEquals(basename($path), $file->getName());
+        $this->assertEquals(basename($path), $file->name);
     }
 
     public function testConstructorRequiresFileToExistWhenCheckPathIsTrue(): void
@@ -74,6 +78,38 @@ final class SmartFileTest extends TestCase
         new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
+    public function testConstructorRequiresNonEmptyMimeType(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The MIME type cannot be empty.');
+
+        new SmartFile('hash', 'file.txt', null, '', null, false, false);
+    }
+
+    public function testConstructorRequiresLooselyValidMimeType(): void
+    {
+        $mimeType = 'invalid_mime_type';
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The MIME type "'.$mimeType.'" is not valid.');
+
+        new SmartFile('hash', 'file.txt', null, $mimeType, null, false, false);
+    }
+
+    public function testConstructorSetsSizeToZeroWhenSizeIsNullAndCheckPathIsFalse(): void
+    {
+        $this->assertSame(0, new SmartFile('hash', 'file.txt', null, 'text/plain', null, false, false)->size);
+    }
+
+    public function testConstructorSetsSizeWhenSizeIsNullAndCheckPathIsTrue(): void
+    {
+        // Arrange: Create temp file
+        $path = $this->createTempFile(contents: bin2hex(random_bytes(random_int(100, 1000))));
+
+        // Assert: Filesize is calculated
+        $this->assertSame(filesize($path), new SmartFile('hash', $path, null, 'text/plain', null, true, true)->size);
+    }
+
     public function testConstructorRequiresValidRemoteKeyLength(): void
     {
         $hash = 'h';
@@ -96,7 +132,7 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Key has no extension
-        $this->assertEmpty(Path::getExtension($file->getRemoteKey()));
+        $this->assertEmpty(Path::getExtension($file->remoteKey));
     }
 
     public function testConstructorGeneratesRemoteKeyWithExtension(): void
@@ -111,69 +147,69 @@ final class SmartFileTest extends TestCase
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
         // Assert: Remote key generated with extension
-        $this->assertNotEmpty(Path::getExtension($file->getRemoteKey()));
+        $this->assertNotEmpty(Path::getExtension($file->remoteKey));
     }
 
-    public function testDestructorDeletesTemporaryFileWhenSelfDestructIsTrue(): void
+    public function testDestructorDeletesTemporaryFileWhenAutoDeleteIsTrue(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to self destruct
+        // Act: Construct SmartFile to auto delete
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
-        // Assert: SmartFile set to delete
-        $this->assertTrue($file->shouldSelfDestruct());
-        $this->assertFileExists($file->getPath());
+        // Assert: SmartFile set to auto delete
+        $this->assertTrue($file->autoDelete);
+        $this->assertFileExists($file->path);
 
         // Act: Self destruct
         $file->__destruct();
 
         // Assert: Destructor deleted file
-        $this->assertFileDoesNotExist($file->getPath());
+        $this->assertFileDoesNotExist($file->path);
     }
 
-    public function testDestructorDoesNotDeleteTemporaryFileWhenFileAlreadyDeleted(): void
+    public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExistDeleted(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to self destruct
+        // Act: Construct SmartFile to auto delete
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
 
-        // Assert: SmartFile to delete
-        $this->assertFileExists($file->getPath());
-        $this->assertTrue($file->shouldSelfDestruct());
+        // Assert: SmartFile to auto delete
+        $this->assertTrue($file->autoDelete);
+        $this->assertFileExists($file->path);
 
         // Act: Manually delete file
-        $this->assertTrue(unlink($file->getPath()));
-        $this->assertFileDoesNotExist($file->getPath());
+        $this->assertTrue(unlink($file->path));
+        $this->assertFileDoesNotExist($file->path);
 
         // Act: Self destruct
         $file->__destruct();
 
         // Assert: Destructor can not delete file
-        $this->assertFileDoesNotExist($file->getPath());
+        $this->assertFileDoesNotExist($file->path);
     }
 
-    public function testDestructorDoesNotDeleteTemporaryFileWhenSelfDestructIsFalse(): void
+    public function testDestructorDoesNotDeleteTemporaryFileWhenAutoDeleteIsFalse(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to self destruct
+        // Act: Construct SmartFile to not auto delete
         $file = new SmartFile('hash', $path, null, 'text/plain', null, true, false);
 
-        // Assert: SmartFile to not delete
-        $this->assertFileExists($file->getPath());
-        $this->assertFalse($file->shouldSelfDestruct());
+        // Assert: SmartFile to not auto delete
+        $this->assertFalse($file->autoDelete);
+        $this->assertFileExists($file->path);
 
         // Act: Self destruct
         $file->__destruct();
 
         // Assert: Destructor ignored file
-        $this->assertFileExists($file->getPath());
-        $this->assertTrue(unlink($file->getPath()));
+        $this->assertFileExists($file->path);
+        $this->assertTrue(unlink($file->path));
     }
 
     public function testToStringReturnsPath(): void

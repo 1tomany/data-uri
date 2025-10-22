@@ -8,6 +8,55 @@ use OneToMany\DataUri\Exception\RuntimeException;
 interface SmartFileInterface extends \Stringable
 {
     /**
+     * @var non-empty-string
+     */
+    public string $hash { get; }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $path { get; }
+
+    /**
+     * The display or client name of the file.
+     *
+     * @var non-empty-string
+     */
+    public string $name { get; }
+
+    /**
+     * The name of the file as it exists on the filesystem.
+     */
+    public string $basename { get; }
+
+    /**
+     * @var ?non-empty-string
+     */
+    public ?string $extension { get; }
+
+    public FileType $fileType { get; }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $mimeType { get; }
+
+    /**
+     * @var int<0, max>
+     */
+    public int $size { get; }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $remoteKey { get; }
+
+    /**
+     * If true, the file is deleted when the destructor is called.
+     */
+    public bool $autoDelete { get; }
+
+    /**
      * @return non-empty-string
      */
     public function getHash(): string;
@@ -56,8 +105,6 @@ interface SmartFileInterface extends \Stringable
      * @throws RuntimeException When reading the file fails
      */
     public function read(): string;
-
-    public function shouldSelfDestruct(): bool;
 
     /**
      * @throws RuntimeException When reading or encoding the file fails

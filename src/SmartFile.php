@@ -19,6 +19,7 @@ use function is_file;
 use function is_readable;
 use function max;
 use function pathinfo;
+use function preg_match;
 use function random_bytes;
 use function random_int;
 use function realpath;
@@ -33,41 +34,16 @@ use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements SmartFileInterface
 {
-    /**
-     * @var non-empty-string
-     */
-    protected string $hash;
-
-    /**
-     * @var non-empty-string
-     */
-    protected string $path;
-
-    /**
-     * @var non-empty-string
-     */
-    protected string $name;
-
-    /**
-     * @var ?non-empty-string
-     */
-    protected ?string $extension;
-
-    /**
-     * @var non-empty-string
-     */
-    protected string $mimeType;
-
-    /**
-     * @var int<0, max>
-     */
-    protected int $size;
-
-    /**
-     * @var non-empty-string
-     */
-    protected string $remoteKey;
-    protected bool $selfDestruct;
+    public string $hash;
+    public string $path;
+    public string $name;
+    public string $basename;
+    public ?string $extension;
+    public FileType $fileType;
+    public string $mimeType;
+    public int $size;
+    public string $remoteKey;
+    public bool $autoDelete;
 
     public function __construct(
         string $hash,
@@ -76,7 +52,7 @@ readonly class SmartFile implements SmartFileInterface
         string $mimeType,
         ?int $size = null,
         bool $checkPath = true,
-        bool $selfDestruct = true,
+        bool $autoDelete = true,
     ) {
         // Validate non-empty hash
         if (empty($hash = trim($hash))) {
@@ -92,14 +68,17 @@ readonly class SmartFile implements SmartFileInterface
 
         $this->path = $path;
 
-        // Resolve and validate non-empty name
-        $name = trim($name ?? '') ?: $this->getBasename();
+        // Resolve the actual file name
+        $this->basename = basename($this->path);
 
-        if (empty($name)) {
+        // Resolve the display name
+        $displayName = trim($name ?? '') ?: $this->basename;
+
+        if (empty($displayName)) {
             throw new InvalidArgumentException('The name cannot be empty.');
         }
 
-        $this->name = $name;
+        $this->name = $displayName;
 
         // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
@@ -117,18 +96,28 @@ readonly class SmartFile implements SmartFileInterface
         // Resolve the extension if available
         $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
 
+        // Determine the FileType based on the extension
+        $this->fileType = FileType::fromExtension($this->extension);
+
+        // Validate the MIME type
+        $mimeType = strtolower($mimeType);
+
+        if (empty($mimeType = trim($mimeType))) {
+            throw new InvalidArgumentException('The MIME type cannot be empty.');
+        }
+
+        if (!preg_match('/^\w+\/[-+.\w]+$/', $mimeType)) {
+            throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
+        }
+
+        $this->mimeType = $mimeType;
+
         // Resolve the file size
         if ($checkPath && null === $size) {
             $size = @filesize($this->path);
         }
 
         $this->size = max(0, $size ?: 0);
-
-        if (empty($mimeType = trim($mimeType))) {
-            throw new InvalidArgumentException('The MIME type cannot be empty.');
-        }
-
-        $this->mimeType = strtolower($mimeType);
 
         // Generate the remote key
         $remoteKey = rtrim($this->hash.'.'.$this->extension, '.');
@@ -146,12 +135,12 @@ readonly class SmartFile implements SmartFileInterface
         }
 
         $this->remoteKey = $remoteKey;
-        $this->selfDestruct = $selfDestruct;
+        $this->autoDelete = $autoDelete;
     }
 
     public function __destruct()
     {
-        if ($this->selfDestruct) {
+        if ($this->autoDelete) {
             if ($this->exists()) {
                 @unlink($this->path);
             }
@@ -211,7 +200,7 @@ readonly class SmartFile implements SmartFileInterface
      */
     public function getBasename(): string
     {
-        return basename($this->path);
+        return $this->basename;
     }
 
     /**
@@ -227,7 +216,7 @@ readonly class SmartFile implements SmartFileInterface
      */
     public function getFileType(): FileType
     {
-        return FileType::fromExtension($this->extension);
+        return $this->fileType;
     }
 
     /**
@@ -288,14 +277,6 @@ readonly class SmartFile implements SmartFileInterface
         }
 
         return $contents;
-    }
-
-    /**
-     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
-     */
-    public function shouldSelfDestruct(): bool
-    {
-        return $this->selfDestruct;
     }
 
     /**
