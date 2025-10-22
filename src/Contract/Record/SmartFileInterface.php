@@ -18,9 +18,16 @@ interface SmartFileInterface extends \Stringable
     public string $path { get; }
 
     /**
+     * The display or client name of the file.
+     *
      * @var non-empty-string
      */
     public string $name { get; }
+
+    /**
+     * The name of the file as it exists on the filesystem.
+     */
+    public string $basename { get; }
 
     /**
      * @var ?non-empty-string

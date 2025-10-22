@@ -37,6 +37,7 @@ readonly class SmartFile implements SmartFileInterface
     public string $hash;
     public string $path;
     public string $name;
+    public string $basename;
     public ?string $extension;
     public FileType $fileType;
     public string $mimeType;
@@ -67,14 +68,17 @@ readonly class SmartFile implements SmartFileInterface
 
         $this->path = $path;
 
-        // Resolve and validate non-empty name
-        $name = trim($name ?? '') ?: $this->getBasename();
+        // Resolve the actual file name
+        $this->basename = basename($this->path);
 
-        if (empty($name)) {
+        // Resolve the display name
+        $displayName = trim($name ?? '') ?: $this->basename;
+
+        if (empty($displayName)) {
             throw new InvalidArgumentException('The name cannot be empty.');
         }
 
-        $this->name = $name;
+        $this->name = $displayName;
 
         // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
@@ -196,7 +200,7 @@ readonly class SmartFile implements SmartFileInterface
      */
     public function getBasename(): string
     {
-        return basename($this->path);
+        return $this->basename;
     }
 
     /**
