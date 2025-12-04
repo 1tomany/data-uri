@@ -99,6 +99,11 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         // Determine the FileType based on the extension
         $this->fileType = FileType::fromExtension($this->extension);
 
+        // Force the MIME type for .jsonl files
+        if ($this->fileType->isJsonLines()) {
+            $mimeType = 'application/jsonl';
+        }
+
         // Validate the MIME type
         $mimeType = strtolower($mimeType);
 

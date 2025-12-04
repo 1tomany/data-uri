@@ -78,6 +78,14 @@ final class SmartFileTest extends TestCase
         new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
+    public function testConstructorSetsMimeTypeForJsonLinesFiles(): void
+    {
+        $path = $this->createTempFile('.jsonl', '{"id": 10}');
+
+        $file = new SmartFile('hash', $path, null, 'text/plain');
+        $this->assertEquals('application/jsonl', $file->getMimeType());
+    }
+
     public function testConstructorRequiresNonEmptyMimeType(): void
     {
         $this->expectException(InvalidArgumentException::class);

@@ -33,6 +33,7 @@ use function str_ends_with;
 use function stream_get_contents;
 use function stripos;
 use function strtolower;
+use function sys_get_temp_dir;
 use function trim;
 use function unlink;
 
@@ -40,14 +41,18 @@ use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
 /**
- * Parses data from a wide variety of sources into an object that
- * implements `OneToMany\DataUri\Contract\Record\SmartFileInterface`.
+ * Parses file data into a SmartFileInterface object.
  *
- * @param mixed       $data           The data to parse: an existing file, a public URL, or a Data URL
- * @param ?string     $name           Display name for the file, a random name is generated if empty
- * @param ?string     $directory      Create the temporary file in this directory, otherwise sys_get_temp_dir() is used
- * @param bool        $deleteOriginal If `true`, and `$data` Delete the original if file path is used
- * @param bool        $selfDestruct   If `true`, the object created by this function will delete the temporary file it references when the object's destructor is called
+ * This method takes a wide variety of file data and attempts to create a
+ * temporary self-destructing file that implements the SmartFileInterface
+ * interface. The data can be an existing file, a publicly accessible URL,
+ * or a data URL ("data:image/png;base64,R0lGOD...") defined by RFC 2397.
+ *
+ * @param mixed       $data           The data to parse: an existing file, a public URL, or a data URL
+ * @param ?string     $name           Display name for the temporary file; a random name is generated if empty
+ * @param ?string     $directory      Directory to create the temporary file in, `sys_get_temp_dir()` is used if empty
+ * @param bool        $deleteOriginal If `true` and `$data` is a file, the file will be deleted after the `SmartFile` object is created
+ * @param bool        $selfDestruct   If `true`, the `SmartFile` object will delete the temporary file it references when destructed
  * @param ?Filesystem $filesystem     An instance of the Symfony Filesystem component for mocks in tests
  *
  * @throws InvalidArgumentException
@@ -155,11 +160,13 @@ function parse_data(
         }
 
         // Resolve and validate the MIME type
-        $type = mime_content_type($path) ?: null;
+        $mimeType = mime_content_type($path) ?: null;
 
-        if (!$type || !str_contains($type, '/')) {
-            throw new RuntimeException(sprintf('The type "%s" is invalid.', $type));
+        if (!$mimeType || !str_contains($mimeType, '/')) {
+            throw new RuntimeException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
+
+        $smartFile = new SmartFile($hash, $path, $name ?: null, $mimeType, null, true, $selfDestruct);
     } finally {
         if (is_resource($handle)) {
             @fclose($handle);
@@ -170,7 +177,7 @@ function parse_data(
         }
     }
 
-    return new SmartFile($hash, $path, $name ?: null, $type, null, true, $selfDestruct);
+    return $smartFile;
 }
 
 /**
