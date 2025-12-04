@@ -175,7 +175,7 @@ function parse_data(
         }
     }
 
-    if ($deleteOriginal) {
+    if ($deleteOriginal && is_file($data)) {
         @unlink($data);
     }
 
