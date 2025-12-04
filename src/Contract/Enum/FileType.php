@@ -116,7 +116,7 @@ enum FileType
     /**
      * Returns true if the file represents a document, false otherwise.
      *
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Pdf|self::Text|self::Txt $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::JsonLines|self::Pdf|self::Text|self::Txt|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -126,9 +126,12 @@ enum FileType
             self::Doc,
             self::Docx,
             self::Html,
+            self::Json,
+            self::JsonLines,
             self::Pdf,
             self::Text,
             self::Txt,
+            self::Xml,
         ]);
     }
 
@@ -154,7 +157,7 @@ enum FileType
     /**
      * Returns true if the file is plaintext, false otherwise.
      *
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Text|self::Txt $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::JsonLines|self::Text|self::Txt|self::Xml $this
      */
     public function isPlainText(): bool
     {
@@ -162,8 +165,11 @@ enum FileType
             self::Css,
             self::Csv,
             self::Html,
+            self::Json,
+            self::JsonLines,
             self::Text,
             self::Txt,
+            self::Xml,
         ]);
     }
 
@@ -256,6 +262,22 @@ enum FileType
     }
 
     /**
+     * @phpstan-assert-if-true self::Json $this
+     */
+    public function isJson(): bool
+    {
+        return self::Json === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::JsonLines $this
+     */
+    public function isJsonLines(): bool
+    {
+        return self::JsonLines === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Pdf $this
      */
     public function isPdf(): bool
@@ -293,6 +315,14 @@ enum FileType
     public function isTiff(): bool
     {
         return in_array($this, [self::Tiff, self::Tif]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Xml $this
+     */
+    public function isXml(): bool
+    {
+        return self::Xml === $this;
     }
 
     /**
