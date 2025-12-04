@@ -47,12 +47,12 @@ use const PATHINFO_EXTENSION;
  * interface. The data can be an existing file, a publicly accessible URL,
  * or a Data URL ("data:image/png;base64,R0lGOD...") defined by RFC 2397.
  *
- * @param mixed       $data           The data to parse: an existing file, a public URL, or an RFC 2397 Data URL.
- * @param ?string     $displayName    Display name for the temporary file; a random name is generated if empty.
- * @param ?string     $directory      Directory to create the temporary file in, sys_get_temp_dir() is used if empty.
- * @param bool        $deleteOriginal If true and $data is a file, the file will be deleted after the SmartFile object is created.
- * @param bool        $selfDestruct   If true, the SmartFile object will delete the temporary file it references when destructed.
- * @param ?Filesystem $filesystem     An instance of the Symfony Filesystem component used for mocks in tests.
+ * @param mixed       $data           The data to parse: an existing file, a public URL, or an RFC 2397 Data URL
+ * @param ?string     $displayName    Display name for the temporary file; a random name is generated if empty
+ * @param ?string     $directory      Directory to create the temporary file in, sys_get_temp_dir() is used if empty
+ * @param bool        $deleteOriginal If true and $data is a file, the file will be deleted after the SmartFile object is created
+ * @param bool        $selfDestruct   If true, the SmartFile object will delete the temporary file it references when destructed
+ * @param ?Filesystem $filesystem     An instance of the Symfony Filesystem component used for mocks in tests
  *
  * @throws InvalidArgumentException
  * @throws RuntimeException
