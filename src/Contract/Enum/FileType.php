@@ -21,12 +21,15 @@ enum FileType
     case Html;
     case Jpeg;
     case Jpg;
+    case Json;
+    case JsonLines;
     case Pdf;
     case Png;
     case Text;
     case Tif;
     case Tiff;
     case Txt;
+    case Xml;
     case Other;
 
     public static function fromExtension(?string $extension): self
@@ -53,12 +56,15 @@ enum FileType
             'html' => self::Html,
             'jpeg' => self::Jpeg,
             'jpg' => self::Jpeg,
+            'json' => self::Json,
+            'jsonl' => self::JsonLines,
             'pdf' => self::Pdf,
             'png' => self::Png,
             'text' => self::Text,
             'tif' => self::Tiff,
             'tiff' => self::Tiff,
             'txt' => self::Text,
+            'xml' => self::Xml,
             default => self::Other,
         };
 
