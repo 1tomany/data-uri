@@ -101,7 +101,7 @@ function parse_data(
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // Resolve the file name
+        // Resolve the display name
         $displayName = trim($displayName ?? '');
 
         if (!$displayName) {
@@ -115,14 +115,14 @@ function parse_data(
         $filesystem ??= new Filesystem();
 
         try {
-            // Create temporary file with unique prefix
+            // Create temporary file with a unique prefix
             $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
         }
 
         if (!$isFile) {
-            // Attempt to decode the file data
+            // Attempt to decode the data
             if (!$handle = @fopen($data, 'rb')) {
                 throw new InvalidArgumentException('Failed to decode the data.');
             }
@@ -167,7 +167,7 @@ function parse_data(
         try {
             $filesystem->rename($tempFilePath, $filePath, true);
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Failed to append extension "%s" to file "%s".', $extension, $tempFilePath), previous: $e);
+            throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempFilePath, $filePath), previous: $e);
         }
 
         if (false === $hash = hash_file('sha256', $filePath)) {
