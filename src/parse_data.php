@@ -199,12 +199,12 @@ function parse_data(
 function parse_base64_data(
     string $data,
     string $type,
-    ?string $name = null,
+    ?string $displayName = null,
     ?string $directory = null,
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
-    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $name, $directory, false, $selfDestruct, $filesystem);
+    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $displayName, $directory, false, $selfDestruct, $filesystem);
 }
 
 /**
@@ -215,16 +215,16 @@ function parse_base64_data(
  */
 function parse_text_data(
     string $text,
-    ?string $name = null,
+    ?string $displayName = null,
     ?string $directory = null,
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
     $extension = '.txt';
 
-    if (!$name || !str_ends_with(strtolower(trim($name)), $extension)) {
-        $name = implode('', [bin2hex(random_bytes(6)), $extension]);
+    if (!$displayName || !str_ends_with(strtolower(trim($displayName)), $extension)) {
+        $displayName = implode('', [bin2hex(random_bytes(6)), $extension]);
     }
 
-    return parse_base64_data(base64_encode($text), 'text/plain', $name, $directory, $selfDestruct, $filesystem);
+    return parse_base64_data(base64_encode($text), 'text/plain', $displayName, $directory, $selfDestruct, $filesystem);
 }
