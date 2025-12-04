@@ -182,6 +182,7 @@ final class ParseDataTest extends TestCase
             $this->assertSame($ioException, $e->getPrevious());
         }
 
+        // Assert: Original file exists
         $this->assertFileExists($path);
     }
 
