@@ -4,6 +4,7 @@ namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
+use OneToMany\DataUri\Exception\AssertValidMimeType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 
@@ -18,7 +19,6 @@ use function is_file;
 use function is_readable;
 use function max;
 use function pathinfo;
-use function preg_match;
 use function random_bytes;
 use function random_int;
 use function realpath;
@@ -109,19 +109,9 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         }
 
         // Validate the MIME type
-        $mimeType = strtolower($mimeType);
+        $this->mimeType = AssertValidMimeType::assert($mimeType);
 
-        if (empty($mimeType = trim($mimeType))) {
-            throw new InvalidArgumentException('The MIME type cannot be empty.');
-        }
-
-        if (!preg_match('/^\w+\/[-+.\w]+$/', $mimeType)) {
-            throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
-        }
-
-        $this->mimeType = $mimeType;
-
-        // Resolve the file size
+        // Calculate the file size
         if ($checkPath && null === $size) {
             $size = @filesize($this->path);
         }

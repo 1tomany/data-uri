@@ -243,6 +243,16 @@ final class ParseDataTest extends TestCase
         ];
     }
 
+    public function testParsingBase64DataRequiresValidMimeType(): void
+    {
+        $mimeType = 'invalid_mime_type';
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The MIME type "'.$mimeType.'" is invalid.');
+
+        parse_base64_data('SGVsbG8sIHdvcmxkIQ==', $mimeType);
+    }
+
     #[DataProvider('providerBase64DataAndMetadata')]
     public function testParsingBase64Data(string $data, string $mimeType, int $size): void
     {

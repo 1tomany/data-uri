@@ -7,6 +7,9 @@ use OneToMany\DataUri\Exception\RuntimeException;
 
 interface SmartFileInterface extends \Stringable
 {
+    /**
+     * Hashes must be at least four characters so the remote key directories can be generated.
+     */
     public const int MINIMUM_HASH_LENGTH = 4;
 
     /**
