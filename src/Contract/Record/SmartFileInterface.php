@@ -7,6 +7,8 @@ use OneToMany\DataUri\Exception\RuntimeException;
 
 interface SmartFileInterface extends \Stringable
 {
+    public const int MINIMUM_HASH_LENGTH = 4;
+
     /**
      * @var non-empty-string
      */

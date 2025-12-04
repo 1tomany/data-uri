@@ -59,6 +59,11 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
             throw new InvalidArgumentException('The hash cannot be empty.');
         }
 
+        // Validate minimum hash length
+        if (strlen($hash) < self::MINIMUM_HASH_LENGTH) {
+            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, self::MINIMUM_HASH_LENGTH));
+        }
+
         $this->hash = $hash;
 
         // Validate non-empty path
@@ -124,19 +129,11 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
 
         $this->size = max(0, $size ?: 0);
 
-        // Generate the remote key
-        $remoteKey = rtrim($this->hash.'.'.$this->extension, '.');
+        // Generate the remote key using the first four characters of the hash
+        $remoteKey = substr($this->hash, 0, 2).'/'.substr($this->hash, 2, 2).'/'.$this->hash;
 
-        if ($prefix = substr($this->hash, 2, 2)) {
-            $remoteKey = implode('/', [$prefix, $remoteKey]);
-        }
-
-        if ($prefix = substr($this->hash, 0, 2)) {
-            $remoteKey = implode('/', [$prefix, $remoteKey]);
-        }
-
-        if (strlen($remoteKey) < 8) {
-            throw new RuntimeException(sprintf('The remote key "%s" is invalid because it is too short. To fix this, ensure the hash "%s" is four or more characters.', $remoteKey, $hash));
+        if (null !== $this->extension) {
+            $remoteKey = $remoteKey.'.'.$this->extension;
         }
 
         $this->remoteKey = $remoteKey;
