@@ -110,7 +110,7 @@ final class SmartFileTest extends TestCase
         $mimeType = 'invalid_mime_type';
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The MIME type "'.$mimeType.'" is not valid.');
+        $this->expectExceptionMessage('The MIME type "'.$mimeType.'" is invalid.');
 
         new SmartFile('hash', 'file.txt', null, $mimeType, null, false, false);
     }

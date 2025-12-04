@@ -176,7 +176,11 @@ function parse_data(
         // Resolve and validate the MIME type
         $mimeType = mime_content_type($filePath) ?: null;
 
-        if (!$mimeType || !str_contains($mimeType, '/')) {
+        if (!$mimeType) {
+            throw new RuntimeException('Failed to resolve a MIME type for the data.');
+        }
+
+        if (!preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
             throw new RuntimeException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
 

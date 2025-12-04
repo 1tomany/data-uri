@@ -116,7 +116,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         }
 
         if (!preg_match(self::MIME_TYPE_REGEX, $mimeType)) {
-            throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
+            throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
 
         $this->mimeType = $mimeType;
