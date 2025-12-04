@@ -124,7 +124,7 @@ final class ParseDataTest extends TestCase
         ]);
 
         // Act: Parse data with name
-        $file = parse_data($data, name: $name);
+        $file = parse_data($data, displayName: $name);
 
         // Assert: File name equals name
         $this->assertEquals($name, $file->name);
@@ -140,7 +140,7 @@ final class ParseDataTest extends TestCase
         $this->assertStringEndsWith($name, $path);
 
         // Act: Parse data with null name
-        $file = parse_data($path, name: null, deleteOriginal: true);
+        $file = parse_data($path, displayName: null, deleteOriginal: true);
 
         // Assert: Both file names are equal
         $this->assertEquals($name, $file->name);

@@ -49,18 +49,20 @@ use const PATHINFO_EXTENSION;
  * or a data URL ("data:image/png;base64,R0lGOD...") defined by RFC 2397.
  *
  * @param mixed       $data           The data to parse: an existing file, a public URL, or a data URL
- * @param ?string     $name           Display name for the temporary file; a random name is generated if empty
- * @param ?string     $directory      Directory to create the temporary file in, `sys_get_temp_dir()` is used if empty
- * @param bool        $deleteOriginal If `true` and `$data` is a file, the file will be deleted after the `SmartFile` object is created
- * @param bool        $selfDestruct   If `true`, the `SmartFile` object will delete the temporary file it references when destructed
+ * @param ?string     $displayName    Display name for the temporary file; a random name is generated if empty
+ * @param ?string     $directory      Directory to create the temporary file in, sys_get_temp_dir() is used if empty
+ * @param bool        $deleteOriginal If true and $data is a file, the file will be deleted after the `SmartFile` object is created
+ * @param bool        $selfDestruct   If true, the SmartFile object will delete the temporary file it references when destructed
  * @param ?Filesystem $filesystem     An instance of the Symfony Filesystem component for mocks in tests
  *
  * @throws InvalidArgumentException
  * @throws RuntimeException
+ *
+ * @author Vic Cherubini <vcherubini@gmail.com>
  */
 function parse_data(
     mixed $data,
-    ?string $name = null,
+    ?string $displayName = null,
     ?string $directory = null,
     bool $deleteOriginal = false,
     bool $selfDestruct = true,
@@ -94,17 +96,17 @@ function parse_data(
         }
 
         // Resolve the file name
-        $name = trim($name ?? '');
+        $displayName = trim($displayName ?? '');
 
-        if (empty($name)) {
+        if (empty($displayName)) {
             if (is_file($data)) {
-                $name = $data;
+                $displayName = $data;
             } elseif (0 === stripos($data, 'http')) {
-                $name = parse_url($data)['path'] ?? '';
+                $displayName = parse_url($data)['path'] ?? '';
             }
         }
 
-        $name = basename($name);
+        $displayName = basename($displayName);
 
         // Attempt to parse the file data
         if (!$handle = @fopen($data, 'rb')) {
@@ -136,7 +138,7 @@ function parse_data(
         }
 
         // Attempt to resolve the extension
-        if (!$extension = pathinfo($name, PATHINFO_EXTENSION)) {
+        if (!$extension = pathinfo($displayName, PATHINFO_EXTENSION)) {
             $exts = new \finfo(FILEINFO_EXTENSION)->file($temp);
 
             if ($exts && !str_contains($exts, '?')) {
@@ -166,15 +168,15 @@ function parse_data(
             throw new RuntimeException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
 
-        $smartFile = new SmartFile($hash, $path, $name ?: null, $mimeType, null, true, $selfDestruct);
+        $smartFile = new SmartFile($hash, $path, $displayName ?: null, $mimeType, null, true, $selfDestruct);
     } finally {
         if (is_resource($handle)) {
             @fclose($handle);
         }
+    }
 
-        if ($deleteOriginal) {
-            @unlink($data);
-        }
+    if ($deleteOriginal) {
+        @unlink($data);
     }
 
     return $smartFile;
