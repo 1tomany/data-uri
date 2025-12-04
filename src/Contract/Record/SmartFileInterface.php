@@ -13,11 +13,6 @@ interface SmartFileInterface extends \Stringable
     public const int MINIMUM_HASH_LENGTH = 4;
 
     /**
-     * A very basic regex to validate that a MIME type follows the standard format.
-     */
-    public const string MIME_TYPE_REGEX = '/^\w+\/[-+.\w]+$/i';
-
-    /**
      * @var non-empty-string
      */
     public string $hash { get; }

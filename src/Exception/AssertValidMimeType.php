@@ -2,8 +2,6 @@
 
 namespace OneToMany\DataUri\Exception;
 
-use OneToMany\DataUri\Contract\Record\SmartFileInterface;
-
 use function preg_match;
 use function sprintf;
 use function strtolower;
@@ -26,7 +24,7 @@ final readonly class AssertValidMimeType
             throw new InvalidArgumentException('The MIME type cannot be empty.');
         }
 
-        if (!preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
+        if (!preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
 
