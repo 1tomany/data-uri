@@ -26,6 +26,6 @@ final readonly class AssertValidMimeType
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
 
-        return strtolower($mimeType); // @phpstan-ignore-line
+        return strtolower($mimeType);
     }
 }
