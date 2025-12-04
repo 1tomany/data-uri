@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
+use OneToMany\DataUri\Exception\AssertValidMimeType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
@@ -26,7 +27,6 @@ use function is_writable;
 use function mime_content_type;
 use function parse_url;
 use function pathinfo;
-use function preg_match;
 use function random_bytes;
 use function rtrim;
 use function sprintf;
@@ -181,11 +181,7 @@ function parse_data(
             throw new RuntimeException('Failed to resolve a MIME type for the data.');
         }
 
-        if (!preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
-            throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
-        }
-
-        $smartFile = new SmartFile($hash, $filePath, $displayName ?: null, $mimeType, null, true, $selfDestruct);
+        $smartFile = new SmartFile($hash, $filePath, $displayName ?: null, AssertValidMimeType::assert($mimeType), null, true, $selfDestruct);
     } finally {
         if (is_resource($handle)) {
             @fclose($handle);
@@ -217,11 +213,7 @@ function parse_base64_data(
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
-    if (!preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
-        throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
-    }
-
-    return parse_data(sprintf('data:%s;base64,%s', $mimeType, $data), $displayName, $directory, false, $selfDestruct, $filesystem);
+    return parse_data(sprintf('data:%s;base64,%s', AssertValidMimeType::assert($mimeType), $data), $displayName, $directory, false, $selfDestruct, $filesystem);
 }
 
 /**
