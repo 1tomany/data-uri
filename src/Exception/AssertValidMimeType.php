@@ -22,6 +22,10 @@ final readonly class AssertValidMimeType
     {
         $mimeType = trim($mimeType ?? '');
 
+        if (!$mimeType) {
+            throw new InvalidArgumentException('The MIME type cannot be empty.');
+        }
+
         if (!preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
