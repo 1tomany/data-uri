@@ -206,13 +206,13 @@ function parse_data(
  */
 function parse_base64_data(
     string $data,
-    string $type,
+    string $mimeType,
     ?string $displayName = null,
     ?string $directory = null,
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
-    return parse_data(sprintf('data:%s;base64,%s', $type, $data), $displayName, $directory, false, $selfDestruct, $filesystem);
+    return parse_data(sprintf('data:%s;base64,%s', $mimeType, $data), $displayName, $directory, false, $selfDestruct, $filesystem);
 }
 
 /**
