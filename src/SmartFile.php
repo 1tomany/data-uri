@@ -115,7 +115,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
             throw new InvalidArgumentException('The MIME type cannot be empty.');
         }
 
-        if (!preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
+        if (!preg_match(self::MIME_TYPE_REGEX, $mimeType)) {
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
         }
 

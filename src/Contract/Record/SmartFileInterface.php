@@ -8,6 +8,7 @@ use OneToMany\DataUri\Exception\RuntimeException;
 interface SmartFileInterface extends \Stringable
 {
     public const int MINIMUM_HASH_LENGTH = 4;
+    public const string MIME_TYPE_REGEX = '/^\w+\/[-+.\w]+$/i';
 
     /**
      * @var non-empty-string
