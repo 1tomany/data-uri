@@ -40,7 +40,7 @@ This function is to be used when the data is assumed to be base64 encoded but NO
 The `parse_base64_data()` function has the following arguments:
 
 * `string $data` The base64 encoded data to parse.
-* `string $type` The MIME type of the data to parse.
+* `string $mimeType` The MIME type of the data to parse.
 * `?string $displayName` See `parse_data()`.
 * `?string $directory` See `parse_data()`.
 * `bool $selfDestruct` See `parse_data()`.

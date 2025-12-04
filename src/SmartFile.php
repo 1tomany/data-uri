@@ -115,13 +115,13 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
             throw new InvalidArgumentException('The MIME type cannot be empty.');
         }
 
-        if (!preg_match('/^\w+\/[-+.\w]+$/', $mimeType)) {
+        if (!preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is not valid.', $mimeType));
         }
 
         $this->mimeType = $mimeType;
 
-        // Resolve the file size
+        // Calculate the file size
         if ($checkPath && null === $size) {
             $size = @filesize($this->path);
         }
