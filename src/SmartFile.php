@@ -109,12 +109,6 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         }
 
         // Validate the MIME type
-        $mimeType = strtolower(trim($mimeType));
-
-        if (!$mimeType) {
-            throw new InvalidArgumentException('The MIME type cannot be empty.');
-        }
-
         $this->mimeType = AssertValidMimeType::assert($mimeType);
 
         // Calculate the file size
