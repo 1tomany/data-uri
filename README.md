@@ -39,19 +39,19 @@ This function is to be used when the data is assumed to be base64 encoded but NO
 
 The `parse_base64_data()` function has the following arguments:
 
-* `string $data` The base64 encoded data to parse.
-* `string $mimeType` The MIME type of the data to parse.
+* `string $data` The base64 encoded data to decode.
+* `string $mimeType` The MIME type of the data to decode.
 * `?string $displayName` See `parse_data()`.
 * `?string $directory` See `parse_data()`.
 * `bool $selfDestruct` See `parse_data()`.
 * `?Filesystem $filesystem` See `parse_data()`.
 
 ### `parse_text_data()`
-This function is to be used when the data is plaintext.
+This function is to be used when the data is known to be plaintext.
 
 The `parse_text_data()` function has the following arguments:
 
-* `string $text` The plaintext data to use as the file contents.
+* `string $text` The text data to use as the file contents.
 * `?string $displayName` See `parse_data()`.
 * `?string $directory` See `parse_data()`.
 * `bool $selfDestruct` See `parse_data()`.
