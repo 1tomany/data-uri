@@ -7,7 +7,14 @@ use OneToMany\DataUri\Exception\RuntimeException;
 
 interface SmartFileInterface extends \Stringable
 {
+    /**
+     * Hashes must be at least four characters so the remote key directories can be generated.
+     */
     public const int MINIMUM_HASH_LENGTH = 4;
+
+    /**
+     * A very basic regex to validate that a MIME type follows the standard format.
+     */
     public const string MIME_TYPE_REGEX = '/^\w+\/[-+.\w]+$/i';
 
     /**
