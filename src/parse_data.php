@@ -40,14 +40,15 @@ use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
 /**
- * Parses data from a wide variety of sources into an object that implements `OneToMany\DataUri\Contract\Record\SmartFileInterface`.
+ * Parses data from a wide variety of sources into an object that
+ * implements `OneToMany\DataUri\Contract\Record\SmartFileInterface`.
  *
- * @param mixed $data The data to parse: an existing file, a public URL, or a Data URL (eg. "data:image/png;base64,R0lGOD...")
- * @param ?string $name Display name for the file, a randomly generated name is used if empty
- * @param ?string $directory Create the temporary file in this directory, otherwise sys_get_temp_dir() is used
- * @param bool $deleteOriginal Delete the original if file path is used
- * @param bool $selfDestruct Indicate to the SmartFileInterface object created to self destruct
- * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component useful for mocks in tests
+ * @param mixed       $data           The data to parse: an existing file, a public URL, or a Data URL (eg. "data:image/png;base64,R0lGOD...")
+ * @param ?string     $name           Display name for the file, a randomly generated name is used if empty
+ * @param ?string     $directory      Create the temporary file in this directory, otherwise sys_get_temp_dir() is used
+ * @param bool        $deleteOriginal Delete the original if file path is used
+ * @param bool        $selfDestruct   Indicate to the SmartFileInterface object created to self destruct
+ * @param ?Filesystem $filesystem     An instance of the Symfony Filesystem component useful for mocks in tests
  *
  * @throws InvalidArgumentException
  * @throws RuntimeException
