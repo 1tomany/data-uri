@@ -73,6 +73,10 @@ enum FileType
 
     public function getName(): string
     {
+        if ($this->isJsonLines()) {
+            return 'JSON Lines';
+        }
+
         if ($this->isText()) {
             return self::Text->name;
         }
