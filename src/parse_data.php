@@ -26,6 +26,7 @@ use function is_writable;
 use function mime_content_type;
 use function parse_url;
 use function pathinfo;
+use function preg_match;
 use function random_bytes;
 use function rtrim;
 use function sprintf;
@@ -180,7 +181,7 @@ function parse_data(
             throw new RuntimeException('Failed to resolve a MIME type for the data.');
         }
 
-        if (!\preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
+        if (!preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
             throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
 
@@ -216,7 +217,7 @@ function parse_base64_data(
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
-    if (!\preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
+    if (!preg_match(SmartFileInterface::MIME_TYPE_REGEX, $mimeType)) {
         throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
     }
 
