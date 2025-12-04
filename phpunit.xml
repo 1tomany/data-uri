@@ -4,7 +4,7 @@
         <ini name="error_reporting" value="-1"/>
     </php>
     <testsuites>
-        <testsuite name="data-uri Test Suite">
+        <testsuite name="Data URI Test Suite">
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>
