@@ -78,12 +78,7 @@ function parse_data(
     $handle = null;
 
     try {
-        // Don't even bother doing filesystem
-        if (strlen($data) > \PHP_MAXPATHLEN) {
-            $isFile = $deleteOriginal = false;
-        } else {
-            $isFile = is_file($data);
-        }
+        $isFile = is_file($data);
 
         if (!$isFile && is_dir($data)) {
             throw new InvalidArgumentException('The data cannot be a directory.');
