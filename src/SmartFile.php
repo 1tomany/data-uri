@@ -32,7 +32,7 @@ use function unlink;
 
 use const PATHINFO_EXTENSION;
 
-readonly class SmartFile implements SmartFileInterface
+readonly class SmartFile implements \Stringable, SmartFileInterface
 {
     public string $hash;
     public string $path;
