@@ -110,17 +110,6 @@ function parse_data(
             }
         }
 
-        $displayName = basename($displayName);
-
-        // Attempt to parse the file data
-        if (!$handle = @fopen($data, 'rb')) {
-            if ($isFile) {
-                throw new InvalidArgumentException(sprintf('Failed to decode the file "%s".', $data));
-            }
-
-            throw new InvalidArgumentException('Failed to decode the data.');
-        }
-
         $filesystem ??= new Filesystem();
 
         try {
@@ -130,18 +119,34 @@ function parse_data(
             throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
         }
 
-        try {
-            if (false === $contents = stream_get_contents($handle)) {
-                throw new RuntimeException('Failed to get the data contents.');
+        if (!$isFile) {
+            // Attempt to decode the file data
+            if (!$handle = @fopen($data, 'rb')) {
+                throw new InvalidArgumentException('Failed to decode the data.');
             }
 
-            // Write data to the temporary file
-            $filesystem->dumpFile($tempFilePath, $contents);
-        } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Failed to write data to "%s".', $tempFilePath), previous: $e);
+            try {
+                if (false === $contents = stream_get_contents($handle)) {
+                    throw new RuntimeException('Failed to get the data contents.');
+                }
+
+                // Write data to the temporary file
+                $filesystem->dumpFile($tempFilePath, $contents);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Failed to write data to "%s".', $tempFilePath), previous: $e);
+            }
+        } else {
+            try {
+                // Copy the source file to the temporary file
+                $filesystem->copy($data, $tempFilePath, true);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Failed to copy "%s" to "%s".', $data, $tempFilePath), previous: $e);
+            }
         }
 
         // Attempt to resolve the extension
+        $displayName = basename($displayName);
+
         if (!$extension = pathinfo($displayName, PATHINFO_EXTENSION)) {
             $extensions = new \finfo(FILEINFO_EXTENSION)->file($tempFilePath);
 
@@ -152,27 +157,29 @@ function parse_data(
             }
         }
 
-        // Rename the temporary file with the extension if found
-        $path = !empty($extension) ? $tempFilePath.'.'.strtolower($extension) : $tempFilePath;
+        $extension = $extension ? strtolower($extension) : null;
+
+        // Rename the temporary file with the extension
+        $filePath = rtrim($tempFilePath.'.'.$extension, '.');
 
         try {
-            $filesystem->rename($tempFilePath, $path, true);
+            $filesystem->rename($tempFilePath, $filePath, true);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to append extension "%s" to file "%s".', $extension, $tempFilePath), previous: $e);
         }
 
-        if (false === $hash = hash_file('sha256', $path)) {
-            throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $path));
+        if (false === $hash = hash_file('sha256', $filePath)) {
+            throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $filePath));
         }
 
         // Resolve and validate the MIME type
-        $mimeType = mime_content_type($path) ?: null;
+        $mimeType = mime_content_type($filePath) ?: null;
 
         if (!$mimeType || !str_contains($mimeType, '/')) {
             throw new RuntimeException(sprintf('The MIME type "%s" is invalid.', $mimeType));
         }
 
-        $smartFile = new SmartFile($hash, $path, $displayName ?: null, $mimeType, null, true, $selfDestruct);
+        $smartFile = new SmartFile($hash, $filePath, $displayName ?: null, $mimeType, null, true, $selfDestruct);
     } finally {
         if (is_resource($handle)) {
             @fclose($handle);
@@ -180,7 +187,7 @@ function parse_data(
     }
 
     try {
-        // Attempt to delete the original file
+        // Delete the original file
         if ($deleteOriginal && $isFile) {
             $filesystem->remove($data);
         }
