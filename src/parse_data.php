@@ -35,7 +35,6 @@ use function stripos;
 use function strtolower;
 use function sys_get_temp_dir;
 use function trim;
-use function unlink;
 
 use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
@@ -79,7 +78,9 @@ function parse_data(
     $handle = null;
 
     try {
-        if (is_dir($data)) {
+        $isFile = is_file($data);
+
+        if (!$isFile && is_dir($data)) {
             throw new InvalidArgumentException('The data cannot be a directory.');
         }
 
@@ -87,19 +88,22 @@ function parse_data(
             throw new InvalidArgumentException('The data cannot contain non-printable or NULL bytes.');
         }
 
-        if (!is_writable($directory ??= sys_get_temp_dir())) {
+        // Resolve the directory to save the temporary file in
+        $directory = trim($directory ?? '') ?: sys_get_temp_dir();
+
+        if (!is_dir($directory) || !is_writable($directory)) {
             throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $directory));
         }
 
-        if (is_file($data) && !is_readable($data)) {
+        if ($isFile && !is_readable($data)) {
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
         // Resolve the file name
         $displayName = trim($displayName ?? '');
 
-        if (empty($displayName)) {
-            if (is_file($data)) {
+        if (!$displayName) {
+            if ($isFile) {
                 $displayName = $data;
             } elseif (0 === stripos($data, 'http')) {
                 $displayName = parse_url($data)['path'] ?? '';
@@ -110,7 +114,7 @@ function parse_data(
 
         // Attempt to parse the file data
         if (!$handle = @fopen($data, 'rb')) {
-            if (is_file($data)) {
+            if ($isFile) {
                 throw new InvalidArgumentException(sprintf('Failed to decode the file "%s".', $data));
             }
 
@@ -139,16 +143,16 @@ function parse_data(
 
         // Attempt to resolve the extension
         if (!$extension = pathinfo($displayName, PATHINFO_EXTENSION)) {
-            $exts = new \finfo(FILEINFO_EXTENSION)->file($temp);
+            $extensions = new \finfo(FILEINFO_EXTENSION)->file($temp);
 
-            if ($exts && !str_contains($exts, '?')) {
-                $extension = explode('/', $exts)[0];
+            if ($extensions && !str_contains($extensions, '?')) {
+                $extension = explode('/', $extensions)[0];
             } else {
                 $extension = null;
             }
         }
 
-        // Rename the file with extension
+        // Rename the temporary file with the extension if found
         $path = !empty($extension) ? $temp.'.'.strtolower($extension) : $temp;
 
         try {
@@ -175,8 +179,12 @@ function parse_data(
         }
     }
 
-    if ($deleteOriginal && is_file($data)) {
-        @unlink($data);
+    try {
+        // Attempt to delete the original file
+        if ($deleteOriginal && $isFile) {
+            $filesystem->remove($data);
+        }
+    } catch (FilesystemExceptionInterface $e) {
     }
 
     return $smartFile;
