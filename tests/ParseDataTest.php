@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri\Tests;
 
+use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use org\bovigo\vfs\vfsStream;
@@ -124,7 +125,7 @@ final class ParseDataTest extends TestCase
         ]);
 
         // Act: Parse data with name
-        $file = parse_data($data, name: $name);
+        $file = parse_data($data, displayName: $name);
 
         // Assert: File name equals name
         $this->assertEquals($name, $file->name);
@@ -140,25 +141,49 @@ final class ParseDataTest extends TestCase
         $this->assertStringEndsWith($name, $path);
 
         // Act: Parse data with null name
-        $file = parse_data($path, name: null, deleteOriginal: true);
+        $file = parse_data($path, displayName: null, deleteOriginal: true);
 
         // Assert: Both file names are equal
         $this->assertEquals($name, $file->name);
         $this->assertNotEquals($file->name, $file->basename);
     }
 
-    public function testParsingFileDataCanDeleteFile(): void
+    public function testParsingFileDataCanDeleteOriginalFile(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
         $this->assertFileExists($path);
 
-        // Act: Parse data and delete file
+        // Act: Parse data and delete original file
         $file = parse_data($path, deleteOriginal: true);
 
         // Assert: Original file is deleted
         $this->assertFileExists($file->path);
         $this->assertFileDoesNotExist($path);
+    }
+
+    public function testParsingFileDataDoesNotDeleteOriginalFileWhenParsingFails(): void
+    {
+        // Arrange: Create temp file
+        $path = $this->createTempFile();
+        $this->assertFileExists($path);
+
+        // Arrange: Filesystem exception to be thrown
+        $ioException = new IOException('Error creating temp file.');
+
+        // Arrange: Mock filesystem library
+        $filesystem = $this->createMock(Filesystem::class);
+        $filesystem->expects($this->once())->method('tempnam')->willThrowException($ioException);
+
+        try {
+            // Act: Parse data with a parsing failure
+            parse_data($path, deleteOriginal: true, filesystem: $filesystem);
+        } catch (DataUriExceptionInterface $e) {
+            $this->assertSame($ioException, $e->getPrevious());
+        }
+
+        // Assert: Original file exists
+        $this->assertFileExists($path);
     }
 
     #[DataProvider('providerDataAndMetadata')]

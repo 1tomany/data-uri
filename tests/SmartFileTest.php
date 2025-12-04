@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri\Tests;
 
+use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\SmartFile;
@@ -34,6 +35,16 @@ final class SmartFileTest extends TestCase
         $this->expectExceptionMessage('The hash cannot be empty.');
 
         new SmartFile('', '/path/to/file.txt', null, 'text/plain');
+    }
+
+    public function testConstructorRequiresValidHashLength(): void
+    {
+        $hash = 'h';
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The hash "'.$hash.'" must be '.SmartFileInterface::MINIMUM_HASH_LENGTH.' or more characters.');
+
+        new SmartFile($hash, 'path', 'file', 'text/plain', 0, false, true);
     }
 
     public function testConstructorRequiresNonEmptyPath(): void
@@ -78,6 +89,14 @@ final class SmartFileTest extends TestCase
         new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
+    public function testConstructorSetsMimeTypeForJsonLinesFiles(): void
+    {
+        $path = $this->createTempFile('.jsonl', '{"id": 10}');
+
+        $file = new SmartFile('hash', $path, null, 'text/plain');
+        $this->assertEquals('application/jsonl', $file->getMimeType());
+    }
+
     public function testConstructorRequiresNonEmptyMimeType(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -108,16 +127,6 @@ final class SmartFileTest extends TestCase
 
         // Assert: Filesize is calculated
         $this->assertSame(filesize($path), new SmartFile('hash', $path, null, 'text/plain', null, true, true)->size);
-    }
-
-    public function testConstructorRequiresValidRemoteKeyLength(): void
-    {
-        $hash = 'h';
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('The remote key "'.$hash.'/'.$hash.'" is invalid because it is too short. To fix this, ensure the hash "'.$hash.'" is four or more characters.');
-
-        new SmartFile($hash, 'path', 'file', 'text/plain', 0, false, true);
     }
 
     public function testConstructorGeneratesRemoteKeyWithoutExtension(): void

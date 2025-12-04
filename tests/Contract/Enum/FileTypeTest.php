@@ -42,12 +42,15 @@ final class FileTypeTest extends TestCase
             ['html', FileType::Html],
             ['jpg', FileType::Jpeg],
             ['jpeg', FileType::Jpeg],
+            ['json', FileType::Json],
+            ['jsonl', FileType::JsonLines],
             ['pdf', FileType::Pdf],
             ['png', FileType::Png],
             ['text', FileType::Text],
             ['tif', FileType::Tiff],
             ['tiff', FileType::Tiff],
             ['txt', FileType::Text],
+            ['xml', FileType::Xml],
         ];
 
         return $provider;
@@ -76,12 +79,15 @@ final class FileTypeTest extends TestCase
             [FileType::Html, 'HTML'],
             [FileType::Jpeg, 'JPEG'],
             [FileType::Jpg, 'JPEG'],
+            [FileType::Json, 'JSON'],
+            [FileType::JsonLines, 'JSON Lines'],
             [FileType::Pdf, 'PDF'],
             [FileType::Png, 'PNG'],
             [FileType::Text, 'Text'],
             [FileType::Tif, 'TIFF'],
             [FileType::Tiff, 'TIFF'],
             [FileType::Txt, 'Text'],
+            [FileType::Xml, 'XML'],
             [FileType::Other, 'Other'],
         ];
 
@@ -111,12 +117,15 @@ final class FileTypeTest extends TestCase
             [FileType::Html, false],
             [FileType::Jpeg, true],
             [FileType::Jpg, true],
+            [FileType::Json, false],
+            [FileType::JsonLines, false],
             [FileType::Pdf, true],
             [FileType::Png, true],
             [FileType::Text, false],
             [FileType::Tif, true],
             [FileType::Tiff, true],
             [FileType::Txt, false],
+            [FileType::Xml, false],
             [FileType::Other, false],
         ];
 
@@ -146,12 +155,15 @@ final class FileTypeTest extends TestCase
             [FileType::Html, true],
             [FileType::Jpeg, false],
             [FileType::Jpg, false],
+            [FileType::Json, true],
+            [FileType::JsonLines, true],
             [FileType::Pdf, true],
             [FileType::Png, false],
             [FileType::Text, true],
             [FileType::Tif, false],
             [FileType::Tiff, false],
             [FileType::Txt, true],
+            [FileType::Xml, true],
             [FileType::Other, false],
         ];
 
@@ -181,12 +193,15 @@ final class FileTypeTest extends TestCase
             [FileType::Html, false],
             [FileType::Jpeg, true],
             [FileType::Jpg, true],
+            [FileType::Json, false],
+            [FileType::JsonLines, false],
             [FileType::Pdf, false],
             [FileType::Png, true],
             [FileType::Text, false],
             [FileType::Tif, true],
             [FileType::Tiff, true],
             [FileType::Txt, false],
+            [FileType::Xml, false],
             [FileType::Other, false],
         ];
 
@@ -216,12 +231,15 @@ final class FileTypeTest extends TestCase
             [FileType::Html, true],
             [FileType::Jpeg, false],
             [FileType::Jpg, false],
+            [FileType::Json, true],
+            [FileType::JsonLines, true],
             [FileType::Pdf, false],
             [FileType::Png, false],
             [FileType::Text, true],
             [FileType::Tif, false],
             [FileType::Tiff, false],
             [FileType::Txt, true],
+            [FileType::Xml, true],
             [FileType::Other, false],
         ];
 
@@ -233,11 +251,6 @@ final class FileTypeTest extends TestCase
         $this->assertTrue(FileType::Jpg->isJpeg()); // @phpstan-ignore-line
     }
 
-    public function testFileTypeOtherIsOther(): void
-    {
-        $this->assertTrue(FileType::Other->isOther()); // @phpstan-ignore-line
-    }
-
     public function testFileTypeTxtIsText(): void
     {
         $this->assertTrue(FileType::Txt->isText()); // @phpstan-ignore-line
@@ -246,5 +259,10 @@ final class FileTypeTest extends TestCase
     public function testFileTypeTifIsTiff(): void
     {
         $this->assertTrue(FileType::Tif->isTiff()); // @phpstan-ignore-line
+    }
+
+    public function testFileTypeOtherIsOther(): void
+    {
+        $this->assertTrue(FileType::Other->isOther()); // @phpstan-ignore-line
     }
 }

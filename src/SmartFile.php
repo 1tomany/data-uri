@@ -14,7 +14,6 @@ use function file_exists;
 use function file_get_contents;
 use function filesize;
 use function hash;
-use function implode;
 use function is_file;
 use function is_readable;
 use function max;
@@ -23,8 +22,8 @@ use function preg_match;
 use function random_bytes;
 use function random_int;
 use function realpath;
-use function rtrim;
 use function sprintf;
+use function strlen;
 use function strtolower;
 use function substr;
 use function trim;
@@ -32,7 +31,7 @@ use function unlink;
 
 use const PATHINFO_EXTENSION;
 
-readonly class SmartFile implements SmartFileInterface
+readonly class SmartFile implements \Stringable, SmartFileInterface
 {
     public string $hash;
     public string $path;
@@ -57,6 +56,11 @@ readonly class SmartFile implements SmartFileInterface
         // Validate non-empty hash
         if (empty($hash = trim($hash))) {
             throw new InvalidArgumentException('The hash cannot be empty.');
+        }
+
+        // Validate minimum hash length
+        if (strlen($hash) < self::MINIMUM_HASH_LENGTH) {
+            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, self::MINIMUM_HASH_LENGTH));
         }
 
         $this->hash = $hash;
@@ -99,6 +103,11 @@ readonly class SmartFile implements SmartFileInterface
         // Determine the FileType based on the extension
         $this->fileType = FileType::fromExtension($this->extension);
 
+        // Force the MIME type for .jsonl files
+        if ($this->fileType->isJsonLines()) {
+            $mimeType = 'application/jsonl';
+        }
+
         // Validate the MIME type
         $mimeType = strtolower($mimeType);
 
@@ -119,19 +128,11 @@ readonly class SmartFile implements SmartFileInterface
 
         $this->size = max(0, $size ?: 0);
 
-        // Generate the remote key
-        $remoteKey = rtrim($this->hash.'.'.$this->extension, '.');
+        // Generate the remote key using the first four characters of the hash
+        $remoteKey = substr($this->hash, 0, 2).'/'.substr($this->hash, 2, 2).'/'.$this->hash;
 
-        if ($prefix = substr($this->hash, 2, 2)) {
-            $remoteKey = implode('/', [$prefix, $remoteKey]);
-        }
-
-        if ($prefix = substr($this->hash, 0, 2)) {
-            $remoteKey = implode('/', [$prefix, $remoteKey]);
-        }
-
-        if (strlen($remoteKey) < 8) {
-            throw new RuntimeException(sprintf('The remote key "%s" is invalid because it is too short. To fix this, ensure the hash "%s" is four or more characters.', $remoteKey, $hash));
+        if (null !== $this->extension) {
+            $remoteKey = $remoteKey.'.'.$this->extension;
         }
 
         $this->remoteKey = $remoteKey;
