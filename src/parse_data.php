@@ -78,6 +78,7 @@ function parse_data(
     $handle = null;
 
     try {
+        // Don't even bother doing filesystem
         if (strlen($data) > \PHP_MAXPATHLEN) {
             $isFile = $deleteOriginal = false;
         } else {
@@ -129,7 +130,7 @@ function parse_data(
 
         try {
             // Create temporary file with unique prefix
-            $temp = $filesystem->tempnam($directory, '__1n__datauri_');
+            $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
         }
@@ -140,14 +141,14 @@ function parse_data(
             }
 
             // Write data to the temporary file
-            $filesystem->dumpFile($temp, $contents);
+            $filesystem->dumpFile($tempFilePath, $contents);
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Failed to write data to file "%s".', $temp), previous: $e);
+            throw new RuntimeException(sprintf('Failed to write data to "%s".', $tempFilePath), previous: $e);
         }
 
         // Attempt to resolve the extension
         if (!$extension = pathinfo($displayName, PATHINFO_EXTENSION)) {
-            $extensions = new \finfo(FILEINFO_EXTENSION)->file($temp);
+            $extensions = new \finfo(FILEINFO_EXTENSION)->file($tempFilePath);
 
             if ($extensions && !str_contains($extensions, '?')) {
                 $extension = explode('/', $extensions)[0];
@@ -157,12 +158,12 @@ function parse_data(
         }
 
         // Rename the temporary file with the extension if found
-        $path = !empty($extension) ? $temp.'.'.strtolower($extension) : $temp;
+        $path = !empty($extension) ? $tempFilePath.'.'.strtolower($extension) : $tempFilePath;
 
         try {
-            $filesystem->rename($temp, $path, true);
+            $filesystem->rename($tempFilePath, $path, true);
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Failed to append extension "%s" to file "%s".', $extension, $temp), previous: $e);
+            throw new RuntimeException(sprintf('Failed to append extension "%s" to file "%s".', $extension, $tempFilePath), previous: $e);
         }
 
         if (false === $hash = hash_file('sha256', $path)) {
