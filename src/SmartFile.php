@@ -23,6 +23,7 @@ use function random_bytes;
 use function random_int;
 use function realpath;
 use function sprintf;
+use function strlen;
 use function strtolower;
 use function substr;
 use function trim;
