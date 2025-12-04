@@ -239,7 +239,10 @@ function parse_text_data(
 ): SmartFileInterface {
     $extension = '.txt';
 
-    if (!$displayName || !str_ends_with(strtolower(trim($displayName)), $extension)) {
+    // Generate a display name for the file if one wasn't provided
+    $displayName = trim($displayName ?? '');
+
+    if (!$displayName || !str_ends_with(strtolower($displayName), $extension)) {
         $displayName = implode('', [bin2hex(random_bytes(6)), $extension]);
     }
 
