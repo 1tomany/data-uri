@@ -34,8 +34,8 @@ enum FileType
 
     public static function fromExtension(?string $extension): self
     {
-        $extension = strtolower(trim($extension ?? ''));
-        $extension = preg_replace('/[^a-z0-9]/i', '', $extension);
+        // Trim, lowercase, and remove non-alphanumeric characters from the extension
+        $extension = preg_replace('/[^a-z0-9]/i', '', strtolower(trim($extension ?? '')));
 
         $type = match ($extension) {
             'bin' => self::Bin,
