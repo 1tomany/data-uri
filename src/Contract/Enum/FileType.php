@@ -3,7 +3,6 @@
 namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
-use function ltrim;
 use function strtolower;
 use function strtoupper;
 use function trim;
@@ -34,15 +33,8 @@ enum FileType
 
     public static function fromExtension(?string $extension): self
     {
-        $extension = trim($extension ?? '');
-
-        if (empty($extension)) {
-            return self::Other;
-        }
-
-        $extension = strtolower(
-            ltrim($extension, '.')
-        );
+        $extension = strtolower(trim($extension ?? ''));
+        $extension = \preg_replace('/[^a-z0-9]/i', '', $extension);
 
         $type = match ($extension) {
             'bin' => self::Bin,
@@ -74,11 +66,7 @@ enum FileType
     public function getName(): string
     {
         if ($this->isJsonLines()) {
-            return 'JSON Lines';
-        }
-
-        if ($this->isText()) {
-            return self::Text->name;
+            return 'JSONL';
         }
 
         if ($this->isOther()) {
@@ -88,6 +76,7 @@ enum FileType
         $name = match ($this) {
             self::Jpg => self::Jpeg->name,
             self::Tif => self::Tiff->name,
+            self::Txt => self::Text->name,
             default => $this->name,
         };
 
