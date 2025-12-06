@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
+use function preg_replace;
 use function strtolower;
 use function strtoupper;
 use function trim;
@@ -34,7 +35,7 @@ enum FileType
     public static function fromExtension(?string $extension): self
     {
         $extension = strtolower(trim($extension ?? ''));
-        $extension = \preg_replace('/[^a-z0-9]/i', '', $extension);
+        $extension = preg_replace('/[^a-z0-9]/i', '', $extension);
 
         $type = match ($extension) {
             'bin' => self::Bin,
