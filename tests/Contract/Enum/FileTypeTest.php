@@ -43,7 +43,7 @@ final class FileTypeTest extends TestCase
             ['jpg', Type::Jpeg],
             ['jpeg', Type::Jpeg],
             ['json', Type::Json],
-            ['jsonl', Type::JsonLines],
+            ['jsonl', Type::Jsonl],
             ['pdf', Type::Pdf],
             ['png', Type::Png],
             ['text', Type::Text],
@@ -81,7 +81,7 @@ final class FileTypeTest extends TestCase
             [Type::Jpeg, 'JPEG'],
             [Type::Jpg, 'JPEG'],
             [Type::Json, 'JSON'],
-            [Type::JsonLines, 'JSONL'],
+            [Type::Jsonl, 'JSONL'],
             [Type::Pdf, 'PDF'],
             [Type::Png, 'PNG'],
             [Type::Text, 'TEXT'],
@@ -120,7 +120,7 @@ final class FileTypeTest extends TestCase
             [Type::Jpeg, true],
             [Type::Jpg, true],
             [Type::Json, false],
-            [Type::JsonLines, false],
+            [Type::Jsonl, false],
             [Type::Pdf, true],
             [Type::Png, true],
             [Type::Text, false],
@@ -159,7 +159,7 @@ final class FileTypeTest extends TestCase
             [Type::Jpeg, false],
             [Type::Jpg, false],
             [Type::Json, true],
-            [Type::JsonLines, true],
+            [Type::Jsonl, true],
             [Type::Pdf, true],
             [Type::Png, false],
             [Type::Text, true],
@@ -198,7 +198,7 @@ final class FileTypeTest extends TestCase
             [Type::Jpeg, true],
             [Type::Jpg, true],
             [Type::Json, false],
-            [Type::JsonLines, false],
+            [Type::Jsonl, false],
             [Type::Pdf, false],
             [Type::Png, true],
             [Type::Text, false],
@@ -214,9 +214,9 @@ final class FileTypeTest extends TestCase
     }
 
     #[DataProvider('providerFileTypeAndIsPlainText')]
-    public function testIsPlainText(Type $fileType, bool $isPlainText): void
+    public function testIsText(Type $fileType, bool $isPlainText): void
     {
-        $this->assertSame($isPlainText, $fileType->isPlainText());
+        $this->assertSame($isPlainText, $fileType->isText());
     }
 
     /**
@@ -237,7 +237,7 @@ final class FileTypeTest extends TestCase
             [Type::Jpeg, false],
             [Type::Jpg, false],
             [Type::Json, true],
-            [Type::JsonLines, true],
+            [Type::Jsonl, true],
             [Type::Pdf, false],
             [Type::Png, false],
             [Type::Text, true],

@@ -3,9 +3,11 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
+use OneToMany\DataUri\Record\DataUri;
 use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
@@ -53,7 +55,7 @@ final class DataDecoder
         mixed $data,
         ?string $name = null,
         bool $selfDestruct = true,
-    ): SmartFileInterface {
+    ): DataUriInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
         }
@@ -137,7 +139,7 @@ final class DataDecoder
         $format = @mime_content_type($tempPath) ?: 'application/octet-stream';
 
         // Attempt to determine the file format
-        $type = Type::create($format);
+        $type = Type::createFromPath($tempPath);
 
         if ($extension = $type->getExtension()) {
             try {
@@ -147,23 +149,23 @@ final class DataDecoder
                 throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
             }
 
-            /** @var non-empty-string $filePath */
-            $filePath = Path::join(Path::getDirectory($tempPath), $tempName);
+            /** @var non-empty-string $path */
+            $path = Path::join(Path::getDirectory($tempPath), $tempName);
 
             try {
-                $this->filesystem->rename($tempPath, $filePath, true);
+                $this->filesystem->rename($tempPath, $path, true);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempPath, $filePath), previous: $e);
+                throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempPath, $path), previous: $e);
             }
         } else {
-            $filePath = $tempPath;
+            $path = $tempPath;
         }
 
         /** @var non-empty-string $displayName */
-        $displayName = basename($displayName ?: $filePath);
+        $displayName = basename($displayName ?: $path);
 
-        if (!$hash = hash_file('sha256', $filePath)) {
-            throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $filePath));
+        if (!$hash = hash_file('sha256', $path)) {
+            throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $path));
         }
 
         // Validate minimum hash length
@@ -171,10 +173,14 @@ final class DataDecoder
             throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, SmartFileInterface::MINIMUM_HASH_LENGTH));
         }
 
-        // Append the randomly generated suffix to create the remote key
-        $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $tempName]);
+        // Generate the URI as a combination of the hash and random name
+        $uri = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $tempName]);
 
-        return new SmartFile($hash, $filePath, $displayName, $type->getExtension(), $type, 'text/plain', @filesize($filePath) ?: 0, $remoteKey, $selfDestruct);
+        if (false === $size = @filesize($path)) {
+            throw new RuntimeException('failed to get filezie');
+        }
+
+        return new DataUri($hash, $path, $displayName, $size, $type, $uri);
     }
 
     public function decodeBase64(): void

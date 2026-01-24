@@ -24,6 +24,13 @@ class DataUri implements DataUriInterface
     ) {
     }
 
+    public function __destruct()
+    {
+        if (\file_exists($this->path)) {
+            @\unlink($this->path);
+        }
+    }
+
     /**
      * @var ?non-empty-lowercase-string
      */
@@ -32,9 +39,9 @@ class DataUri implements DataUriInterface
     }
 
     /**
-     * @var non-empty-string
+     * @var ?non-empty-lowercase-string
      */
-    public string $format {
-        get => $this->type->getName();
+    public ?string $format {
+        get => $this->type->getFormat();
     }
 }
