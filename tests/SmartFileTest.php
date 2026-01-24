@@ -11,8 +11,12 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
+use function assert;
 use function base64_encode;
-use function strlen;
+use function basename;
+use function bin2hex;
+use function filesize;
+use function random_bytes;
 
 #[Group('UnitTests')]
 final class SmartFileTest extends TestCase
@@ -246,9 +250,9 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile(contents: $contents);
 
         /** @var non-empty-string $name */
-        $name = basename($path);
+        $name = basename($path) ?: bin2hex(random_bytes(6));
 
-        return new SmartFile('hash', $path, $name, 'txt', FileType::Text, 'text/plain', \filesize($path) ?: 0, $name, true);
+        return new SmartFile('hash', $path, $name, 'txt', FileType::Text, 'text/plain', filesize($path) ?: 0, $name, true);
     }
 
     /**
