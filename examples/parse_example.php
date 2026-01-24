@@ -3,7 +3,7 @@
 require_once __DIR__.'/../vendor/autoload.php';
 
 // Parse an ASCII encoded data URL
-$text = \OneToMany\DataUri\parse_data(data: 'data:text/plain,Hello%2C%20world%21');//, displayName: 'hello-world.txt');
+$text = \OneToMany\DataUri\parse_data(data: 'data:text/plain,Hello%2C%20world%21'); // , displayName: 'hello-world.txt');
 
 exit;
 // Parse a base64 encoded data URL
