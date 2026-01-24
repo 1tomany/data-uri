@@ -45,17 +45,16 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         public string $format,
         public int $size,
         public string $remoteKey,
-        bool $checkPath = true,
         public bool $autoDelete = true,
     ) {
-        // Validate hash is not empty
+        // Validate non-empty hash
         if (empty($this->hash)) {
             throw new InvalidArgumentException('The hash cannot be empty.');
         }
 
         // Validate minimum hash length
         if (strlen($this->hash) < self::MINIMUM_HASH_LENGTH) {
-            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $this->hash, self::MINIMUM_HASH_LENGTH));
+            throw new InvalidArgumentException(sprintf('The hash "%s" must be %d or more characters.', $this->hash, self::MINIMUM_HASH_LENGTH));
         }
 
         // Validate non-empty path
@@ -63,58 +62,18 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
             throw new InvalidArgumentException('The path cannot be empty.');
         }
 
-        // Resolve the actual file name
-        // $basename = basename($this->path);
-
-        // if (empty($basename = basename($this->path))) {
-        //     throw new InvalidArgumentException('The basename cannot be empty.');
-        // }
-
-        // $this->basename = $basename;
-
-        // File access validation tests
-        if ($checkPath && !file_exists($this->path)) {
+        // File access tests
+        if (!file_exists($this->path)) {
             throw new InvalidArgumentException(sprintf('The file "%s" does not exist.', $this->path));
         }
 
-        if ($checkPath && !is_readable($this->path)) {
+        if (!is_readable($this->path)) {
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $this->path));
         }
 
-        if ($checkPath && !is_file($this->path)) {
+        if (!is_file($this->path)) {
             throw new InvalidArgumentException(sprintf('The path "%s" is not a file.', $this->path));
         }
-
-        // Resolve the extension if available
-        // $this->extension = strtolower(pathinfo($this->path, PATHINFO_EXTENSION)) ?: null;
-
-        // Determine the FileType based on the extension
-        // $this->type = FileType::fromExtension($this->extension);
-
-        // // Force the MIME type for .jsonl files
-        // if ($this->type->isJsonLines()) {
-        //     $format = 'application/jsonl';
-        // }
-
-        // Validate the MIME type
-        // $this->format = AssertValidMimeType::assert($format);
-
-        // Generate a bucket from the first four characters of the hash
-        // $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3]]);
-
-        // try {
-        //     $suffix = new \Random\Randomizer()->getBytesFromString(self::SUFFIX_ALPHABET, 10);
-
-        //     // Append the extension to the suffix
-        //     if (false === empty($ext = $this->extension)) {
-        //         $suffix = implode('.', [$suffix, $ext]);
-        //     }
-
-        //     // Append the suffix to the remote key
-        //     $this->remoteKey = implode('/', [$remoteKey, $suffix]);
-        // } catch (\Random\RandomException|\Random\RandomError $e) {
-        //     throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
-        // }
     }
 
     public function __destruct()

@@ -226,7 +226,7 @@ function parse_data(
     } catch (FilesystemExceptionInterface $e) {
     }
 
-    return new SmartFile($fileHash, $filePath, $displayName, $fileType->getExtension(), $fileType, strtolower($fileFormat), filesize($filePath) ?: 0, $remoteKey, true, $selfDestruct);
+    return new SmartFile($fileHash, $filePath, $displayName, $fileType->getExtension(), $fileType, strtolower($fileFormat), filesize($filePath) ?: 0, $remoteKey, $selfDestruct);
 }
 
 /**
