@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Tests\Contract\Enum;
 
-use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Enum\Type;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -13,240 +13,240 @@ use PHPUnit\Framework\TestCase;
 final class FileTypeTest extends TestCase
 {
     #[DataProvider('providerFormatAndFileType')]
-    public function testCreatingFileType(?string $format, FileType $fileType): void
+    public function testCreatingFileType(?string $format, Type $fileType): void
     {
-        $this->assertSame($fileType, FileType::create($format));
+        $this->assertSame($fileType, Type::create($format));
     }
 
     /**
-     * @return list<list<bool|string|FileType|null>>
+     * @return list<list<bool|string|Type|null>>
      */
     public static function providerFormatAndFileType(): array
     {
         $provider = [
-            [null, FileType::Other],
-            ['', FileType::Other],
-            [' ', FileType::Other],
-            ['-', FileType::Other],
-            ['_', FileType::Other],
-            ['bin', FileType::Bin],
-            ['.bin', FileType::Bin],
-            ['BIN', FileType::Bin],
-            ['bmp', FileType::Bmp],
-            ['css', FileType::Css],
-            ['csv', FileType::Csv],
-            ['doc', FileType::Doc],
-            ['docx', FileType::Docx],
-            ['gif', FileType::Gif],
-            ['heic', FileType::Heic],
-            ['html', FileType::Html],
-            ['jpg', FileType::Jpeg],
-            ['jpeg', FileType::Jpeg],
-            ['json', FileType::Json],
-            ['jsonl', FileType::JsonLines],
-            ['pdf', FileType::Pdf],
-            ['png', FileType::Png],
-            ['text', FileType::Text],
-            ['tif', FileType::Tiff],
-            ['tiff', FileType::Tiff],
-            ['txt', FileType::Text],
-            ['webp', FileType::Webp],
-            ['xml', FileType::Xml],
+            [null, Type::Other],
+            ['', Type::Other],
+            [' ', Type::Other],
+            ['-', Type::Other],
+            ['_', Type::Other],
+            ['bin', Type::Bin],
+            ['.bin', Type::Bin],
+            ['BIN', Type::Bin],
+            ['bmp', Type::Bmp],
+            ['css', Type::Css],
+            ['csv', Type::Csv],
+            ['doc', Type::Doc],
+            ['docx', Type::Docx],
+            ['gif', Type::Gif],
+            ['heic', Type::Heic],
+            ['html', Type::Html],
+            ['jpg', Type::Jpeg],
+            ['jpeg', Type::Jpeg],
+            ['json', Type::Json],
+            ['jsonl', Type::JsonLines],
+            ['pdf', Type::Pdf],
+            ['png', Type::Png],
+            ['text', Type::Text],
+            ['tif', Type::Tiff],
+            ['tiff', Type::Tiff],
+            ['txt', Type::Text],
+            ['webp', Type::Webp],
+            ['xml', Type::Xml],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerFileTypeAndName')]
-    public function testGettingName(FileType $fileType, string $name): void
+    public function testGettingName(Type $fileType, string $name): void
     {
         $this->assertEquals($name, $fileType->getName());
     }
 
     /**
-     * @return list<list<non-empty-string|FileType>>
+     * @return list<list<non-empty-string|Type>>
      */
     public static function providerFileTypeAndName(): array
     {
         $provider = [
-            [FileType::Bin, 'BIN'],
-            [FileType::Bmp, 'BMP'],
-            [FileType::Css, 'CSS'],
-            [FileType::Csv, 'CSV'],
-            [FileType::Doc, 'DOC'],
-            [FileType::Docx, 'DOCX'],
-            [FileType::Gif, 'GIF'],
-            [FileType::Heic, 'HEIC'],
-            [FileType::Html, 'HTML'],
-            [FileType::Jpeg, 'JPEG'],
-            [FileType::Jpg, 'JPEG'],
-            [FileType::Json, 'JSON'],
-            [FileType::JsonLines, 'JSONL'],
-            [FileType::Pdf, 'PDF'],
-            [FileType::Png, 'PNG'],
-            [FileType::Text, 'TEXT'],
-            [FileType::Tif, 'TIFF'],
-            [FileType::Tiff, 'TIFF'],
-            [FileType::Txt, 'TEXT'],
-            [FileType::Webp, 'WEBP'],
-            [FileType::Xml, 'XML'],
-            [FileType::Other, 'Other'],
+            [Type::Bin, 'BIN'],
+            [Type::Bmp, 'BMP'],
+            [Type::Css, 'CSS'],
+            [Type::Csv, 'CSV'],
+            [Type::Doc, 'DOC'],
+            [Type::Docx, 'DOCX'],
+            [Type::Gif, 'GIF'],
+            [Type::Heic, 'HEIC'],
+            [Type::Html, 'HTML'],
+            [Type::Jpeg, 'JPEG'],
+            [Type::Jpg, 'JPEG'],
+            [Type::Json, 'JSON'],
+            [Type::JsonLines, 'JSONL'],
+            [Type::Pdf, 'PDF'],
+            [Type::Png, 'PNG'],
+            [Type::Text, 'TEXT'],
+            [Type::Tif, 'TIFF'],
+            [Type::Tiff, 'TIFF'],
+            [Type::Txt, 'TEXT'],
+            [Type::Webp, 'WEBP'],
+            [Type::Xml, 'XML'],
+            [Type::Other, 'Other'],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerFileTypeAndIsBinary')]
-    public function testIsBinary(FileType $fileType, bool $isBinary): void
+    public function testIsBinary(Type $fileType, bool $isBinary): void
     {
         $this->assertSame($isBinary, $fileType->isBinary());
     }
 
     /**
-     * @return list<list<bool|FileType>>
+     * @return list<list<bool|Type>>
      */
     public static function providerFileTypeAndIsBinary(): array
     {
         $provider = [
-            [FileType::Bin, true],
-            [FileType::Bmp, true],
-            [FileType::Css, false],
-            [FileType::Csv, false],
-            [FileType::Doc, true],
-            [FileType::Docx, true],
-            [FileType::Gif, true],
-            [FileType::Heic, true],
-            [FileType::Html, false],
-            [FileType::Jpeg, true],
-            [FileType::Jpg, true],
-            [FileType::Json, false],
-            [FileType::JsonLines, false],
-            [FileType::Pdf, true],
-            [FileType::Png, true],
-            [FileType::Text, false],
-            [FileType::Tif, true],
-            [FileType::Tiff, true],
-            [FileType::Txt, false],
-            [FileType::Webp, false],
-            [FileType::Xml, false],
-            [FileType::Other, false],
+            [Type::Bin, true],
+            [Type::Bmp, true],
+            [Type::Css, false],
+            [Type::Csv, false],
+            [Type::Doc, true],
+            [Type::Docx, true],
+            [Type::Gif, true],
+            [Type::Heic, true],
+            [Type::Html, false],
+            [Type::Jpeg, true],
+            [Type::Jpg, true],
+            [Type::Json, false],
+            [Type::JsonLines, false],
+            [Type::Pdf, true],
+            [Type::Png, true],
+            [Type::Text, false],
+            [Type::Tif, true],
+            [Type::Tiff, true],
+            [Type::Txt, false],
+            [Type::Webp, false],
+            [Type::Xml, false],
+            [Type::Other, false],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerFileTypeAndIsDocument')]
-    public function testIsDocument(FileType $fileType, bool $isDocument): void
+    public function testIsDocument(Type $fileType, bool $isDocument): void
     {
         $this->assertSame($isDocument, $fileType->isDocument());
     }
 
     /**
-     * @return list<list<bool|FileType>>
+     * @return list<list<bool|Type>>
      */
     public static function providerFileTypeAndIsDocument(): array
     {
         $provider = [
-            [FileType::Bin, false],
-            [FileType::Bmp, false],
-            [FileType::Css, true],
-            [FileType::Csv, true],
-            [FileType::Doc, true],
-            [FileType::Docx, true],
-            [FileType::Gif, false],
-            [FileType::Heic, false],
-            [FileType::Html, true],
-            [FileType::Jpeg, false],
-            [FileType::Jpg, false],
-            [FileType::Json, true],
-            [FileType::JsonLines, true],
-            [FileType::Pdf, true],
-            [FileType::Png, false],
-            [FileType::Text, true],
-            [FileType::Tif, false],
-            [FileType::Tiff, false],
-            [FileType::Txt, true],
-            [FileType::Webp, false],
-            [FileType::Xml, true],
-            [FileType::Other, false],
+            [Type::Bin, false],
+            [Type::Bmp, false],
+            [Type::Css, true],
+            [Type::Csv, true],
+            [Type::Doc, true],
+            [Type::Docx, true],
+            [Type::Gif, false],
+            [Type::Heic, false],
+            [Type::Html, true],
+            [Type::Jpeg, false],
+            [Type::Jpg, false],
+            [Type::Json, true],
+            [Type::JsonLines, true],
+            [Type::Pdf, true],
+            [Type::Png, false],
+            [Type::Text, true],
+            [Type::Tif, false],
+            [Type::Tiff, false],
+            [Type::Txt, true],
+            [Type::Webp, false],
+            [Type::Xml, true],
+            [Type::Other, false],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerFileTypeAndIsImage')]
-    public function testIsImage(FileType $fileType, bool $isImage): void
+    public function testIsImage(Type $fileType, bool $isImage): void
     {
         $this->assertSame($isImage, $fileType->isImage());
     }
 
     /**
-     * @return list<list<bool|FileType>>
+     * @return list<list<bool|Type>>
      */
     public static function providerFileTypeAndIsImage(): array
     {
         $provider = [
-            [FileType::Bin, false],
-            [FileType::Bmp, true],
-            [FileType::Css, false],
-            [FileType::Csv, false],
-            [FileType::Doc, false],
-            [FileType::Docx, false],
-            [FileType::Gif, true],
-            [FileType::Heic, true],
-            [FileType::Html, false],
-            [FileType::Jpeg, true],
-            [FileType::Jpg, true],
-            [FileType::Json, false],
-            [FileType::JsonLines, false],
-            [FileType::Pdf, false],
-            [FileType::Png, true],
-            [FileType::Text, false],
-            [FileType::Tif, true],
-            [FileType::Tiff, true],
-            [FileType::Txt, false],
-            [FileType::Webp, true],
-            [FileType::Xml, false],
-            [FileType::Other, false],
+            [Type::Bin, false],
+            [Type::Bmp, true],
+            [Type::Css, false],
+            [Type::Csv, false],
+            [Type::Doc, false],
+            [Type::Docx, false],
+            [Type::Gif, true],
+            [Type::Heic, true],
+            [Type::Html, false],
+            [Type::Jpeg, true],
+            [Type::Jpg, true],
+            [Type::Json, false],
+            [Type::JsonLines, false],
+            [Type::Pdf, false],
+            [Type::Png, true],
+            [Type::Text, false],
+            [Type::Tif, true],
+            [Type::Tiff, true],
+            [Type::Txt, false],
+            [Type::Webp, true],
+            [Type::Xml, false],
+            [Type::Other, false],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerFileTypeAndIsPlainText')]
-    public function testIsPlainText(FileType $fileType, bool $isPlainText): void
+    public function testIsPlainText(Type $fileType, bool $isPlainText): void
     {
         $this->assertSame($isPlainText, $fileType->isPlainText());
     }
 
     /**
-     * @return list<list<bool|FileType>>
+     * @return list<list<bool|Type>>
      */
     public static function providerFileTypeAndIsPlainText(): array
     {
         $provider = [
-            [FileType::Bin, false],
-            [FileType::Bmp, false],
-            [FileType::Css, true],
-            [FileType::Csv, true],
-            [FileType::Doc, false],
-            [FileType::Docx, false],
-            [FileType::Gif, false],
-            [FileType::Heic, false],
-            [FileType::Html, true],
-            [FileType::Jpeg, false],
-            [FileType::Jpg, false],
-            [FileType::Json, true],
-            [FileType::JsonLines, true],
-            [FileType::Pdf, false],
-            [FileType::Png, false],
-            [FileType::Text, true],
-            [FileType::Tif, false],
-            [FileType::Tiff, false],
-            [FileType::Txt, true],
-            [FileType::Webp, false],
-            [FileType::Xml, true],
-            [FileType::Other, false],
+            [Type::Bin, false],
+            [Type::Bmp, false],
+            [Type::Css, true],
+            [Type::Csv, true],
+            [Type::Doc, false],
+            [Type::Docx, false],
+            [Type::Gif, false],
+            [Type::Heic, false],
+            [Type::Html, true],
+            [Type::Jpeg, false],
+            [Type::Jpg, false],
+            [Type::Json, true],
+            [Type::JsonLines, true],
+            [Type::Pdf, false],
+            [Type::Png, false],
+            [Type::Text, true],
+            [Type::Tif, false],
+            [Type::Tiff, false],
+            [Type::Txt, true],
+            [Type::Webp, false],
+            [Type::Xml, true],
+            [Type::Other, false],
         ];
 
         return $provider;
@@ -254,21 +254,21 @@ final class FileTypeTest extends TestCase
 
     public function testFileTypeJpgIsJpeg(): void
     {
-        $this->assertTrue(FileType::Jpg->isJpeg()); // @phpstan-ignore-line
+        $this->assertTrue(Type::Jpg->isJpeg()); // @phpstan-ignore-line
     }
 
     public function testFileTypeTxtIsText(): void
     {
-        $this->assertTrue(FileType::Txt->isText()); // @phpstan-ignore-line
+        $this->assertTrue(Type::Txt->isText()); // @phpstan-ignore-line
     }
 
     public function testFileTypeTifIsTiff(): void
     {
-        $this->assertTrue(FileType::Tif->isTiff()); // @phpstan-ignore-line
+        $this->assertTrue(Type::Tif->isTiff()); // @phpstan-ignore-line
     }
 
     public function testFileTypeOtherIsOther(): void
     {
-        $this->assertTrue(FileType::Other->isOther()); // @phpstan-ignore-line
+        $this->assertTrue(Type::Other->isOther()); // @phpstan-ignore-line
     }
 }

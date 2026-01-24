@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -34,7 +34,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         public string $path,
         public string $name,
         public ?string $extension,
-        public FileType $type,
+        public Type $type,
         public string $format,
         public int $size,
         public string $remoteKey,
@@ -126,7 +126,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function getType(): FileType
+    public function getType(): Type
     {
         return $this->type;
     }

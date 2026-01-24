@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -50,7 +50,7 @@ final class DataDecoder
 
     public function decode(
         mixed $data,
-        ?string $name,
+        ?string $name = null,
         bool $selfDestruct = true,
     ): SmartFileInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
@@ -76,19 +76,18 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // $remoteKeySuffix = new Randomizer()->getBytesFromString(SmartFileInterface::REMOTE_KEY_ALPHABET, 10);
-        // $dataIsHttpUrl = !$dataIsFile && (0 === \stripos($data, 'http://') || 0 === \stripos($data, 'https://'));
+        $tempName = $this->randomString(12);
 
         try {
             /** @var non-empty-string $tempPath */
-            $tempPath = Path::join($this->tempDir, $this->randomString(12));
-        } catch (FilesystemExceptionInterface|RandomException $e) {
+            $tempPath = Path::join($this->tempDir, $tempName);
+        } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
         if ($dataIsFile) {
             try {
-                // Copy the file to the temporary file
+                // Copy the data to the temporary file
                 $this->filesystem->copy($data, $tempPath, true);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
@@ -123,15 +122,19 @@ final class DataDecoder
         $format = @mime_content_type($tempPath) ?: 'application/octet-stream';
 
         // Attempt to determine the file format
-        $type = FileType::create($format);
+        $type = Type::create($format);
+
 
         if (null !== $extension = $type->getExtension()) {
             try {
-                /** @var non-empty-string $filePath */
-                $filePath = Path::changeExtension($tempPath, $extension);
+                /** @var non-empty-string $tempName */
+                $tempName = Path::changeExtension($tempName, $extension);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
             }
+
+            /** @var non-empty-string $filePath */
+            $filePath = Path::join(Path::getDirectory($tempPath), $tempName);
 
             try {
                 $this->filesystem->rename($tempPath, $filePath, true);
@@ -151,25 +154,10 @@ final class DataDecoder
             throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, SmartFileInterface::MINIMUM_HASH_LENGTH));
         }
 
-        try {
-            // Begin by bucketing the file into directories based on the hash
-            $remoteKeyDirectory = substr($hash, 0, 2).'/'.substr($hash, 2, 2);
+        // Append the randomly generated suffix to create the remote key
+        $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $tempName]);
 
-            // Generate a random string to use as the remote key
-            // $remoteKeySuffix = new Randomizer()->getBytesFromString(SmartFileInterface::REMOTE_KEY_ALPHABET, 10);
-
-            // Append the extension to the suffix
-            // if (null !== $ext = $fileType->getExtension()) {
-            //     $remoteKeySuffix = Path::changeExtension($remoteKeySuffix, $ext);
-            // }
-
-            // Append the randomly generated suffix to create the remote key
-            $remoteKey = implode('/', [$remoteKeyDirectory, basename($filePath)]);
-        } catch (RandomException|RandomError $e) {
-            throw new RuntimeException('Generating a sufficiently random remote key failed.', previous: $e);
-        }
-
-        return new SmartFile($hash, $filePath, basename($filePath), $type->getExtension(), $type, 'text/plain', @filesize($filePath) ?: 0, $remoteKey, $selfDestruct);
+        return new SmartFile($hash, $filePath, $tempName, $type->getExtension(), $type, 'text/plain', @filesize($filePath) ?: 0, $remoteKey, $selfDestruct);
     }
 
     public function decodeBase64(): void
@@ -187,8 +175,12 @@ final class DataDecoder
      */
     private function randomString(int $length): string
     {
-        /** @var non-empty-string $randomString */
-        $randomString = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
+        try {
+            /** @var non-empty-string $randomString */
+            $randomString = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
+        } catch (RandomException|RandomError $e) {
+            throw new RuntimeException('Generating a sufficiently random string failed.', previous: $e);
+        }
 
         return $randomString;
     }

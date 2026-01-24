@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Tests;
 
-use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -27,7 +27,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The hash cannot be empty.');
 
-        new SmartFile('', '/path/to/file.txt', '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
+        new SmartFile('', '/path/to/file.txt', '', null, Type::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
     public function testConstructorRequiresValidHashLength(): void
@@ -37,7 +37,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The hash "'.$hash.'" must be '.SmartFileInterface::MINIMUM_HASH_LENGTH.' or more characters.');
 
-        new SmartFile($hash, 'path', '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
+        new SmartFile($hash, 'path', '', null, Type::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
     public function testConstructorRequiresNonEmptyPath(): void
@@ -45,7 +45,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The path cannot be empty.');
 
-        new SmartFile('hash', '', '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
+        new SmartFile('hash', '', '', null, Type::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
     public function testConstructorRequiresPathToBeAFile(): void
@@ -55,7 +55,7 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The path "'.$path.'" is not a file.');
 
-        new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
+        new SmartFile('hash', $path, '', null, Type::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
     public function testDestructorDeletesTemporaryFileWhenAutoDeleteIsTrue(): void
@@ -102,7 +102,7 @@ final class SmartFileTest extends TestCase
         $path = $this->createTempFile();
 
         // Act: Construct a SmartFile to not auto delete
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', false); // @phpstan-ignore-line
+        $file = new SmartFile('hash', $path, '', null, Type::Text, 'text/plain', 0, '', false); // @phpstan-ignore-line
 
         // Assert: SmartFile to not auto delete
         $this->assertFalse($file->autoDelete);
@@ -238,7 +238,7 @@ final class SmartFileTest extends TestCase
         // Arrange: Create a non-empty file name
         $name = basename($path) ?: bin2hex(random_bytes(6));
 
-        return new SmartFile('hash', $path, $name, 'txt', FileType::Text, 'text/plain', filesize($path) ?: 0, $name, true);
+        return new SmartFile('hash', $path, $name, 'txt', Type::Text, 'text/plain', filesize($path) ?: 0, $name, true);
     }
 
     /**
@@ -246,6 +246,6 @@ final class SmartFileTest extends TestCase
      */
     private function createSmartFileWithHash(string $hash): SmartFile
     {
-        return new SmartFile($hash, __DIR__.'/data/pdf-small.pdf', 'pdf-small.pdf', null, FileType::Pdf, 'application/pdf', 36916, 'pdf-small.pdf', false);
+        return new SmartFile($hash, __DIR__.'/data/pdf-small.pdf', 'pdf-small.pdf', null, Type::Pdf, 'application/pdf', 36916, 'pdf-small.pdf', false);
     }
 }

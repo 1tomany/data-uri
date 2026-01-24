@@ -8,7 +8,7 @@ use function strtolower;
 use function strtoupper;
 use function trim;
 
-enum FileType
+enum Type
 {
     case Bin;
     case Bmp;

@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\AssertValidMimeType;
@@ -161,7 +161,7 @@ function parse_data(
             throw new RuntimeException('Failed to determine the file format.');
         }
 
-        $fileType = FileType::create($fileFormat);
+        $fileType = Type::create($fileFormat);
 
         try {
             /** @var non-empty-string $displayName */

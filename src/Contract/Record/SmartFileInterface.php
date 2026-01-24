@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Contract\Record;
 
-use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Exception\RuntimeException;
 
 interface SmartFileInterface extends \Stringable
@@ -40,7 +40,7 @@ interface SmartFileInterface extends \Stringable
      */
     public ?string $extension { get; }
 
-    public FileType $type { get; }
+    public Type $type { get; }
 
     /**
      * @var non-empty-lowercase-string
@@ -84,7 +84,7 @@ interface SmartFileInterface extends \Stringable
      */
     public function getExtension(): ?string;
 
-    public function getType(): FileType;
+    public function getType(): Type;
 
     /**
      * @return non-empty-lowercase-string
