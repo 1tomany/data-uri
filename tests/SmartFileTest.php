@@ -249,7 +249,7 @@ final class SmartFileTest extends TestCase
         // Arrange: Create a local temporary file
         $path = $this->createTempFile(contents: $contents);
 
-        /** @var non-empty-string $name */
+
         $name = basename($path) ?: bin2hex(random_bytes(6));
 
         return new SmartFile('hash', $path, $name, 'txt', FileType::Text, 'text/plain', filesize($path) ?: 0, $name, true);
