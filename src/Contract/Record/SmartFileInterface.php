@@ -14,7 +14,7 @@ interface SmartFileInterface extends \Stringable
     public const int MINIMUM_HASH_LENGTH = 4;
 
     /**
-     * @var non-empty-string
+     * @var non-empty-lowercase-string
      */
     public string $hash { get; }
 
@@ -108,19 +108,19 @@ interface SmartFileInterface extends \Stringable
     public function exists(): bool;
 
     /**
-     * @throws RuntimeException When reading the file fails
+     * @throws RuntimeException when reading the file fails
      */
     public function read(): string;
 
     /**
-     * @throws RuntimeException When reading or encoding the file fails
+     * @throws RuntimeException when reading or encoding the file fails
      */
     public function toBase64(): string;
 
     /**
      * @return non-empty-string
      *
-     * @throws RuntimeException When reading or encoding the file fails
+     * @throws RuntimeException when reading or encoding the file fails
      */
     public function toDataUri(): string;
 }

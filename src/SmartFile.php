@@ -33,6 +33,10 @@ use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements \Stringable, SmartFileInterface
 {
+    /**
+     *
+     * @var non-empty-lowercase-string
+     */
     public string $hash;
     public string $path;
     public string $name;
@@ -64,7 +68,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
             throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, self::MINIMUM_HASH_LENGTH));
         }
 
-        $this->hash = $hash;
+        $this->hash = strtolower($hash);
 
         // Validate non-empty path
         if (empty($path = trim($path))) {
