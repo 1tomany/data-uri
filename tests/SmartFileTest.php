@@ -61,11 +61,8 @@ final class SmartFileTest extends TestCase
 
     public function testDestructorDeletesTemporaryFileWhenAutoDeleteIsTrue(): void
     {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-
-        // Act: Construct a SmartFile to auto delete
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile();
 
         // Assert: SmartFile set to auto delete
         $this->assertTrue($file->autoDelete);
