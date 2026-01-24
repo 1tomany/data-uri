@@ -32,7 +32,6 @@ use function parse_url;
 use function random_bytes;
 use function rtrim;
 use function sprintf;
-use function str_ends_with;
 use function stream_get_contents;
 use function stripos;
 use function strtolower;
@@ -110,22 +109,27 @@ function parse_data(
         }
 
         try {
+            /** @var non-empty-string $tempFilePath */
             $tempFilePath = Path::join($directory, sprintf('1tomany_datauri_%s', bin2hex(random_bytes(6))));
         } catch (FilesystemExceptionInterface|RandomException $e) {
             throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
         // Resolve the display name
-        if (!$displayName = trim($displayName ?? '')) {
-            // The display name is the path from the URL
-            if (!$isFile && 0 === stripos($data, 'http')) {
-                $displayName = parse_url($data)['path'] ?? '';
-            } elseif ($isFile) {
-                $displayName = $data;
-            }
+        $displayName = trim($displayName ?? '');
 
-            $displayName = basename($displayName ?: $tempFilePath);
+        // The file is the display name
+        if ($isFile && !$displayName) {
+            $displayName = $data;
         }
+
+        // The display name is the path from the URL
+        if (!$isFile && 0 === stripos($data, 'http')) {
+            $displayName = parse_url($data)['path'] ?? '';
+        }
+
+        /** @var non-empty-string $displayName */
+        $displayName = basename($displayName ?: $tempFilePath);
 
         if ($isFile) {
             try {
@@ -160,9 +164,8 @@ function parse_data(
         $fileType = FileType::create($fileFormat);
 
         try {
-            if (null !== $ext = $fileType->getExtension()) {
-                $displayName = Path::changeExtension($displayName, $ext);
-            }
+            /** @var non-empty-string $displayName */
+            $displayName = Path::changeExtension($displayName, $fileType->getExtension() ?? '');
 
             /** @var non-empty-string $filePath */
             $filePath = Path::join($directory, $displayName);
