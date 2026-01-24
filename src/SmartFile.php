@@ -120,20 +120,22 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
 
         $this->size = max(0, $size ?: 0);
 
+        // Generate a bucket from the first four characters of the hash
+        $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3]]);
+
         try {
             $suffix = new \Random\Randomizer()->getBytesFromString(self::SUFFIX_ALPHABET, 12);
+
+            // Append the extension to the suffix
+            if (false === empty($ext = $this->extension)) {
+                $suffix = implode('.', [$suffix, $ext]);
+            }
+
+            $this->remoteKey = $remoteKey.'.'.$suffix;
         } catch (\Random\RandomException|\Random\RandomError $e) {
             throw new RuntimeException('Failed to generate a sufficiently random suffix.', previous: $e);
         }
 
-        // Generate a bucket from the hash and append a random suffix
-        $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $suffix]);
-
-        if (null !== $this->extension) {
-            $remoteKey = $remoteKey.'.'.$this->extension;
-        }
-
-        $this->remoteKey = $remoteKey;
         $this->autoDelete = $autoDelete;
     }
 

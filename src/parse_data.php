@@ -49,12 +49,12 @@ use const PATHINFO_EXTENSION;
  * that implements `SmartFileInterface`. The data can be an existing
  * file, a public URL, or a data URL defined by RFC 2397 ("data:...").
  *
- * @param mixed       $data           The data to parse: an existing file, a public URL, or an RFC 2397 Data URL
- * @param ?string     $displayName    Display name for the temporary file; a random name is generated if empty
- * @param ?string     $directory      Directory to create the temporary file in, sys_get_temp_dir() is used if empty
- * @param bool        $deleteOriginal If true and $data is a file, the file will be deleted after parse_data() runs
- * @param bool        $selfDestruct   If true, the temporary file will be deleted when the object that references it is destroyed
- * @param ?Filesystem $filesystem     An instance of the Symfony Filesystem component used for mocks in tests
+ * @param mixed $data The data to parse: an existing file, a public URL, or an RFC 2397 Data URL
+ * @param ?string $displayName Display name for the temporary file; a random name is generated if empty
+ * @param ?string $directory Directory to create the temporary file in, sys_get_temp_dir() is used if empty
+ * @param bool $deleteOriginal If true and $data is a file, the file will be deleted after parse_data() runs
+ * @param bool $selfDestruct If true, the temporary file will be deleted when the object that references it is destroyed
+ * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component used for mocks in tests
  *
  * @throws InvalidArgumentException if $data is not a string
  * @throws InvalidArgumentException if $data is empty
@@ -63,10 +63,10 @@ use const PATHINFO_EXTENSION;
  * @throws InvalidArgumentException if $directory is not null and not writable, or the temp directory is not writable
  * @throws InvalidArgumentException if $data is a file but is not readable
  * @throws InvalidArgumentException if $data decoding the data fails
- * @throws RuntimeException         when creating a temporary file fails
- * @throws RuntimeException         when reading from a stream fails
- * @throws RuntimeException         when writing the temporary file fails
- * @throws RuntimeException         the sha256 hash of the file could not be calculated
+ * @throws RuntimeException when creating a temporary file fails
+ * @throws RuntimeException when reading from a stream fails
+ * @throws RuntimeException when writing the temporary file fails
+ * @throws RuntimeException the sha256 hash of the file could not be calculated
  *
  * @author Vic Cherubini <vcherubini@gmail.com>
  */
