@@ -30,25 +30,18 @@ use function trim;
 
 use const PHP_MAXPATHLEN;
 
-final readonly class DataDecoder
+final class DataDecoder
 {
     /**
      * @var non-empty-string
      */
-    private string $tempDirectory;
-
-    private Filesystem $filesystem;
+    private readonly string $tempDirectory;
 
     public function __construct(
-        ?string $tempDirectory,
-        ?Filesystem $filesystem,
+        ?string $tempDirectory = null,
+        private readonly Filesystem $filesystem = new Filesystem(),
     ) {
-        $this->filesystem = $filesystem ?? new Filesystem();
-
-        // Resolve the directory that the file will be created in
-        $this->tempDirectory = $this->resolveTempDirectory(...[
-            'tempDirectory' => $tempDirectory,
-        ]);
+        $this->tempDirectory = $this->createDirectory($tempDirectory);
     }
 
     public function decode(mixed $data, ?string $name, bool $selfDestruct = true): void
@@ -131,23 +124,23 @@ final readonly class DataDecoder
     /**
      * @return non-empty-string
      */
-    private function resolveTempDirectory(?string $tempDirectory): string
+    private function createDirectory(?string $directory): string
     {
-        $tempDirectory = trim($tempDirectory ?? '') ?: sys_get_temp_dir();
+        $directory = trim($directory ?? '') ?: sys_get_temp_dir();
 
         try {
-            if (is_dir($tempDirectory) || !is_writable($tempDirectory)) {
-                throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not writable.', $tempDirectory));
+            if (is_dir($directory) && !is_writable($directory)) {
+                throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $directory));
             }
 
-            if (!$this->filesystem->exists($tempDirectory)) {
-                $this->filesystem->mkdir($tempDirectory);
+            if (!$this->filesystem->exists($directory)) {
+                $this->filesystem->mkdir($directory);
             }
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Creating the temporary directory "%s" failed.', $tempDirectory), previous: $e);
+            throw new RuntimeException(sprintf('Creating the directory "%s" failed.', $directory), previous: $e);
         }
 
-        return $tempDirectory;
+        return $directory;
     }
 
     /**

@@ -2,6 +2,14 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
+use OneToMany\DataUri\DataDecoder;
+
+$dataDecoder = new DataDecoder();
+
+$text = $dataDecoder->decode('data:text/plain,Hello%2C%20world%21', 'hello-world.txt');
+
+exit;
+
 // Parse an ASCII encoded data URL
 $text = \OneToMany\DataUri\parse_data(data: 'data:text/plain,Hello%2C%20world%21'); // , displayName: 'hello-world.txt');
 
