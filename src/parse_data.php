@@ -166,6 +166,7 @@ function parse_data(
         $fileType = FileType::fromFormat($format);
 
         try {
+            /** @var non-empty-string $filePath */
             $filePath = Path::join($directory, Path::changeExtension($displayName, $fileType->getExtension() ?? ''));
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', \rtrim($e->getMessage(), '.')), previous: $e);
@@ -181,17 +182,20 @@ function parse_data(
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $filePath));
         }
 
+        // \PHPStan\dumpType($hash);
+        // \PHPStan\dumpType($filePath);
+        // \PHPStan\dumpType($displayName);
+        // \PHPStan\dumpType($format);
 
-
-        $smartFile = new SmartFile($hash, $filePath, $displayName, AssertValidMimeType::assert($format), null, true, $selfDestruct);
+        $smartFile = new SmartFile($hash, $filePath, basename($filePath), $format, null, true, $selfDestruct);
     } finally {
-        // if (is_resource($handle)) {
-        //     @fclose($handle);
-        // }
-
-        // if ($filesystem->exists($tempFilePath ?? '')) {
-        //     $filesystem->remove($tempFilePath);
-        // }
+        try {
+            if (is_string($tempFilePath ?? null)) {
+                $filesystem->remove($tempFilePath);
+            }
+        } catch (FilesystemExceptionInterface $e) {
+            @unlink($tempFilePath);
+        }
     }
 
     try {
