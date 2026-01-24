@@ -24,6 +24,7 @@ use function is_file;
 use function is_readable;
 use function is_string;
 use function is_writable;
+use function parse_url;
 use function rtrim;
 use function sprintf;
 use function stream_get_contents;
@@ -76,7 +77,21 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
+        // Generate a random file name
         $tempName = $this->randomString(12);
+
+        // Resolve the display name
+        $displayName = trim($name ?? '');
+
+        // Use the file as the display name
+        if ($dataIsFile && !$displayName) {
+            $displayName = $data;
+        }
+
+        // Use the path component from the URL as the display name
+        if (!$dataIsFile && 0 === stripos($data, 'http')) {
+            $displayName = parse_url($data)['path'] ?? '';
+        }
 
         try {
             /** @var non-empty-string $tempPath */
@@ -144,6 +159,9 @@ final class DataDecoder
             $filePath = $tempPath;
         }
 
+        /** @var non-empty-string $displayName */
+        $displayName = basename($displayName ?: $filePath);
+
         if (!$hash = hash_file('sha256', $filePath)) {
             throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $filePath));
         }
@@ -156,7 +174,7 @@ final class DataDecoder
         // Append the randomly generated suffix to create the remote key
         $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $tempName]);
 
-        return new SmartFile($hash, $filePath, $tempName, $type->getExtension(), $type, 'text/plain', @filesize($filePath) ?: 0, $remoteKey, $selfDestruct);
+        return new SmartFile($hash, $filePath, $displayName, $type->getExtension(), $type, 'text/plain', @filesize($filePath) ?: 0, $remoteKey, $selfDestruct);
     }
 
     public function decodeBase64(): void
