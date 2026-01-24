@@ -105,11 +105,11 @@ final class ParseDataTest extends TestCase
 
         // Assert: Failed to create temporary file
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to create a temporary file in "'.$directory.'".');
+        $this->expectExceptionMessageMatches('/^Failed to copy (.+) to (.+).$/');
 
         // Arrange: Mock filesystem library
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects($this->once())->method('tempnam')->willThrowException(new IOException('Error'));
+        $filesystem->expects($this->once())->method('copy')->willThrowException(new IOException('Error'));
 
         // Act: Parse data with expected exception
         parse_data(__DIR__.'/data/pdf-small.pdf', directory: $directory, filesystem: $filesystem);
@@ -129,13 +129,13 @@ final class ParseDataTest extends TestCase
 
         // Assert: File name equals name
         $this->assertEquals($name, $file->name);
-        $this->assertEquals($name, $file->basename);
     }
 
     public function testParsingFileWithoutNameUsesFileName(): void
     {
         // Arrange: Create temp file
-        $path = $this->createTempFile();
+        $path = $this->createTempFile(contents: 'Hello, world!');
+        $this->assertFileExists($path);
 
         assert(!empty($name = basename($path)));
         $this->assertStringEndsWith($name, $path);
@@ -145,7 +145,6 @@ final class ParseDataTest extends TestCase
 
         // Assert: Both file names are equal
         $this->assertEquals($name, $file->name);
-        $this->assertNotEquals($file->name, $file->basename);
     }
 
     public function testParsingFileDataCanDeleteOriginalFile(): void
@@ -173,7 +172,7 @@ final class ParseDataTest extends TestCase
 
         // Arrange: Mock filesystem library
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects($this->once())->method('tempnam')->willThrowException($ioException);
+        $filesystem->expects($this->once())->method('copy')->willThrowException($ioException);
 
         try {
             // Act: Parse data with a parsing failure

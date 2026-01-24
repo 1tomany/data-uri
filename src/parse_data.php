@@ -157,8 +157,9 @@ function parse_data(
         $fileType = FileType::create($fileFormat);
 
         try {
-            /** @var non-empty-string */
-            $displayName = Path::changeExtension($displayName, $fileType->getExtension() ?? '');
+            if (null !== $ext = $fileType->getExtension()) {
+                $displayName = Path::changeExtension($displayName, $ext);
+            }
 
             /** @var non-empty-string $filePath */
             $filePath = Path::join($directory, $displayName);

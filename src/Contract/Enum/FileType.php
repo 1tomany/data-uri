@@ -112,6 +112,7 @@ enum FileType
             // Plain Text Files
             'text' => self::Text,
             'txt' => self::Text,
+            'application/x-empty' => self::Txt,
             'text/plain' => self::Txt,
 
             // TIFF Images
