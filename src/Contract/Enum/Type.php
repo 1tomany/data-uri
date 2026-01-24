@@ -85,12 +85,11 @@ enum Type
     }
 
     /**
-     * @return ?non-empty-lowercase-string
+     * @return non-empty-lowercase-string
      */
-    public function getFormat(): ?string
+    public function getFormat(): string
     {
         $format = match($this) {
-            self::Bin => 'application/octet-stream',
             self::Bmp => 'image/bmp',
             self::Css => 'text/css',
             self::Csv => 'text/csv',
@@ -108,7 +107,7 @@ enum Type
             self::Tiff => 'image/tiff',
             self::Webp => 'image/webp',
             self::Xml => 'application/xml',
-            default => null,
+            default => 'application/octet-stream',
         };
 
         return $format;

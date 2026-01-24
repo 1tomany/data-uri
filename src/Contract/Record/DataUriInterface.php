@@ -39,7 +39,7 @@ interface DataUriInterface
     public ?string $extension { get; }
 
     /**
-     * @var ?non-empty-lowercase-string
+     * @var non-empty-lowercase-string
      */
-    public ?string $format { get; }
+    public string $format { get; }
 }

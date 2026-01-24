@@ -39,9 +39,9 @@ class DataUri implements DataUriInterface
     }
 
     /**
-     * @var ?non-empty-lowercase-string
+     * @var non-empty-lowercase-string
      */
-    public ?string $format {
+    public string $format {
         get => $this->type->getFormat();
     }
 }
