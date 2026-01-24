@@ -54,7 +54,7 @@ final class ParseDataTest extends TestCase
     public function testParsingDataRequiresDataToNotContainNonPrintableBytes(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The data cannot contain non-printable or NULL bytes.');
+        $this->expectExceptionMessage('The data cannot contain non-printable text, control characters, or NULL bytes.');
 
         parse_data(random_bytes(1024));
     }
