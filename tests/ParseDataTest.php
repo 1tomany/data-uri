@@ -109,7 +109,7 @@ final class ParseDataTest extends TestCase
 
         // Arrange: Mock filesystem library
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects($this->once())->method('tempnam')->willThrowException(new IOException('Error'));
+        $filesystem->expects($this->once())->method('touch')->willThrowException(new IOException('Error'));
 
         // Act: Parse data with expected exception
         parse_data(__DIR__.'/data/pdf-small.pdf', directory: $directory, filesystem: $filesystem);
@@ -129,7 +129,7 @@ final class ParseDataTest extends TestCase
 
         // Assert: File name equals name
         $this->assertEquals($name, $file->name);
-        $this->assertNotEquals($name, $file->basename);
+        $this->assertEquals($name, $file->basename);
     }
 
     public function testParsingFileWithoutNameUsesFileName(): void

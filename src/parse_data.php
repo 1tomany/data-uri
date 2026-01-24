@@ -129,6 +129,8 @@ function parse_data(
             } else {
                 $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
             }
+
+            $filesystem->touch($tempFilePath);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
         }
@@ -172,7 +174,7 @@ function parse_data(
 
         // Rename the temporary file with the extension
         if (empty($displayName) && !empty($extension)) {
-            $filePath = implode('.', [$tempFilePath, $extension]);
+            $filePath = $tempFilePath.'.'.$extension;
 
             try {
                 $filesystem->rename($tempFilePath, $filePath, true);
