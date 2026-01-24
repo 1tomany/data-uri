@@ -51,11 +51,8 @@ final class DataDecoder
         }
     }
 
-    public function decode(
-        mixed $data,
-        ?string $name = null,
-        bool $selfDestruct = true,
-    ): DataUriInterface {
+    public function decode(mixed $data, ?string $name = null): DataUriInterface
+    {
         if (!is_string($data) && !$data instanceof \Stringable) {
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
         }
@@ -183,12 +180,26 @@ final class DataDecoder
         return new DataUri($hash, $path, $displayName, $size, $type, $uri);
     }
 
-    public function decodeBase64(): void
+    public function decodeBase64(string $data, string $format, ?string $name = null): DataUriInterface
     {
+        return $this->decode(sprintf('data:%s;base64,%s', $format, $data), $name);
     }
 
-    public function decodeText(): void
+    public function decodeText(string $text, ?string $name = null): DataUriInterface
     {
+        try {
+            // Generate a random name if one wasn't provided
+            if (!$name = trim($name ?? '')) {
+                $name = bin2hex(random_bytes(6));
+            }
+
+            /** @var non-empty-string $name */
+            $name = Path::changeExtension($name, 'txt');
+        } catch (RandomException $e) {
+            throw new RuntimeException(sprintf('Generating a temporary name failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
+        }
+
+        return $this->decode($this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name));
     }
 
     /**
