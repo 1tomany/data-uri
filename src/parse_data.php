@@ -8,6 +8,7 @@ use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function base64_encode;
 use function basename;
@@ -115,7 +116,7 @@ function parse_data(
 
         if (!$displayName) {
             if ($isFile) {
-                $displayName = $data;
+                $displayName = basename($data);
             } elseif (0 === stripos($data, 'http')) {
                 $displayName = parse_url($data)['path'] ?? '';
             }
@@ -124,8 +125,11 @@ function parse_data(
         $filesystem ??= new Filesystem();
 
         try {
-            // Create temporary file with a unique prefix
-            $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
+            if (!empty($displayName)) {
+                $tempFilePath = Path::join($directory, $displayName);
+            } else {
+                $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
+            }
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
         }
@@ -155,28 +159,29 @@ function parse_data(
             }
         }
 
-        // Attempt to resolve the extension
-        $displayName = basename($displayName);
-
+        // Resolve the extension from the display name or file contents
         if (!$extension = pathinfo($displayName, PATHINFO_EXTENSION)) {
             $extensions = new \finfo(FILEINFO_EXTENSION)->file($tempFilePath);
 
             if ($extensions && !str_contains($extensions, '?')) {
                 $extension = explode('/', $extensions)[0];
-            } else {
-                $extension = null;
             }
         }
 
-        $extension = $extension ? strtolower($extension) : null;
+        // Ensure the extension is lowercase or null
+        $extension = strtolower($extension ?: '') ?: null;
 
         // Rename the temporary file with the extension
-        $filePath = rtrim($tempFilePath.'.'.$extension, '.');
+        if (empty($displayName) && !empty($extension)) {
+            $filePath = implode('.', [$tempFilePath, $extension]);
 
-        try {
-            $filesystem->rename($tempFilePath, $filePath, true);
-        } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempFilePath, $filePath), previous: $e);
+            try {
+                $filesystem->rename($tempFilePath, $filePath, true);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempFilePath, $filePath), previous: $e);
+            }
+        } else {
+            $filePath = $tempFilePath;
         }
 
         if (false === $hash = hash_file('sha256', $filePath)) {
