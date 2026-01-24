@@ -43,12 +43,12 @@ final readonly class DataDecoder
         ?string $tempDirectory,
         ?Filesystem $filesystem,
     ) {
+        $this->filesystem = $filesystem ?? new Filesystem();
+
         // Resolve the directory that the file will be created in
         $this->tempDirectory = $this->resolveTempDirectory(...[
             'tempDirectory' => $tempDirectory,
         ]);
-
-        $this->filesystem = $filesystem ?? new Filesystem();
     }
 
     public function decode(mixed $data, ?string $name, bool $selfDestruct = true): void
@@ -69,7 +69,7 @@ final readonly class DataDecoder
         }
 
         if (!ctype_print($data)) {
-            throw new InvalidArgumentException('The data cannot contain non-printable, control, or NULL characters.');
+            throw new InvalidArgumentException('The data cannot contain non-printable, control, or NULL-terminated characters.');
         }
 
         if ($dataIsFile && !is_readable($data)) {
@@ -77,17 +77,6 @@ final readonly class DataDecoder
         }
 
         // $dataIsHttpUrl = !$dataIsFile && (0 === \stripos($data, 'http://') || 0 === \stripos($data, 'https://'));
-
-        $this->assertStreamExists(0 === stripos($data, 'http://'), 'http');
-        $this->assertStreamExists(0 === stripos($data, 'https://'), 'https');
-
-        // if (0 === \stripos($data, 'http://') && !\in_array('http', \stream_get_wrappers())) {
-        //     throw new InvalidArgumentException('The data cannot be decoded because the "http" stream is not available.');
-        // }
-
-        // if (0 === \stripos($data, 'https://') && !\in_array('https', \stream_get_wrappers())) {
-        //     throw new InvalidArgumentException('The data cannot be decoded because the "https" stream is not available.');
-        // }
 
         try {
             /** @var non-empty-string $tempFilePath */
@@ -104,6 +93,15 @@ final readonly class DataDecoder
                 throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempFilePath), previous: $e);
             }
         } else {
+            // Ensure HTTP URLs can be streamed
+            if (0 === stripos($data, 'http://')) {
+                $this->assertStreamIsRegistered('http');
+            }
+
+            if (0 === stripos($data, 'https://')) {
+                $this->assertStreamIsRegistered('https');
+            }
+
             // Read, decode, and stream the data
             if (!$stream = @fopen($data, 'rb')) {
                 throw new InvalidArgumentException('Opening a stream to decode the data failed.');
@@ -117,7 +115,7 @@ final readonly class DataDecoder
                 // Write the streamed data to the temporary file
                 $this->filesystem->dumpFile($tempFilePath, $contents);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Writing the streamed data to the file "%s" failed.', $tempFilePath), previous: $e);
+                throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempFilePath), previous: $e);
             }
         }
     }
@@ -137,8 +135,16 @@ final readonly class DataDecoder
     {
         $tempDirectory = trim($tempDirectory ?? '') ?: sys_get_temp_dir();
 
-        if (!is_dir($tempDirectory) || !is_writable($tempDirectory)) {
-            throw new InvalidArgumentException(sprintf('The temporary directory "%s" does not exist or is not writable.', $tempDirectory));
+        try {
+            if (is_dir($tempDirectory) || !is_writable($tempDirectory)) {
+                throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not writable.', $tempDirectory));
+            }
+
+            if (!$this->filesystem->exists($tempDirectory)) {
+                $this->filesystem->mkdir($tempDirectory);
+            }
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Creating the temporary directory "%s" failed.', $tempDirectory), previous: $e);
         }
 
         return $tempDirectory;
@@ -146,11 +152,13 @@ final readonly class DataDecoder
 
     /**
      * @param non-empty-lowercase-string $stream
+     *
+     * @throws RuntimeException the `$stream` is not registered with PHP
      */
-    private function assertStreamExists(bool $dataIsStream, string $stream): void
+    private function assertStreamIsRegistered(string $stream): void
     {
-        if ($dataIsStream && !in_array($stream, stream_get_wrappers())) {
-            throw new InvalidArgumentException(sprintf('Decoding the data failed because the "%s" stream is not available.', $stream));
+        if (!in_array($stream, stream_get_wrappers())) {
+            throw new RuntimeException(sprintf('The "%s" stream is not registered in this environment.', $stream));
         }
     }
 }
