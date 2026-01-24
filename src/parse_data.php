@@ -183,14 +183,12 @@ function parse_data(
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $filePath));
         }
 
-        // Resolve and validate the MIME type
-        $mimeType = mime_content_type($filePath) ?: null;
-
-        if (!$mimeType) {
-            throw new RuntimeException('Failed to resolve a MIME type for the data.');
+        // Attempt to resolve the file format
+        if (!$format = mime_content_type($filePath)) {
+            throw new RuntimeException('Failed to resolve the file format.');
         }
 
-        $smartFile = new SmartFile($hash, $filePath, $displayName ?: null, AssertValidMimeType::assert($mimeType), null, true, $selfDestruct);
+        $smartFile = new SmartFile($hash, $filePath, $displayName ?: null, AssertValidMimeType::assert($format), null, true, $selfDestruct);
     } finally {
         if (is_resource($handle)) {
             @fclose($handle);
@@ -216,13 +214,13 @@ function parse_data(
  */
 function parse_base64_data(
     string $data,
-    string $mimeType,
+    string $format,
     ?string $displayName = null,
     ?string $directory = null,
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
-    return parse_data(sprintf('data:%s;base64,%s', AssertValidMimeType::assert($mimeType), $data), $displayName, $directory, false, $selfDestruct, $filesystem);
+    return parse_data(sprintf('data:%s;base64,%s', AssertValidMimeType::assert($format), $data), $displayName, $directory, false, $selfDestruct, $filesystem);
 }
 
 /**
