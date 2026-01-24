@@ -3,7 +3,7 @@
 namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
-use function preg_replace;
+use function str_replace;
 use function strtolower;
 use function strtoupper;
 use function trim;
@@ -29,74 +29,106 @@ enum FileType
     case Tif;
     case Tiff;
     case Txt;
+    case Webp;
     case Xml;
     case Other;
 
-    public static function fromFormat(?string $format): self
+    public static function create(?string $format): self
     {
-        $format = strtolower(trim($format ?? ''));
+        // Clean up the format a bit
+        $format = str_replace('.', '', strtolower(trim($format ?? '')));
 
         if (empty($format)) {
             return self::Other;
         }
 
         $type = match ($format) {
-            'application/octet-stream' => self::Bin,
-            'image/bmp' => self::Bmp,
-            'text/css' => self::Css,
-            'text/csv' => self::Csv,
-            'application/msword' => self::Doc,
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
-            'image/gif' => self::Gif,
-            'image/heic' => self::Heic,
-            'text/html' => self::Html,
-            'image/jpeg' => self::Jpeg,
-            'application/json' => self::Json,
-            'application/jsonl' => self::JsonLines,
-            'application/pdf' => self::Pdf,
-            'image/png' => self::Png,
-            'text/plain' => self::Txt,
-            'image/tiff' => self::Tiff,
-            'application/xml' => self::Xml,
-            default => self::Other,
-        };
-
-        return $type;
-    }
-
-    public static function fromExtension(?string $extension): self
-    {
-        $extension = strtolower(trim($extension ?? ''));
-
-        if (empty($extension)) {
-            return self::Other;
-        }
-
-        // Remove non-alphanumeric characters from the extension
-        $extension = preg_replace('/[^a-z0-9]/i', '', $extension);
-
-        $type = match ($extension) {
+            // Binaries
             'bin' => self::Bin,
+            'dms' => self::Bin,
+            'lrf' => self::Bin,
+            'mar' => self::Bin,
+            'so' => self::Bin,
+            'dist' => self::Bin,
+            'distz' => self::Bin,
+            'pkg' => self::Bin,
+            'bpk' => self::Bin,
+            'dump' => self::Bin,
+            'elc' => self::Bin,
+            'deploy' => self::Bin,
+            'application/octet-stream' => self::Bin,
+
+            // Bitmaps
             'bmp' => self::Bmp,
+            'image/bmp' => self::Bmp,
+
+            // Cascading Style Sheets
             'css' => self::Css,
+            'text/css' => self::Css,
+
+            // CSVs
             'csv' => self::Csv,
+            'text/csv' => self::Csv,
+
+            // Microsoft Word
             'doc' => self::Doc,
+            'application/msword' => self::Doc,
             'docx' => self::Docx,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
+
+            // GIF Images
             'gif' => self::Gif,
+            'image/gif' => self::Gif,
+
+            // HEIC Images
             'heic' => self::Heic,
+            'image/heic' => self::Heic,
+
+            // HTML Pages
             'html' => self::Html,
+            'text/html' => self::Html,
+
+            // JPEG Images
             'jpeg' => self::Jpeg,
             'jpg' => self::Jpeg,
+            'image/jpeg' => self::Jpeg,
+
+            // JSON Documents
             'json' => self::Json,
+            'application/json' => self::Json,
+
+            // JSONL Documents
             'jsonl' => self::JsonLines,
+            'application/jsonl' => self::JsonLines,
+
+            // PDF Documents
             'pdf' => self::Pdf,
+            'application/pdf' => self::Pdf,
+
+            // PNG Images
             'png' => self::Png,
+            'image/png' => self::Png,
+
+            // Plain Text Files
             'text' => self::Text,
+            'txt' => self::Text,
+            'text/plain' => self::Txt,
+
+            // TIFF Images
             'tif' => self::Tiff,
             'tiff' => self::Tiff,
-            'txt' => self::Txt,
+            'image/tiff' => self::Tiff,
+
+            // WEBP Images
+            'webp' => self::Webp,
+            'image/webp' => self::Webp,
+
+            // XML Documents
             'xml' => self::Xml,
             'xsl' => self::Xml,
+            'application/xml' => self::Xml,
+
+            // Other Files
             default => self::Other,
         };
 
@@ -116,12 +148,19 @@ enum FileType
             return $this->name;
         }
 
-        $name = match ($this) {
-            self::Jpg => self::Jpeg->name,
-            self::Tif => self::Tiff->name,
-            self::Txt => self::Text->name,
-            default => $this->name,
-        };
+        $name = $this->name;
+
+        if ($this->isJpg()) {
+            $name = self::Jpeg->name;
+        }
+
+        if ($this->isTif()) {
+            $name = self::Tiff->name;
+        }
+
+        if ($this->isTxt()) {
+            $name = self::Text->name;
+        }
 
         return strtoupper($name);
     }
@@ -147,8 +186,6 @@ enum FileType
     }
 
     /**
-     * Returns true if the file is not plaintext, false otherwise.
-     *
      * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Jpg|self::Jpeg|self::Pdf|self::Png|self::Tif|self::Tiff $this
      */
     public function isBinary(): bool
@@ -192,9 +229,7 @@ enum FileType
     }
 
     /**
-     * Returns true if the file represents an image, false otherwise.
-     *
-     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Jpg|self::Jpeg|self::Png|self::Tif|self::Tiff $this
+     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Jpg|self::Jpeg|self::Png|self::Tif|self::Tiff|self::Webp $this
      */
     public function isImage(): bool
     {
@@ -207,12 +242,11 @@ enum FileType
             self::Png,
             self::Tif,
             self::Tiff,
+            self::Webp,
         ]);
     }
 
     /**
-     * Returns true if the file is plaintext, false otherwise.
-     *
      * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::JsonLines|self::Text|self::Txt|self::Xml $this
      */
     public function isPlainText(): bool
@@ -371,6 +405,22 @@ enum FileType
     public function isTiff(): bool
     {
         return in_array($this, [self::Tiff, self::Tif]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Txt $this
+     */
+    public function isTxt(): bool
+    {
+        return self::Txt === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Webp $this
+     */
+    public function isWebp(): bool
+    {
+        return self::Webp === $this;
     }
 
     /**

@@ -4,26 +4,19 @@ namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
-use OneToMany\DataUri\Exception\AssertValidMimeType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Symfony\Component\Filesystem\Path;
 
 use function base64_encode;
-use function basename;
 use function file_exists;
 use function file_get_contents;
 use function hash;
-use function implode;
 use function is_file;
 use function is_readable;
-use function pathinfo;
 use function sprintf;
 use function strlen;
-use function strtolower;
 use function unlink;
-
-use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements \Stringable, SmartFileInterface
 {

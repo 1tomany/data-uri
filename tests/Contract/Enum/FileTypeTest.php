@@ -12,16 +12,16 @@ use PHPUnit\Framework\TestCase;
 #[Group('EnumTests')]
 final class FileTypeTest extends TestCase
 {
-    #[DataProvider('providerExtensionAndFileType')]
-    public function testFromExtension(?string $extension, FileType $fileType): void
+    #[DataProvider('providerFormatAndFileType')]
+    public function testCreatingFileType(?string $format, FileType $fileType): void
     {
-        $this->assertSame($fileType, FileType::fromExtension($extension));
+        $this->assertSame($fileType, FileType::create($format));
     }
 
     /**
      * @return list<list<bool|string|FileType|null>>
      */
-    public static function providerExtensionAndFileType(): array
+    public static function providerFormatAndFileType(): array
     {
         $provider = [
             [null, FileType::Other],
@@ -50,6 +50,7 @@ final class FileTypeTest extends TestCase
             ['tif', FileType::Tiff],
             ['tiff', FileType::Tiff],
             ['txt', FileType::Text],
+            ['webp', FileType::Webp],
             ['xml', FileType::Xml],
         ];
 
@@ -87,6 +88,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, 'TIFF'],
             [FileType::Tiff, 'TIFF'],
             [FileType::Txt, 'TEXT'],
+            [FileType::Webp, 'WEBP'],
             [FileType::Xml, 'XML'],
             [FileType::Other, 'Other'],
         ];
@@ -125,6 +127,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, true],
             [FileType::Tiff, true],
             [FileType::Txt, false],
+            [FileType::Webp, false],
             [FileType::Xml, false],
             [FileType::Other, false],
         ];
@@ -163,6 +166,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, false],
             [FileType::Tiff, false],
             [FileType::Txt, true],
+            [FileType::Webp, false],
             [FileType::Xml, true],
             [FileType::Other, false],
         ];
@@ -201,6 +205,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, true],
             [FileType::Tiff, true],
             [FileType::Txt, false],
+            [FileType::Webp, true],
             [FileType::Xml, false],
             [FileType::Other, false],
         ];
@@ -239,6 +244,7 @@ final class FileTypeTest extends TestCase
             [FileType::Tif, false],
             [FileType::Tiff, false],
             [FileType::Txt, true],
+            [FileType::Webp, false],
             [FileType::Xml, true],
             [FileType::Other, false],
         ];

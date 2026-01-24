@@ -154,7 +154,7 @@ function parse_data(
             throw new RuntimeException('Failed to determine the file format.');
         }
 
-        $fileType = FileType::fromFormat($fileFormat);
+        $fileType = FileType::create($fileFormat);
 
         try {
             /** @var non-empty-string */
