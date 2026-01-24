@@ -40,7 +40,7 @@ This function is to be used when the data is assumed to be base64 encoded but NO
 The `parse_base64_data()` function has the following arguments:
 
 * `string $data` The base64 encoded data to decode.
-* `string $mimeType` The MIME type of the data to decode.
+* `string $format` The format of the data represented as a MIME type.
 * `?string $displayName` See `parse_data()`.
 * `?string $directory` See `parse_data()`.
 * `bool $selfDestruct` See `parse_data()`.
@@ -66,7 +66,7 @@ See the [`parse_example.php`](https://github.com/1tomany/data-uri/blob/main/exam
 ### Testing with `SmartFile::createMock()`
 You may be reluctant to write tests for code that uses the `parse_data()` function because it interacts with the actual filesystem. For example, if you have a class that takes a `SmartFileInterface` object and uploads it to a remote storage service, you may not want to actually call `parse_data()` in your test or instantiate a new `SmartFileInterface` object since it requires the existence of a file on the local filesystem and will attempt to delete the file when the object is destroyed.
 
-In those instances, you can instantiate a `OneToMany\DataUri\SmartFile` object with the `createMock(string $path, string $mimeType)` method. `SmartFile` instances created using `createMock()` do not require the file to exist, and don't attempt to delete the file when the object is destroyed.
+In those instances, you can instantiate a `OneToMany\DataUri\SmartFile` object with the `createMock(string $path, string $format)` method. `SmartFile` instances created using `createMock()` do not require the file to exist, and don't attempt to delete the file when the object is destroyed.
 
 If you _do_ wish to use the `parse_data()` function, you can write a unit test that does not interact with the filesystem by passing a mocked `Symfony\Component\Filesystem\Filesystem` object as the last parameter of the `parse_data()` method in your test. You will need to mock the following methods of the `Filesystem` class:
 
