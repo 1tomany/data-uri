@@ -70,6 +70,9 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
      */
     public string $remoteKey;
 
+    /**
+     * Characters used to generate remote key.
+     */
     private const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
     public function __construct(
