@@ -42,18 +42,18 @@ use const FILEINFO_EXTENSION;
 use const PATHINFO_EXTENSION;
 
 /**
- * Parses file data into a SmartFileInterface object.
+ * Parses file data into a `SmartFileInterface` object.
  *
- * This method takes a wide variety of file data and attempts to create a
- * temporary self-destructing file that implements the SmartFileInterface
- * interface. The data can be an existing file, a publicly accessible URL,
- * or a Data URL ("data:image/png;base64,R0lGOD...") defined by RFC 2397.
+ * This method takes data from a wide variety of sources and attempts
+ * to create a temporary self-destructing file represented by an object
+ * that implements `SmartFileInterface`. The data can be an existing
+ * file, a public URL, or a data URL defined by RFC 2397 ("data:...").
  *
  * @param mixed       $data           The data to parse: an existing file, a public URL, or an RFC 2397 Data URL
  * @param ?string     $displayName    Display name for the temporary file; a random name is generated if empty
  * @param ?string     $directory      Directory to create the temporary file in, sys_get_temp_dir() is used if empty
- * @param bool        $deleteOriginal If true and $data is a file, the file will be deleted after the SmartFile object is created
- * @param bool        $selfDestruct   If true, the SmartFile object will delete the temporary file it references when destructed
+ * @param bool        $deleteOriginal If true and $data is a file, the file will be deleted after parse_data() runs
+ * @param bool        $selfDestruct   If true, the temporary file will be deleted when the object that references it is destroyed
  * @param ?Filesystem $filesystem     An instance of the Symfony Filesystem component used for mocks in tests
  *
  * @throws InvalidArgumentException if $data is not a string
