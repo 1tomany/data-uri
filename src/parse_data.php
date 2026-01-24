@@ -16,14 +16,12 @@ use function base64_encode;
 use function basename;
 use function bin2hex;
 use function ctype_print;
-use function fclose;
 use function fopen;
 use function hash_file;
 use function implode;
 use function is_dir;
 use function is_file;
 use function is_readable;
-use function is_resource;
 use function is_string;
 use function is_writable;
 use function mime_content_type;
@@ -35,6 +33,7 @@ use function str_ends_with;
 use function stream_get_contents;
 use function stripos;
 use function strtolower;
+use function substr;
 use function sys_get_temp_dir;
 use function trim;
 
@@ -158,8 +157,11 @@ function parse_data(
         $fileType = FileType::fromFormat($fileFormat);
 
         try {
+            /** @var non-empty-string */
+            $displayName = Path::changeExtension($displayName, $fileType->getExtension() ?? '');
+
             /** @var non-empty-string $filePath */
-            $filePath = Path::join($directory, Path::changeExtension($displayName, $fileType->getExtension() ?? ''));
+            $filePath = Path::join($directory, $displayName);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
@@ -180,17 +182,21 @@ function parse_data(
         }
 
         try {
-            $suffix = new \Random\Randomizer()->getBytesFromString(SmartFileInterface::SUFFIX_ALPHABET, 10);
+            // Begin by bucketing the file into directories based on the hash
+            $remoteKeyDirectory = substr($fileHash, 0, 2).'/'.substr($fileHash, 2, 2);
+
+            // Generate a random string to use as the remote key
+            $remoteKeySuffix = new \Random\Randomizer()->getBytesFromString(SmartFileInterface::REMOTE_KEY_ALPHABET, 10);
 
             // Append the extension to the suffix
-            if ($ext = $fileType->getExtension()) {
-                $suffix = implode('.', [$suffix, $ext]);
+            if (null !== $ext = $fileType->getExtension()) {
+                $remoteKeySuffix = Path::changeExtension($remoteKeySuffix, $ext);
             }
 
-            // Append the suffix to the remote key
-            $remoteKey = implode('/', [$fileHash[0].$fileHash[1], $fileHash[2].$fileHash[3], $suffix]);
+            // Append the randomly generated suffix to create the remote key
+            $remoteKey = implode('/', [$remoteKeyDirectory, $remoteKeySuffix]);
         } catch (\Random\RandomException|\Random\RandomError $e) {
-            throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
+            throw new RuntimeException('Failed to generate a sufficiently random remote key suffix.', previous: $e);
         }
     } catch (ExceptionInterface $e) {
         try {
@@ -220,7 +226,7 @@ function parse_data(
     } catch (FilesystemExceptionInterface $e) {
     }
 
-    return new SmartFile($fileHash, $filePath, basename($filePath), $fileType->getExtension(), $fileType, $fileFormat, filesize($filePath) ?: 0, $remoteKey, true, $selfDestruct);
+    return new SmartFile($fileHash, $filePath, $displayName, $fileType->getExtension(), $fileType, strtolower($fileFormat), filesize($filePath) ?: 0, $remoteKey, true, $selfDestruct);
 }
 
 /**

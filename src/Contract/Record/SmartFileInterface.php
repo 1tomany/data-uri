@@ -16,7 +16,7 @@ interface SmartFileInterface extends \Stringable
     /**
      * Characters used to generate remote key.
      */
-    public const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    public const string REMOTE_KEY_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
     /**
      * @var non-empty-lowercase-string

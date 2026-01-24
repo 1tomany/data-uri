@@ -11,31 +11,22 @@ use Symfony\Component\Filesystem\Path;
 
 use function base64_encode;
 use function basename;
-use function dirname;
 use function file_exists;
 use function file_get_contents;
-use function filesize;
 use function hash;
 use function implode;
 use function is_file;
 use function is_readable;
-use function max;
 use function pathinfo;
-use function random_bytes;
-use function random_int;
-use function realpath;
 use function sprintf;
 use function strlen;
 use function strtolower;
-use function trim;
 use function unlink;
 
 use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements \Stringable, SmartFileInterface
 {
-
-
     /**
      * @param non-empty-lowercase-string $hash
      * @param non-empty-string $path
@@ -44,7 +35,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
      * @param non-empty-lowercase-string $format
      * @param non-negative-int $size
      * @param non-empty-string $remoteKey
-    */
+     */
     public function __construct(
         public string $hash,
         public string $path,
