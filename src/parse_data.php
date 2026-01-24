@@ -29,7 +29,6 @@ use function mime_content_type;
 use function parse_url;
 use function pathinfo;
 use function random_bytes;
-use function rtrim;
 use function sprintf;
 use function str_contains;
 use function str_ends_with;
