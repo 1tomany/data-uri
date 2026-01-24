@@ -228,8 +228,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithDifferentHashesAreNotEqual(): void
     {
-        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
-        $file2 = new SmartFile('hash2', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
+        $file1 = $this->createSmartFileWithHash('hash1');
+        $file2 = $this->createSmartFileWithHash('hash2');
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
@@ -237,8 +237,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
     {
-        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
-        $file2 = new SmartFile('hash1', __DIR__.'/data/png-small.png', '', null, FileType::Png, 'image/png', 10289, '', false); // @phpstan-ignore-line
+        $file1 = $this->createSmartFileWithHash('hash1');
+        $file2 = $this->createSmartFileWithHash('hash1');
 
         $this->assertTrue($file1->equals($file2));
         $this->assertTrue($file2->equals($file1));
@@ -246,10 +246,19 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
-        $file2 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
+        $file1 = $this->createSmartFileWithHash('hash1');
+        $file2 = $this->createSmartFileWithHash('hash1');
 
+        $this->assertSame($file1->path, $file2->path);
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));
+    }
+
+    /**
+     * @param non-empty-lowercase-string $hash
+     */
+    private function createSmartFileWithHash(string $hash): SmartFileInterface
+    {
+        return new SmartFile($hash, __DIR__.'/data/pdf-small.pdf', 'pdf-small.pdf', null, FileType::Pdf, 'application/pdf', 36916, 'pdf-small.pdf', false);
     }
 }
