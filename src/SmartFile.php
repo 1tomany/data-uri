@@ -15,6 +15,7 @@ use function file_exists;
 use function file_get_contents;
 use function filesize;
 use function hash;
+use function implode;
 use function is_file;
 use function is_readable;
 use function max;
@@ -25,7 +26,6 @@ use function realpath;
 use function sprintf;
 use function strlen;
 use function strtolower;
-use function substr;
 use function trim;
 use function unlink;
 
@@ -43,6 +43,8 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     public int $size;
     public string $remoteKey;
     public bool $autoDelete;
+
+    private const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
     public function __construct(
         string $hash,
@@ -118,8 +120,14 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
 
         $this->size = max(0, $size ?: 0);
 
-        // Generate the remote key using the first four characters of the hash
-        $remoteKey = substr($this->hash, 0, 2).'/'.substr($this->hash, 2, 2).'/'.$this->hash;
+        try {
+            $suffix = new \Random\Randomizer()->getBytesFromString(self::SUFFIX_ALPHABET, 12);
+        } catch (\Random\RandomException|\Random\RandomError $e) {
+            throw new RuntimeException('Failed to generate a sufficiently random suffix.', previous: $e);
+        }
+
+        // Generate a bucket from the hash and append a random suffix
+        $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $suffix]);
 
         if (null !== $this->extension) {
             $remoteKey = $remoteKey.'.'.$this->extension;
