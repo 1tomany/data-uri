@@ -207,7 +207,7 @@ function parse_data(
 }
 
 /**
- * Parses data that is assumed to be base64 encoded, but not encoded as a Data URL.
+ * Parses data that is assumed to be base64 encoded.
  *
  * @throws InvalidArgumentException
  * @throws RuntimeException

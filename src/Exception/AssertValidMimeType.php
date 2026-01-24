@@ -14,20 +14,23 @@ final readonly class AssertValidMimeType
     }
 
     /**
-     * @return non-empty-string
+     * Attempts to validate that a string matches the basic MIME type structure.
+     *
+     * @return non-empty-lowercase-string
+     *
+     * @throws InvalidArgumentException the $format is an empty string
+     * @throws InvalidArgumentException the $format does not match the MIME type structure
      */
-    public static function assert(?string $mimeType): string
+    public static function assert(?string $format): string
     {
-        $mimeType = trim($mimeType ?? '');
-
-        if (!$mimeType) {
+        if (!$format = trim($format ?? '')) {
             throw new InvalidArgumentException('The format cannot be empty.');
         }
 
-        if (!preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
-            throw new InvalidArgumentException(sprintf('The format "%s" is invalid.', $mimeType));
+        if (!preg_match('/^\w+\/[-+.\w]+$/i', $format)) {
+            throw new InvalidArgumentException(sprintf('The format "%s" is invalid.', $format));
         }
 
-        return strtolower($mimeType);
+        return strtolower($format);
     }
 }
