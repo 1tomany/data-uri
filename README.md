@@ -74,7 +74,7 @@ If you _do_ wish to use the `parse_data()` function, you can write a unit test t
 * `void dumpFile(string $filename, string|resource $content)`
 * `void rename(string $origin, string $target, bool $overwrite = false)`
 
-An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingDataRequiresWritingDataToTemporaryFile()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L110).
+An example of the mocked `Filesystem` class can be found in the `ParseDataTest` test class in the [`testParsingDataRequiresWritingDataToTemporaryFile()` test case](https://github.com/1tomany/data-uri/blob/main/tests/ParseDataTest.php#L98).
 
 If you want to take your tests further, you can validate the data is "written" to the temporary file by combining the mocked `Filesystem` object with a library like [mikey179/vfsstream](https://packagist.org/packages/mikey179/vfsstream).
 

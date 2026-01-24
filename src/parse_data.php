@@ -8,6 +8,9 @@ use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\AssertValidMimeType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
+use Random\RandomError;
+use Random\RandomException;
+use Random\Randomizer;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
@@ -108,7 +111,7 @@ function parse_data(
 
         try {
             $tempFilePath = Path::join($directory, sprintf('1tomany_datauri_%s', bin2hex(random_bytes(6))));
-        } catch (FilesystemExceptionInterface $e) {
+        } catch (FilesystemExceptionInterface|RandomException $e) {
             throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
@@ -187,7 +190,7 @@ function parse_data(
             $remoteKeyDirectory = substr($fileHash, 0, 2).'/'.substr($fileHash, 2, 2);
 
             // Generate a random string to use as the remote key
-            $remoteKeySuffix = new \Random\Randomizer()->getBytesFromString(SmartFileInterface::REMOTE_KEY_ALPHABET, 10);
+            $remoteKeySuffix = new Randomizer()->getBytesFromString(SmartFileInterface::REMOTE_KEY_ALPHABET, 10);
 
             // Append the extension to the suffix
             if (null !== $ext = $fileType->getExtension()) {
@@ -196,7 +199,7 @@ function parse_data(
 
             // Append the randomly generated suffix to create the remote key
             $remoteKey = implode('/', [$remoteKeyDirectory, $remoteKeySuffix]);
-        } catch (\Random\RandomException|\Random\RandomError $e) {
+        } catch (RandomException|RandomError $e) {
             throw new RuntimeException('Failed to generate a sufficiently random remote key suffix.', previous: $e);
         }
     } catch (ExceptionInterface $e) {
