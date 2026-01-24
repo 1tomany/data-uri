@@ -7,6 +7,7 @@ use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\AssertValidMimeType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
+use Symfony\Component\Filesystem\Path;
 
 use function base64_encode;
 use function basename;
@@ -33,92 +34,52 @@ use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements \Stringable, SmartFileInterface
 {
-    /**
-     * @var non-empty-lowercase-string
-     */
-    public string $hash;
+
 
     /**
-     * @var non-empty-string
-     */
-    public string $path;
-
-    /**
-     * @var non-empty-string
-     */
-    public string $name;
-
-    /**
-     * @var non-empty-string
-     */
-    public string $basename;
-
-    /**
-     * @var ?non-empty-lowercase-string
-     */
-    public ?string $extension;
-
-    public FileType $type;
-
-    /**
-     * @var non-empty-lowercase-string
-     */
-    public string $format;
-
-    /**
-     * @var non-negative-int
-     */
-    public int $size;
-
-    /**
-     * @var non-empty-string
-     */
-    public string $remoteKey;
-
-    /**
-     * Characters used to generate remote key.
-     */
-    private const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
+     * @param non-empty-lowercase-string $hash
+     * @param non-empty-string $path
+     * @param non-empty-string $name
+     * @param ?non-empty-lowercase-string $extension
+     * @param non-empty-lowercase-string $format
+     * @param non-negative-int $size
+     * @param non-empty-string $remoteKey
+    */
     public function __construct(
-        string $hash,
-        string $path,
-        ?string $name,
-        string $format,
-        ?int $size = null,
+        public string $hash,
+        public string $path,
+        public string $name,
+        public ?string $extension,
+        public FileType $type,
+        public string $format,
+        public int $size,
+        public string $remoteKey,
         bool $checkPath = true,
         public bool $autoDelete = true,
     ) {
         // Validate hash is not empty
-        if (empty($hash = trim($hash))) {
+        if (empty($this->hash)) {
             throw new InvalidArgumentException('The hash cannot be empty.');
         }
 
         // Validate minimum hash length
-        if (strlen($hash) < self::MINIMUM_HASH_LENGTH) {
-            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, self::MINIMUM_HASH_LENGTH));
+        if (strlen($this->hash) < self::MINIMUM_HASH_LENGTH) {
+            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $this->hash, self::MINIMUM_HASH_LENGTH));
         }
 
-        $this->hash = strtolower($hash);
-
         // Validate non-empty path
-        if (empty($path = trim($path))) {
+        if (empty($this->path)) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
 
-        $this->path = $path;
-
         // Resolve the actual file name
-        $basename = basename($this->path);
+        // $basename = basename($this->path);
 
-        if (empty($basename = basename($this->path))) {
-            throw new InvalidArgumentException('The basename cannot be empty.');
-        }
+        // if (empty($basename = basename($this->path))) {
+        //     throw new InvalidArgumentException('The basename cannot be empty.');
+        // }
 
-        $this->basename = $basename;
-
-        // Resolve the display name
-        $this->name = trim($name ?? '') ?: $this->basename;
+        // $this->basename = $basename;
 
         // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
@@ -134,42 +95,35 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         }
 
         // Resolve the extension if available
-        $this->extension = strtolower(pathinfo($this->path, PATHINFO_EXTENSION)) ?: null;
+        // $this->extension = strtolower(pathinfo($this->path, PATHINFO_EXTENSION)) ?: null;
 
         // Determine the FileType based on the extension
-        $this->type = FileType::fromExtension($this->extension);
+        // $this->type = FileType::fromExtension($this->extension);
 
-        // Force the MIME type for .jsonl files
-        if ($this->type->isJsonLines()) {
-            $format = 'application/jsonl';
-        }
+        // // Force the MIME type for .jsonl files
+        // if ($this->type->isJsonLines()) {
+        //     $format = 'application/jsonl';
+        // }
 
         // Validate the MIME type
-        $this->format = AssertValidMimeType::assert($format);
-
-        // Calculate the file size
-        if ($checkPath && null === $size) {
-            $size = @filesize($this->path);
-        }
-
-        $this->size = max(0, $size ?: 0);
+        // $this->format = AssertValidMimeType::assert($format);
 
         // Generate a bucket from the first four characters of the hash
-        $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3]]);
+        // $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3]]);
 
-        try {
-            $suffix = new \Random\Randomizer()->getBytesFromString(self::SUFFIX_ALPHABET, 10);
+        // try {
+        //     $suffix = new \Random\Randomizer()->getBytesFromString(self::SUFFIX_ALPHABET, 10);
 
-            // Append the extension to the suffix
-            if (false === empty($ext = $this->extension)) {
-                $suffix = implode('.', [$suffix, $ext]);
-            }
+        //     // Append the extension to the suffix
+        //     if (false === empty($ext = $this->extension)) {
+        //         $suffix = implode('.', [$suffix, $ext]);
+        //     }
 
-            // Append the suffix to the remote key
-            $this->remoteKey = implode('/', [$remoteKey, $suffix]);
-        } catch (\Random\RandomException|\Random\RandomError $e) {
-            throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
-        }
+        //     // Append the suffix to the remote key
+        //     $this->remoteKey = implode('/', [$remoteKey, $suffix]);
+        // } catch (\Random\RandomException|\Random\RandomError $e) {
+        //     throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
+        // }
     }
 
     public function __destruct()
@@ -184,17 +138,6 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     public function __toString(): string
     {
         return $this->path;
-    }
-
-    public static function createMock(string $path, string $format): self
-    {
-        // Generate random size [1KB, 4MB]
-        $size = random_int(1_024, 4_194_304);
-
-        // Generate random hash based on size
-        $hash = hash('sha256', random_bytes($size));
-
-        return new self($hash, $path, null, $format, $size, false, false);
     }
 
     /**
@@ -226,15 +169,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
      */
     public function getDirectory(): string
     {
-        return dirname(realpath($this->path) ?: '/');
-    }
-
-    /**
-     * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
-     */
-    public function getBasename(): string
-    {
-        return $this->basename;
+        return Path::getDirectory($this->path);
     }
 
     /**

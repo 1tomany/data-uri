@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Exception\ExceptionInterface;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\AssertValidMimeType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
@@ -147,10 +148,6 @@ function parse_data(
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Failed to write data to "%s".', $tempFilePath), previous: $e);
             }
-
-            if (is_resource($handle)) {
-                @fclose($handle);
-            }
         }
 
         // Attempt to determine the file format
@@ -181,10 +178,25 @@ function parse_data(
         if (strlen($fileHash) < SmartFileInterface::MINIMUM_HASH_LENGTH) {
             throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $fileHash, SmartFileInterface::MINIMUM_HASH_LENGTH));
         }
-    } finally {
+
+        try {
+            $suffix = new \Random\Randomizer()->getBytesFromString(SmartFileInterface::SUFFIX_ALPHABET, 10);
+
+            // Append the extension to the suffix
+            if ($ext = $fileType->getExtension()) {
+                $suffix = implode('.', [$suffix, $ext]);
+            }
+
+            // Append the suffix to the remote key
+            $remoteKey = implode('/', [$fileHash[0].$fileHash[1], $fileHash[2].$fileHash[3], $suffix]);
+        } catch (\Random\RandomException|\Random\RandomError $e) {
+            throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
+        }
+    } catch (ExceptionInterface $e) {
         try {
             $tempFilesToDelete = [];
 
+            // Compile a list of files to delete
             if (is_string($filePath ?? null)) {
                 $tempFilesToDelete[] = $filePath;
             }
@@ -196,6 +208,8 @@ function parse_data(
             $filesystem->remove($tempFilesToDelete);
         } catch (FilesystemExceptionInterface $e) {
         }
+
+        throw $e;
     }
 
     try {
@@ -206,7 +220,7 @@ function parse_data(
     } catch (FilesystemExceptionInterface $e) {
     }
 
-    return new SmartFile($fileHash, $filePath, basename($filePath), $fileFormat, null, true, $selfDestruct);
+    return new SmartFile($fileHash, $filePath, basename($filePath), $fileType->getExtension(), $fileType, $fileFormat, filesize($filePath) ?: 0, $remoteKey, true, $selfDestruct);
 }
 
 /**

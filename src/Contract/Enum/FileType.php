@@ -55,7 +55,7 @@ enum FileType
             'application/jsonl' => self::JsonLines,
             'application/pdf' => self::Pdf,
             'image/png' => self::Png,
-            'text/plain' => self::Text,
+            'text/plain' => self::Txt,
             'image/tiff' => self::Tiff,
             'application/xml' => self::Xml,
             default => self::Other,

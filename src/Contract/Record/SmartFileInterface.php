@@ -14,6 +14,11 @@ interface SmartFileInterface extends \Stringable
     public const int MINIMUM_HASH_LENGTH = 4;
 
     /**
+     * Characters used to generate remote key.
+     */
+    public const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
+    /**
      * @var non-empty-lowercase-string
      */
     public string $hash { get; }
@@ -29,13 +34,6 @@ interface SmartFileInterface extends \Stringable
      * @var non-empty-string
      */
     public string $name { get; }
-
-    /**
-     * The name of the file on the filesystem.
-     *
-     * @var non-empty-string
-     */
-    public string $basename { get; }
 
     /**
      * @var ?non-empty-lowercase-string
@@ -65,7 +63,7 @@ interface SmartFileInterface extends \Stringable
     public bool $autoDelete { get; }
 
     /**
-     * @return non-empty-string
+     * @return non-empty-lowercase-string
      */
     public function getHash(): string;
 
@@ -80,11 +78,6 @@ interface SmartFileInterface extends \Stringable
     public function getName(): string;
 
     public function getDirectory(): string;
-
-    /**
-     * @return non-empty-string
-     */
-    public function getBasename(): string;
 
     /**
      * @return ?non-empty-lowercase-string
