@@ -17,6 +17,7 @@ use function ctype_print;
 use function filesize;
 use function fopen;
 use function hash_file;
+use function implode;
 use function in_array;
 use function is_dir;
 use function is_file;
@@ -29,7 +30,6 @@ use function stream_get_contents;
 use function stream_get_wrappers;
 use function stripos;
 use function strlen;
-use function substr;
 use function sys_get_temp_dir;
 use function trim;
 
@@ -124,8 +124,7 @@ final class DataDecoder
         // Attempt to determine the file format
         $type = Type::create($format);
 
-
-        if (null !== $extension = $type->getExtension()) {
+        if ($extension = $type->getExtension()) {
             try {
                 /** @var non-empty-string $tempName */
                 $tempName = Path::changeExtension($tempName, $extension);
