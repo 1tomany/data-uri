@@ -124,7 +124,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         $remoteKey = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3]]);
 
         try {
-            $suffix = new \Random\Randomizer()->getBytesFromString(self::SUFFIX_ALPHABET, 12);
+            $suffix = new \Random\Randomizer()->getBytesFromString(self::SUFFIX_ALPHABET, 10);
 
             // Append the extension to the suffix
             if (false === empty($ext = $this->extension)) {
