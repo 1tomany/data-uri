@@ -154,11 +154,11 @@ function parse_data(
         }
 
         // Attempt to determine the file format
-        if (!$format = @mime_content_type($tempFilePath)) {
+        if (!$fileFormat = @mime_content_type($tempFilePath)) {
             throw new RuntimeException('Failed to determine the file format.');
         }
 
-        $fileType = FileType::fromFormat($format);
+        $fileType = FileType::fromFormat($fileFormat);
 
         try {
             /** @var non-empty-string $filePath */
@@ -173,18 +173,28 @@ function parse_data(
             throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempFilePath, $filePath), previous: $e);
         }
 
-        if (false === $hash = hash_file('sha256', $filePath)) {
+        if (!$fileHash = hash_file('sha256', $filePath)) {
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $filePath));
         }
 
-        $smartFile = new SmartFile($hash, $filePath, basename($filePath), $format, null, true, $selfDestruct);
+        // Validate minimum hash length
+        if (strlen($fileHash) < SmartFileInterface::MINIMUM_HASH_LENGTH) {
+            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $fileHash, SmartFileInterface::MINIMUM_HASH_LENGTH));
+        }
     } finally {
         try {
-            if (is_string($tempFilePath ?? null)) {
-                $filesystem->remove($tempFilePath);
+            $tempFilesToDelete = [];
+
+            if (is_string($filePath ?? null)) {
+                $tempFilesToDelete[] = $filePath;
             }
+
+            if (is_string($tempFilePath ?? null)) {
+                $tempFilesToDelete[] = $tempFilePath;
+            }
+
+            $filesystem->remove($tempFilesToDelete);
         } catch (FilesystemExceptionInterface $e) {
-            @unlink($tempFilePath);
         }
     }
 
@@ -196,7 +206,7 @@ function parse_data(
     } catch (FilesystemExceptionInterface $e) {
     }
 
-    return $smartFile;
+    return new SmartFile($fileHash, $filePath, basename($filePath), $fileFormat, null, true, $selfDestruct);
 }
 
 /**
