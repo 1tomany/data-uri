@@ -80,11 +80,8 @@ final class SmartFileTest extends TestCase
 
     public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExist(): void
     {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-
-        // Act: Construct a SmartFile to auto delete
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile();
 
         // Assert: SmartFile to auto delete
         $this->assertTrue($file->autoDelete);
@@ -130,24 +127,17 @@ final class SmartFileTest extends TestCase
 
     public function testToStringReturnsPath(): void
     {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-
-        // Act: Construct a SmartFile with valid path
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile();
 
         // Assert: Path equals string representation
-        $this->assertEquals($path, $file->__toString());
+        $this->assertEquals($file->path, $file->__toString());
     }
 
     public function testReadingFileRequiresFileToExist(): void
     {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-        $this->assertFileExists($path);
-
-        // Act: Construct a SmartFile with valid path
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile();
 
         // Arrange: Manually delete the file
         new Filesystem()->remove($file->path);
@@ -244,12 +234,12 @@ final class SmartFileTest extends TestCase
         $this->assertTrue($file2->equals($file1, true));
     }
 
-    private function createTemporarySmartFile(?string $contents = null): SmartFileInterface
+    private function createTemporarySmartFile(?string $contents = null): SmartFile
     {
         // Arrange: Create a local temporary file
         $path = $this->createTempFile(contents: $contents);
 
-
+        // Arrange: Create a non-empty file name
         $name = basename($path) ?: bin2hex(random_bytes(6));
 
         return new SmartFile('hash', $path, $name, 'txt', FileType::Text, 'text/plain', filesize($path) ?: 0, $name, true);
@@ -258,7 +248,7 @@ final class SmartFileTest extends TestCase
     /**
      * @param non-empty-lowercase-string $hash
      */
-    private function createSmartFileWithHash(string $hash): SmartFileInterface
+    private function createSmartFileWithHash(string $hash): SmartFile
     {
         return new SmartFile($hash, __DIR__.'/data/pdf-small.pdf', 'pdf-small.pdf', null, FileType::Pdf, 'application/pdf', 36916, 'pdf-small.pdf', false);
     }
