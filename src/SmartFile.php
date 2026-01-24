@@ -42,7 +42,6 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     public string $format;
     public int $size;
     public string $remoteKey;
-    public bool $autoDelete;
 
     private const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
@@ -53,9 +52,9 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         string $format,
         ?int $size = null,
         bool $checkPath = true,
-        bool $autoDelete = true,
+        public bool $autoDelete = true,
     ) {
-        // Validate non-empty hash
+        // Validate hash is not empty
         if (empty($hash = trim($hash))) {
             throw new InvalidArgumentException('The hash cannot be empty.');
         }
@@ -136,8 +135,6 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         } catch (\Random\RandomException|\Random\RandomError $e) {
             throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
         }
-
-        $this->autoDelete = $autoDelete;
     }
 
     public function __destruct()

@@ -8,7 +8,8 @@ use OneToMany\DataUri\Exception\RuntimeException;
 interface SmartFileInterface extends \Stringable
 {
     /**
-     * Hashes must be at least four characters so the remote key directories can be generated.
+     * Hashes must be at least four characters
+     * so the remote key bucket can be generated
      */
     public const int MINIMUM_HASH_LENGTH = 4;
 
@@ -42,7 +43,7 @@ interface SmartFileInterface extends \Stringable
     public FileType $type { get; }
 
     /**
-     * @var non-empty-string
+     * @var non-empty-lowercase-string
      */
     public string $format { get; }
 
@@ -88,7 +89,7 @@ interface SmartFileInterface extends \Stringable
     public function getType(): FileType;
 
     /**
-     * @return non-empty-string
+     * @return non-empty-lowercase-string
      */
     public function getFormat(): string;
 
