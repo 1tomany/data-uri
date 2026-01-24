@@ -34,17 +34,40 @@ use const PATHINFO_EXTENSION;
 readonly class SmartFile implements \Stringable, SmartFileInterface
 {
     /**
-     *
      * @var non-empty-lowercase-string
      */
     public string $hash;
+
+    /**
+     * @var non-empty-string
+     */
     public string $path;
+
+    /**
+     * @var non-empty-string
+     */
     public string $name;
     public string $basename;
+
+    /**
+     * @var ?non-empty-lowercase-string
+     */
     public ?string $extension;
     public FileType $type;
+
+    /**
+     * @var non-empty-lowercase-string
+     */
     public string $format;
+
+    /**
+     * @var non-negative-int
+     */
     public int $size;
+
+    /**
+     * @var non-empty-string
+     */
     public string $remoteKey;
 
     private const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
