@@ -56,15 +56,16 @@ use const PATHINFO_EXTENSION;
  * @param bool $selfDestruct If true, the SmartFile object will delete the temporary file it references when destructed
  * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component used for mocks in tests
  *
- * @throws InvalidArgumentException $data is not a string
- * @throws InvalidArgumentException $data is empty
- * @throws InvalidArgumentException $data is a directory
- * @throws InvalidArgumentException $data contains non-printable text, control characters, or NUL bytes
- * @throws InvalidArgumentException $directory is not null and not writable, or the temp directory is not writable
- * @throws InvalidArgumentException $data is a file but is not readable
- * @throws InvalidArgumentException $data could not be decoded or streamed
- * @throws RuntimeException a duplicate temporary file could not be created
- * @throws RuntimeException the data could not be streamed
+ * @throws InvalidArgumentException if $data is not a string
+ * @throws InvalidArgumentException if $data is empty
+ * @throws InvalidArgumentException if $data is a directory
+ * @throws InvalidArgumentException if $data contains non-printable text, control characters, or NUL bytes
+ * @throws InvalidArgumentException if $directory is not null and not writable, or the temp directory is not writable
+ * @throws InvalidArgumentException if $data is a file but is not readable
+ * @throws InvalidArgumentException if $data decoding the data fails
+ * @throws RuntimeException when a duplicate temporary file could not be created
+ * @throws RuntimeException when reading from a stream fails
+ * @throws RuntimeException when the temporary file could not be written to
  *
  * @author Vic Cherubini <vcherubini@gmail.com>
  */
