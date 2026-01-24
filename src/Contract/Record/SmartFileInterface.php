@@ -36,7 +36,7 @@ interface SmartFileInterface extends \Stringable
     public string $basename { get; }
 
     /**
-     * @var ?non-empty-string
+     * @var ?non-empty-lowercase-string
      */
     public ?string $extension { get; }
 

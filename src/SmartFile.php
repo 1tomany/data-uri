@@ -99,7 +99,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         }
 
         // Resolve the extension if available
-        $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
+        $this->extension = strtolower(pathinfo($this->path, PATHINFO_EXTENSION)) ?: null;
 
         // Determine the FileType based on the extension
         $this->type = FileType::fromExtension($this->extension);
