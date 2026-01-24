@@ -105,11 +105,11 @@ final class ParseDataTest extends TestCase
 
         // Assert: Failed to create temporary file
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to create a file in "'.$directory.'".');
+        $this->expectExceptionMessage('Failed to create a temporary file in "'.$directory.'".');
 
         // Arrange: Mock filesystem library
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects($this->once())->method('touch')->willThrowException(new IOException('Error'));
+        $filesystem->expects($this->once())->method('tempnam')->willThrowException(new IOException('Error'));
 
         // Act: Parse data with expected exception
         parse_data(__DIR__.'/data/pdf-small.pdf', directory: $directory, filesystem: $filesystem);

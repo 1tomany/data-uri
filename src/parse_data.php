@@ -121,19 +121,17 @@ function parse_data(
             }
         }
 
+        $displayName = $displayName ?: sprintf('__1n__datauri_%s', bin2hex(random_bytes(6)));
+        var_dump($displayName);
+
+        $tempFilePath = Path::join($directory, $displayName);
+        // if (!empty($displayName)) {
+        //     $tempFilePath = Path::join($directory, $displayName);
+        // } else {
+        //     $tempFilePath = Path::join($directory, );
+        // }
+
         $filesystem ??= new Filesystem();
-
-        try {
-            if (!empty($displayName)) {
-                $tempFilePath = Path::join($directory, $displayName);
-            } else {
-                $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
-            }
-
-            $filesystem->touch($tempFilePath);
-        } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Failed to create a file in "%s".', $directory), previous: $e);
-        }
 
         if (!$isFile) {
             // Attempt to decode the data
@@ -141,11 +139,17 @@ function parse_data(
                 throw new InvalidArgumentException('Failed to decode the data.');
             }
 
-            try {
-                if (false === $contents = stream_get_contents($handle)) {
-                    throw new RuntimeException('Failed to get the data contents.');
-                }
+            if (false === $contents = stream_get_contents($handle)) {
+                throw new RuntimeException('Failed to get the data contents.');
+            }
 
+            // try {
+            //     $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
+            // } catch (FilesystemExceptionInterface $e) {
+            //     throw new RuntimeException(sprintf('Failed to create a temporary file in "%s".', $directory), previous: $e);
+            // }
+
+            try {
                 // Write data to the temporary file
                 $filesystem->dumpFile($tempFilePath, $contents);
             } catch (FilesystemExceptionInterface $e) {
