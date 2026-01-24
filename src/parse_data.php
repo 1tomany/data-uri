@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri;
 
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\AssertValidMimeType;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
@@ -86,7 +87,7 @@ function parse_data(
         throw new InvalidArgumentException('The data cannot be empty.');
     }
 
-    $handle = null;
+    $filesystem ??= new Filesystem();
 
     try {
         $isFile = is_file($data);
@@ -110,31 +111,33 @@ function parse_data(
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // Resolve the display name
-        $displayName = trim($displayName ?? '');
-
-        if (!$displayName) {
-            if ($isFile) {
-                $displayName = basename($data);
-            } elseif (0 === stripos($data, 'http')) {
-                $displayName = parse_url($data)['path'] ?? '';
-            }
+        try {
+            $tempFilePath = Path::join($directory, sprintf('1tomany_datauri_%s', bin2hex(random_bytes(6))));
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', \rtrim($e->getMessage(), '.')), previous: $e);
         }
 
-        $displayName = $displayName ?: sprintf('__1n__datauri_%s', bin2hex(random_bytes(6)));
-        var_dump($displayName);
+        // Resolve the display name
+        if (!$displayName = trim($displayName ?? '')) {
+            // The display name is the path from the URL
+            if (!$isFile && 0 === stripos($data, 'http')) {
+                $displayName = parse_url($data)['path'] ?? '';
+            } elseif ($isFile) {
+                $displayName = $data;
+            }
 
-        $tempFilePath = Path::join($directory, $displayName);
-        // if (!empty($displayName)) {
-        //     $tempFilePath = Path::join($directory, $displayName);
-        // } else {
-        //     $tempFilePath = Path::join($directory, );
-        // }
+            $displayName = basename($displayName ?: $tempFilePath);
+        }
 
-        $filesystem ??= new Filesystem();
-
-        if (!$isFile) {
-            // Attempt to decode the data
+        if ($isFile) {
+            try {
+                // Copy the data file to the temporary file
+                $filesystem->copy($data, $tempFilePath, true);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Failed to copy "%s" to "%s".', $data, $tempFilePath), previous: $e);
+            }
+        } else {
+            // Read, decode, and stream the data
             if (!$handle = @fopen($data, 'rb')) {
                 throw new InvalidArgumentException('Failed to decode the data.');
             }
@@ -143,66 +146,52 @@ function parse_data(
                 throw new RuntimeException('Failed to get the data contents.');
             }
 
-            // try {
-            //     $tempFilePath = $filesystem->tempnam($directory, '__1n__datauri_');
-            // } catch (FilesystemExceptionInterface $e) {
-            //     throw new RuntimeException(sprintf('Failed to create a temporary file in "%s".', $directory), previous: $e);
-            // }
-
             try {
-                // Write data to the temporary file
+                // Write the data to the temporary file
                 $filesystem->dumpFile($tempFilePath, $contents);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Failed to write data to "%s".', $tempFilePath), previous: $e);
             }
-        } else {
-            try {
-                // Copy the source file to the temporary file
-                $filesystem->copy($data, $tempFilePath, true);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Failed to copy "%s" to "%s".', $data, $tempFilePath), previous: $e);
+
+            if (is_resource($handle)) {
+                @fclose($handle);
             }
         }
 
-        // Resolve the extension from the display name or file contents
-        if (!$extension = pathinfo($displayName, PATHINFO_EXTENSION)) {
-            $extensions = new \finfo(FILEINFO_EXTENSION)->file($tempFilePath);
-
-            if ($extensions && !str_contains($extensions, '?')) {
-                $extension = explode('/', $extensions)[0];
-            }
+        // Attempt to determine the file format
+        if (!$format = @mime_content_type($tempFilePath)) {
+            throw new RuntimeException('Failed to determine the file format.');
         }
 
-        // Ensure the extension is lowercase or null
-        $extension = strtolower($extension ?: '') ?: null;
+        $fileType = FileType::fromFormat($format);
 
-        // Rename the temporary file with the extension
-        if (!empty($extension)) {
-            $filePath = $tempFilePath.'.'.$extension;
+        try {
+            $filePath = Path::join($directory, Path::changeExtension($displayName, $fileType->getExtension() ?? ''));
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', \rtrim($e->getMessage(), '.')), previous: $e);
+        }
 
-            try {
-                $filesystem->rename($tempFilePath, $filePath, true);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempFilePath, $filePath), previous: $e);
-            }
-        } else {
-            $filePath = $tempFilePath;
+        try {
+            $filesystem->rename($tempFilePath, $filePath, true);
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempFilePath, $filePath), previous: $e);
         }
 
         if (false === $hash = hash_file('sha256', $filePath)) {
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $filePath));
         }
 
-        // Attempt to resolve the file format
-        if (!$format = mime_content_type($filePath)) {
-            throw new RuntimeException('Failed to resolve the file format.');
-        }
+
 
         $smartFile = new SmartFile($hash, $filePath, $displayName, AssertValidMimeType::assert($format), null, true, $selfDestruct);
     } finally {
-        if (is_resource($handle)) {
-            @fclose($handle);
-        }
+        // if (is_resource($handle)) {
+        //     @fclose($handle);
+        // }
+
+        // if ($filesystem->exists($tempFilePath ?? '')) {
+        //     $filesystem->remove($tempFilePath);
+        // }
     }
 
     try {

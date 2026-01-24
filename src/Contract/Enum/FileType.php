@@ -32,10 +32,48 @@ enum FileType
     case Xml;
     case Other;
 
+    public static function fromFormat(?string $format): self
+    {
+        $format = strtolower(trim($format ?? ''));
+
+        if (empty($format)) {
+            return self::Other;
+        }
+
+        $type = match ($format) {
+            'application/octet-stream' => self::Bin,
+            'image/bmp' => self::Bmp,
+            'text/css' => self::Css,
+            'text/csv' => self::Csv,
+            'application/msword' => self::Doc,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
+            'image/gif' => self::Gif,
+            'image/heic' => self::Heic,
+            'text/html' => self::Html,
+            'image/jpeg' => self::Jpeg,
+            'application/json' => self::Json,
+            'application/jsonl' => self::JsonLines,
+            'application/pdf' => self::Pdf,
+            'image/png' => self::Png,
+            'text/plain' => self::Text,
+            'image/tiff' => self::Tiff,
+            'application/xml' => self::Xml,
+            default => self::Other,
+        };
+
+        return $type;
+    }
+
     public static function fromExtension(?string $extension): self
     {
-        // Trim, lowercase, and remove non-alphanumeric characters from the extension
-        $extension = preg_replace('/[^a-z0-9]/i', '', strtolower(trim($extension ?? '')));
+        $extension = strtolower(trim($extension ?? ''));
+
+        if (empty($extension)) {
+            return self::Other;
+        }
+
+        // Remove non-alphanumeric characters from the extension
+        $extension = preg_replace('/[^a-z0-9]/i', '', $extension);
 
         $type = match ($extension) {
             'bin' => self::Bin,
@@ -56,8 +94,9 @@ enum FileType
             'text' => self::Text,
             'tif' => self::Tiff,
             'tiff' => self::Tiff,
-            'txt' => self::Text,
+            'txt' => self::Txt,
             'xml' => self::Xml,
+            'xsl' => self::Xml,
             default => self::Other,
         };
 
@@ -85,6 +124,26 @@ enum FileType
         };
 
         return strtoupper($name);
+    }
+
+    /**
+     * @return ?non-empty-lowercase-string
+     */
+    public function getExtension(): ?string
+    {
+        if ($this->isOther()) {
+            return null;
+        }
+
+        if ($this->isJsonLines()) {
+            return 'jsonl';
+        }
+
+        if ($this->isText()) {
+            return 'txt';
+        }
+
+        return strtolower($this->name);
     }
 
     /**
