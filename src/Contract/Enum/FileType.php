@@ -64,6 +64,9 @@ enum FileType
         return $type;
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function getName(): string
     {
         if ($this->isJsonLines()) {

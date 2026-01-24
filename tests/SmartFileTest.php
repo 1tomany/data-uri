@@ -89,30 +89,30 @@ final class SmartFileTest extends TestCase
         new SmartFile('hash', $path, null, 'text/plain', null, true, false);
     }
 
-    public function testConstructorSetsMimeTypeForJsonLinesFiles(): void
+    public function testConstructorSetsFormatForJsonLinesFiles(): void
     {
         $path = $this->createTempFile('.jsonl', '{"id": 10}');
 
         $file = new SmartFile('hash', $path, null, 'text/plain');
-        $this->assertEquals('application/jsonl', $file->getMimeType());
+        $this->assertEquals('application/jsonl', $file->getFormat());
     }
 
-    public function testConstructorRequiresNonEmptyMimeType(): void
+    public function testConstructorRequiresNonEmptyFormat(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The MIME type cannot be empty.');
+        $this->expectExceptionMessage('The format cannot be empty.');
 
         new SmartFile('hash', 'file.txt', null, '', null, false, false);
     }
 
-    public function testConstructorRequiresLooselyValidMimeType(): void
+    public function testConstructorRequiresLooselyValidFormat(): void
     {
-        $mimeType = 'invalid_mime_type';
+        $format = 'invalid_mime_type';
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The MIME type "'.$mimeType.'" is invalid.');
+        $this->expectExceptionMessage('The format "'.$format.'" is invalid.');
 
-        new SmartFile('hash', 'file.txt', null, $mimeType, null, false, false);
+        new SmartFile('hash', 'file.txt', null, $format, null, false, false);
     }
 
     public function testConstructorSetsSizeToZeroWhenSizeIsNullAndCheckPathIsFalse(): void

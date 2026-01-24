@@ -8,12 +8,13 @@ use OneToMany\DataUri\Exception\RuntimeException;
 interface SmartFileInterface extends \Stringable
 {
     /**
-     * Hashes must be at least four characters so the remote key directories can be generated.
+     * Hashes must be at least four characters
+     * so the remote key bucket can be generated.
      */
     public const int MINIMUM_HASH_LENGTH = 4;
 
     /**
-     * @var non-empty-string
+     * @var non-empty-lowercase-string
      */
     public string $hash { get; }
 
@@ -23,31 +24,33 @@ interface SmartFileInterface extends \Stringable
     public string $path { get; }
 
     /**
-     * The display or client name of the file.
+     * The display name of the file.
      *
      * @var non-empty-string
      */
     public string $name { get; }
 
     /**
-     * The name of the file as it exists on the filesystem.
+     * The name of the file on the filesystem.
+     *
+     * @var non-empty-string
      */
     public string $basename { get; }
 
     /**
-     * @var ?non-empty-string
+     * @var ?non-empty-lowercase-string
      */
     public ?string $extension { get; }
 
-    public FileType $fileType { get; }
+    public FileType $type { get; }
 
     /**
-     * @var non-empty-string
+     * @var non-empty-lowercase-string
      */
-    public string $mimeType { get; }
+    public string $format { get; }
 
     /**
-     * @var int<0, max>
+     * @var non-negative-int
      */
     public int $size { get; }
 
@@ -78,22 +81,25 @@ interface SmartFileInterface extends \Stringable
 
     public function getDirectory(): string;
 
-    public function getBasename(): string;
-
-    /**
-     * @return ?non-empty-string
-     */
-    public function getExtension(): ?string;
-
-    public function getFileType(): FileType;
-
     /**
      * @return non-empty-string
      */
-    public function getMimeType(): string;
+    public function getBasename(): string;
 
     /**
-     * @return int<0, max>
+     * @return ?non-empty-lowercase-string
+     */
+    public function getExtension(): ?string;
+
+    public function getType(): FileType;
+
+    /**
+     * @return non-empty-lowercase-string
+     */
+    public function getFormat(): string;
+
+    /**
+     * @return non-negative-int
      */
     public function getSize(): int;
 
@@ -102,24 +108,34 @@ interface SmartFileInterface extends \Stringable
      */
     public function getRemoteKey(): string;
 
+    /**
+     * Determines if two `SmartFileInterface` instances are equal.
+     *
+     * If the `$strict` argument is `false`, two objects are equal if their
+     * hashes are identical. However, if the `$strict` argument is `true`,
+     * the hash and path must be identical for the two objects to be equal.
+     */
     public function equals(self $file, bool $strict = false): bool;
 
+    /**
+     * Determines if the file the object represents exists.
+     */
     public function exists(): bool;
 
     /**
-     * @throws RuntimeException When reading the file fails
+     * @throws RuntimeException when reading the file fails
      */
     public function read(): string;
 
     /**
-     * @throws RuntimeException When reading or encoding the file fails
+     * @throws RuntimeException when reading or encoding the file fails
      */
     public function toBase64(): string;
 
     /**
      * @return non-empty-string
      *
-     * @throws RuntimeException When reading or encoding the file fails
+     * @throws RuntimeException when reading or encoding the file fails
      */
     public function toDataUri(): string;
 }

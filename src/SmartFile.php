@@ -33,29 +33,63 @@ use const PATHINFO_EXTENSION;
 
 readonly class SmartFile implements \Stringable, SmartFileInterface
 {
+    /**
+     * @var non-empty-lowercase-string
+     */
     public string $hash;
-    public string $path;
-    public string $name;
-    public string $basename;
-    public ?string $extension;
-    public FileType $fileType;
-    public string $mimeType;
-    public int $size;
-    public string $remoteKey;
-    public bool $autoDelete;
 
+    /**
+     * @var non-empty-string
+     */
+    public string $path;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $name;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $basename;
+
+    /**
+     * @var ?non-empty-lowercase-string
+     */
+    public ?string $extension;
+
+    public FileType $type;
+
+    /**
+     * @var non-empty-lowercase-string
+     */
+    public string $format;
+
+    /**
+     * @var non-negative-int
+     */
+    public int $size;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $remoteKey;
+
+    /**
+     * Characters used to generate remote key.
+     */
     private const string SUFFIX_ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
     public function __construct(
         string $hash,
         string $path,
         ?string $name,
-        string $mimeType,
+        string $format,
         ?int $size = null,
         bool $checkPath = true,
-        bool $autoDelete = true,
+        public bool $autoDelete = true,
     ) {
-        // Validate non-empty hash
+        // Validate hash is not empty
         if (empty($hash = trim($hash))) {
             throw new InvalidArgumentException('The hash cannot be empty.');
         }
@@ -65,7 +99,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
             throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, self::MINIMUM_HASH_LENGTH));
         }
 
-        $this->hash = $hash;
+        $this->hash = strtolower($hash);
 
         // Validate non-empty path
         if (empty($path = trim($path))) {
@@ -75,16 +109,16 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         $this->path = $path;
 
         // Resolve the actual file name
-        $this->basename = basename($this->path);
+        $basename = basename($this->path);
 
-        // Resolve the display name
-        $displayName = trim($name ?? '') ?: $this->basename;
-
-        if (empty($displayName)) {
-            throw new InvalidArgumentException('The name cannot be empty.');
+        if (empty($basename = basename($this->path))) {
+            throw new InvalidArgumentException('The basename cannot be empty.');
         }
 
-        $this->name = $displayName;
+        $this->basename = $basename;
+
+        // Resolve the display name
+        $this->name = trim($name ?? '') ?: $this->basename;
 
         // File access validation tests
         if ($checkPath && !file_exists($this->path)) {
@@ -100,18 +134,18 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         }
 
         // Resolve the extension if available
-        $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
+        $this->extension = strtolower(pathinfo($this->path, PATHINFO_EXTENSION)) ?: null;
 
         // Determine the FileType based on the extension
-        $this->fileType = FileType::fromExtension($this->extension);
+        $this->type = FileType::fromExtension($this->extension);
 
         // Force the MIME type for .jsonl files
-        if ($this->fileType->isJsonLines()) {
-            $mimeType = 'application/jsonl';
+        if ($this->type->isJsonLines()) {
+            $format = 'application/jsonl';
         }
 
         // Validate the MIME type
-        $this->mimeType = AssertValidMimeType::assert($mimeType);
+        $this->format = AssertValidMimeType::assert($format);
 
         // Calculate the file size
         if ($checkPath && null === $size) {
@@ -136,8 +170,6 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         } catch (\Random\RandomException|\Random\RandomError $e) {
             throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
         }
-
-        $this->autoDelete = $autoDelete;
     }
 
     public function __destruct()
@@ -154,7 +186,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         return $this->path;
     }
 
-    public static function createMock(string $path, string $mimeType): self
+    public static function createMock(string $path, string $format): self
     {
         // Generate random size [1KB, 4MB]
         $size = random_int(1_024, 4_194_304);
@@ -162,7 +194,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         // Generate random hash based on size
         $hash = hash('sha256', random_bytes($size));
 
-        return new self($hash, $path, null, $mimeType, $size, false, false);
+        return new self($hash, $path, null, $format, $size, false, false);
     }
 
     /**
@@ -216,17 +248,17 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function getFileType(): FileType
+    public function getType(): FileType
     {
-        return $this->fileType;
+        return $this->type;
     }
 
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function getMimeType(): string
+    public function getFormat(): string
     {
-        return $this->mimeType;
+        return $this->format;
     }
 
     /**
@@ -299,7 +331,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     public function toDataUri(): string
     {
         try {
-            return sprintf('data:%s;base64,%s', $this->mimeType, $this->toBase64());
+            return sprintf('data:%s;base64,%s', $this->format, $this->toBase64());
         } catch (RuntimeException $e) {
             throw new RuntimeException(sprintf('Failed to generate a data URI representation of the file "%s".', $this->path), previous: $e);
         }
