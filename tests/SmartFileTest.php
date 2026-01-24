@@ -2,21 +2,16 @@
 
 namespace OneToMany\DataUri\Tests;
 
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Filesystem\Path;
+use Symfony\Component\Filesystem\Filesystem;
 
 use function base64_encode;
-use function basename;
-use function bin2hex;
-use function filesize;
-use function OneToMany\DataUri\parse_data;
-use function random_bytes;
-use function random_int;
 use function unlink;
 
 #[Group('UnitTests')]
@@ -29,17 +24,17 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The hash cannot be empty.');
 
-        new SmartFile('', '/path/to/file.txt', null, 'text/plain');
+        new SmartFile('', '/path/to/file.txt', '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
     public function testConstructorRequiresValidHashLength(): void
     {
         $hash = 'h';
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The hash "'.$hash.'" must be '.SmartFileInterface::MINIMUM_HASH_LENGTH.' or more characters.');
 
-        new SmartFile($hash, 'path', 'file', 'text/plain', 0, false, true);
+        new SmartFile($hash, 'path', '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
     public function testConstructorRequiresNonEmptyPath(): void
@@ -47,111 +42,17 @@ final class SmartFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The path cannot be empty.');
 
-        new SmartFile('hash', '', null, 'text/plain');
+        new SmartFile('hash', '', '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
-    public function testConstructorSetsNameToFileNameWhenNameIsNull(): void
-    {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-
-        // Act: Construct SmartFile with null name
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
-
-        // Assert: Name is set to actual file name
-        $this->assertEquals(basename($path), $file->name);
-    }
-
-    public function testConstructorRequiresFileToExistWhenCheckPathIsTrue(): void
-    {
-        // Arrange: Create invalid file path
-        $path = '/invalid/path/to/file.txt';
-        $this->assertFileDoesNotExist($path);
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The file "'.$path.'" does not exist.');
-
-        new SmartFile('hash', $path, null, 'text/plain', null, true, false);
-    }
-
-    public function testConstructorRequiresPathToBeAFileWhenCheckPathIsTrue(): void
+    public function testConstructorRequiresPathToBeAFile(): void
     {
         $this->assertDirectoryExists($path = __DIR__);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The path "'.$path.'" is not a file.');
 
-        new SmartFile('hash', $path, null, 'text/plain', null, true, false);
-    }
-
-    public function testConstructorSetsFormatForJsonLinesFiles(): void
-    {
-        $path = $this->createTempFile('.jsonl', '{"id": 10}');
-
-        $file = new SmartFile('hash', $path, null, 'text/plain');
-        $this->assertEquals('application/jsonl', $file->getFormat());
-    }
-
-    public function testConstructorRequiresNonEmptyFormat(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The format cannot be empty.');
-
-        new SmartFile('hash', 'file.txt', null, '', null, false, false);
-    }
-
-    public function testConstructorRequiresLooselyValidFormat(): void
-    {
-        $format = 'invalid_mime_type';
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The format "'.$format.'" is invalid.');
-
-        new SmartFile('hash', 'file.txt', null, $format, null, false, false);
-    }
-
-    public function testConstructorSetsSizeToZeroWhenSizeIsNullAndCheckPathIsFalse(): void
-    {
-        $this->assertSame(0, new SmartFile('hash', 'file.txt', null, 'text/plain', null, false, false)->size);
-    }
-
-    public function testConstructorSetsSizeWhenSizeIsNullAndCheckPathIsTrue(): void
-    {
-        // Arrange: Create temp file
-        $path = $this->createTempFile(contents: bin2hex(random_bytes(random_int(100, 1000))));
-
-        // Assert: Filesize is calculated
-        $this->assertSame(filesize($path), new SmartFile('hash', $path, null, 'text/plain', null, true, true)->size);
-    }
-
-    public function testConstructorGeneratesRemoteKeyWithoutExtension(): void
-    {
-        // Arrange: Create temp file
-        $path = $this->createTempFile('');
-
-        // Assert: File has no extension
-        $this->assertEmpty(Path::getExtension($path));
-
-        // Act: Construct SmartFile using file without extension
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
-
-        // Assert: Key has no extension
-        $this->assertEmpty(Path::getExtension($file->remoteKey));
-    }
-
-    public function testConstructorGeneratesRemoteKeyWithExtension(): void
-    {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-
-        // Assert: File has extension
-        $this->assertNotEmpty(Path::getExtension($path));
-
-        // Act: Construct SmartFile using file with extension
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
-
-        // Assert: Remote key generated with extension
-        $this->assertNotEmpty(Path::getExtension($file->remoteKey));
+        new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, ''); // @phpstan-ignore-line
     }
 
     public function testDestructorDeletesTemporaryFileWhenAutoDeleteIsTrue(): void
@@ -159,8 +60,8 @@ final class SmartFileTest extends TestCase
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to auto delete
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
+        // Act: Construct a SmartFile to auto delete
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
 
         // Assert: SmartFile set to auto delete
         $this->assertTrue($file->autoDelete);
@@ -173,20 +74,22 @@ final class SmartFileTest extends TestCase
         $this->assertFileDoesNotExist($file->path);
     }
 
-    public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExistDeleted(): void
+    public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExist(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to auto delete
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
+        // Act: Construct a SmartFile to auto delete
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
 
         // Assert: SmartFile to auto delete
         $this->assertTrue($file->autoDelete);
         $this->assertFileExists($file->path);
 
-        // Act: Manually delete file
-        $this->assertTrue(unlink($file->path));
+        // Arrange: Manually delete the file
+        new Filesystem()->remove($file->path);
+
+        // Assert: File was deleted from filesystem
         $this->assertFileDoesNotExist($file->path);
 
         // Act: Self destruct
@@ -201,8 +104,8 @@ final class SmartFileTest extends TestCase
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile to not auto delete
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, false);
+        // Act: Construct a SmartFile to not auto delete
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', false); // @phpstan-ignore-line
 
         // Assert: SmartFile to not auto delete
         $this->assertFalse($file->autoDelete);
@@ -213,7 +116,12 @@ final class SmartFileTest extends TestCase
 
         // Assert: Destructor ignored file
         $this->assertFileExists($file->path);
-        $this->assertTrue(unlink($file->path));
+
+        // Arrange: Manually delete the file
+        new Filesystem()->remove($file->path);
+
+        // Assert: File was deleted from filesystem
+        $this->assertFileDoesNotExist($file->path);
     }
 
     public function testToStringReturnsPath(): void
@@ -221,8 +129,8 @@ final class SmartFileTest extends TestCase
         // Arrange: Create temp file
         $path = $this->createTempFile();
 
-        // Act: Construct SmartFile with valid path
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
+        // Act: Construct a SmartFile with valid path
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
 
         // Assert: Path equals string representation
         $this->assertEquals($path, $file->__toString());
@@ -230,24 +138,33 @@ final class SmartFileTest extends TestCase
 
     public function testReadingFileRequiresFileToExist(): void
     {
-        // Arrange: Create invalid file path
-        $path = '/invalid/path/to/file.txt';
-        $this->assertFileDoesNotExist($path);
+        // Arrange: Create temp file
+        $path = $this->createTempFile();
+        $this->assertFileExists($path);
+
+        // Act: Construct a SmartFile with valid path
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+
+        // Arrange: Manually delete the file
+        new Filesystem()->remove($file->path);
+
+        // Assert: File was deleted from filesystem
+        $this->assertFileDoesNotExist($file->path);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to read the file "'.$path.'".');
+        $this->expectExceptionMessage('Failed to read the file "'.$file->path.'".');
 
-        // Act: Construct SmartFile and attempt to read the file
-        new SmartFile('hash', $path, null, 'text/plain', null, false, true)->read();
+        $file->read(); // Act: Attempt to read the file
     }
 
     public function testReadingEmptyFile(): void
     {
         // Arrange: Create temp file
         $path = $this->createTempFile();
+        $this->assertFileExists($path);
 
-        // Arrange: Construct empty SmartFile
-        $file = new SmartFile('hash', $path, null, 'text/plain', null, true, true);
+        // Arrange: Construct an empty SmartFile
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
 
         // Assert: File is empty
         $this->assertEmpty($file->read());
@@ -255,15 +172,23 @@ final class SmartFileTest extends TestCase
 
     public function testToBase64RequiresFileToExist(): void
     {
-        // Arrange: Create invalid file path
-        $path = '/invalid/path/to/file.txt';
-        $this->assertFileDoesNotExist($path);
+        // Arrange: Create temp file
+        $path = $this->createTempFile();
+        $this->assertFileExists($path);
+
+        // Act: Construct a SmartFile with valid path
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+
+        // Arrange: Manually delete the file
+        new Filesystem()->remove($file->path);
+
+        // Assert: File was deleted from filesystem
+        $this->assertFileDoesNotExist($file->path);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to encode the file "'.$path.'".');
 
-        // Act: Construct SmartFile and attempt to encode it as base64
-        new SmartFile('hash', $path, null, 'text/plain', null, false, true)->toBase64();
+        $file->toBase64(); // Act: Attempt to encode the file as base64
     }
 
     public function testToBase64(): void
@@ -272,9 +197,10 @@ final class SmartFileTest extends TestCase
 
         // Arrange: Create non-empty temp file
         $path = $this->createTempFile(contents: $contents);
+        $this->assertFileExists($path);
 
-        // Arrange: Construct non-empty SmartFile
-        $file = parse_data($path, deleteOriginal: true);
+        // Act: Construct a SmartFile with valid path
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
 
         // Assert: Base64 encodings are identical
         $this->assertSame(base64_encode($contents), $file->toBase64());
@@ -282,21 +208,29 @@ final class SmartFileTest extends TestCase
 
     public function testToDataUriRequiresFileToExist(): void
     {
-        // Arrange: Create invalid file path
-        $path = '/invalid/path/to/file.txt';
-        $this->assertFileDoesNotExist($path);
+        // Arrange: Create temp file
+        $path = $this->createTempFile();
+        $this->assertFileExists($path);
+
+        // Act: Construct a SmartFile with valid path
+        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+
+        // Arrange: Manually delete the file
+        new Filesystem()->remove($file->path);
+
+        // Assert: File was deleted from filesystem
+        $this->assertFileDoesNotExist($file->path);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to generate a data URI representation of the file "'.$path.'".');
 
-        // Act: Construct SmartFile and attempt to generate the data URI representation
-        new SmartFile('hash', $path, null, 'text/plain', null, false, true)->toDataUri();
+        $file->toDataUri(); // Act: Attempt to generate the data URI
     }
 
     public function testSmartFilesWithDifferentHashesAreNotEqual(): void
     {
-        $file1 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
-        $file2 = new SmartFile('hash2', '2.txt', null, 'text/plain', null, false, false);
+        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
+        $file2 = new SmartFile('hash2', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
@@ -304,8 +238,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
     {
-        $file1 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
-        $file2 = new SmartFile('hash1', '2.txt', null, 'text/plain', null, false, false);
+        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
+        $file2 = new SmartFile('hash1', __DIR__.'/data/png-small.png', '', null, FileType::Png, 'image/png', 10289, '', false);
 
         $this->assertTrue($file1->equals($file2));
         $this->assertTrue($file2->equals($file1));
@@ -313,8 +247,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
-        $file2 = new SmartFile('hash1', '1.txt', null, 'text/plain', null, false, false);
+        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
+        $file2 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
 
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));
