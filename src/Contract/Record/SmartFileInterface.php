@@ -44,7 +44,7 @@ interface SmartFileInterface extends \Stringable
     /**
      * @var non-empty-string
      */
-    public string $mimeType { get; }
+    public string $format { get; }
 
     /**
      * @var int<0, max>
@@ -90,7 +90,7 @@ interface SmartFileInterface extends \Stringable
     /**
      * @return non-empty-string
      */
-    public function getMimeType(): string;
+    public function getFormat(): string;
 
     /**
      * @return int<0, max>

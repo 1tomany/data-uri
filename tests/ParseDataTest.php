@@ -187,12 +187,12 @@ final class ParseDataTest extends TestCase
     }
 
     #[DataProvider('providerDataAndMetadata')]
-    public function testParsingData(string $data, string $mimeType, int $size): void
+    public function testParsingData(string $data, string $format, int $size): void
     {
         $file = parse_data($data);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($mimeType, $file->mimeType);
+        $this->assertEquals($format, $file->format);
         $this->assertEquals($size, $file->size);
     }
 
@@ -221,12 +221,12 @@ final class ParseDataTest extends TestCase
     }
 
     #[DataProvider('providerFileAndMetadata')]
-    public function testParsingFile(string $data, string $mimeType, int $size): void
+    public function testParsingFile(string $data, string $format, int $size): void
     {
         $file = parse_data($data);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($mimeType, $file->mimeType);
+        $this->assertEquals($format, $file->format);
         $this->assertEquals($size, $file->size);
     }
 
@@ -243,23 +243,23 @@ final class ParseDataTest extends TestCase
         ];
     }
 
-    public function testParsingBase64DataRequiresValidMimeType(): void
+    public function testParsingBase64DataRequiresValidFormat(): void
     {
-        $mimeType = 'invalid_mime_type';
+        $format = 'invalid_mime_type';
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The MIME type "'.$mimeType.'" is invalid.');
+        $this->expectExceptionMessage('The format "'.$format.'" is invalid.');
 
-        parse_base64_data('SGVsbG8sIHdvcmxkIQ==', $mimeType);
+        parse_base64_data('SGVsbG8sIHdvcmxkIQ==', $format);
     }
 
     #[DataProvider('providerBase64DataAndMetadata')]
-    public function testParsingBase64Data(string $data, string $mimeType, int $size): void
+    public function testParsingBase64Data(string $data, string $format, int $size): void
     {
-        $file = parse_base64_data($data, $mimeType);
+        $file = parse_base64_data($data, $format);
 
         $this->assertFileExists($file->path);
-        $this->assertEquals($mimeType, $file->mimeType);
+        $this->assertEquals($format, $file->format);
         $this->assertEquals($size, $file->size);
     }
 

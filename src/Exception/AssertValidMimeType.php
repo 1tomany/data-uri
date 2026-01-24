@@ -21,11 +21,11 @@ final readonly class AssertValidMimeType
         $mimeType = trim($mimeType ?? '');
 
         if (!$mimeType) {
-            throw new InvalidArgumentException('The MIME type cannot be empty.');
+            throw new InvalidArgumentException('The format cannot be empty.');
         }
 
         if (!preg_match('/^\w+\/[-+.\w]+$/i', $mimeType)) {
-            throw new InvalidArgumentException(sprintf('The MIME type "%s" is invalid.', $mimeType));
+            throw new InvalidArgumentException(sprintf('The format "%s" is invalid.', $mimeType));
         }
 
         return strtolower($mimeType);

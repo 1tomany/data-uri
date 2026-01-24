@@ -39,7 +39,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     public string $basename;
     public ?string $extension;
     public FileType $fileType;
-    public string $mimeType;
+    public string $format;
     public int $size;
     public string $remoteKey;
     public bool $autoDelete;
@@ -50,7 +50,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         string $hash,
         string $path,
         ?string $name,
-        string $mimeType,
+        string $format,
         ?int $size = null,
         bool $checkPath = true,
         bool $autoDelete = true,
@@ -107,11 +107,11 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
 
         // Force the MIME type for .jsonl files
         if ($this->fileType->isJsonLines()) {
-            $mimeType = 'application/jsonl';
+            $format = 'application/jsonl';
         }
 
         // Validate the MIME type
-        $this->mimeType = AssertValidMimeType::assert($mimeType);
+        $this->format = AssertValidMimeType::assert($format);
 
         // Calculate the file size
         if ($checkPath && null === $size) {
@@ -224,9 +224,9 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function getMimeType(): string
+    public function getFormat(): string
     {
-        return $this->mimeType;
+        return $this->format;
     }
 
     /**
@@ -299,7 +299,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     public function toDataUri(): string
     {
         try {
-            return sprintf('data:%s;base64,%s', $this->mimeType, $this->toBase64());
+            return sprintf('data:%s;base64,%s', $this->format, $this->toBase64());
         } catch (RuntimeException $e) {
             throw new RuntimeException(sprintf('Failed to generate a data URI representation of the file "%s".', $this->path), previous: $e);
         }
