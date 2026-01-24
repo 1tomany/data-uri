@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function base64_encode;
+use function strlen;
 
 #[Group('UnitTests')]
 final class SmartFileTest extends TestCase
@@ -158,12 +159,8 @@ final class SmartFileTest extends TestCase
 
     public function testReadingEmptyFile(): void
     {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-        $this->assertFileExists($path);
-
-        // Arrange: Construct an empty SmartFile
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile();
 
         // Assert: File is empty
         $this->assertEmpty($file->read());
@@ -171,12 +168,8 @@ final class SmartFileTest extends TestCase
 
     public function testToBase64RequiresFileToExist(): void
     {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-        $this->assertFileExists($path);
-
-        // Act: Construct a SmartFile with valid path
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile();
 
         // Arrange: Manually delete the file
         new Filesystem()->remove($file->path);
@@ -185,21 +178,18 @@ final class SmartFileTest extends TestCase
         $this->assertFileDoesNotExist($file->path);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to encode the file "'.$path.'".');
+        $this->expectExceptionMessage('Failed to encode the file "'.$file->path.'".');
 
         $file->toBase64(); // Act: Attempt to encode the file as base64
     }
 
     public function testToBase64(): void
     {
+        // Arrange: Contents to encode
         $contents = 'Hello, world!';
 
-        // Arrange: Create non-empty temp file
-        $path = $this->createTempFile(contents: $contents);
-        $this->assertFileExists($path);
-
-        // Act: Construct a SmartFile with valid path
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile($contents);
 
         // Assert: Base64 encodings are identical
         $this->assertSame(base64_encode($contents), $file->toBase64());
@@ -207,12 +197,8 @@ final class SmartFileTest extends TestCase
 
     public function testToDataUriRequiresFileToExist(): void
     {
-        // Arrange: Create temp file
-        $path = $this->createTempFile();
-        $this->assertFileExists($path);
-
-        // Act: Construct a SmartFile with valid path
-        $file = new SmartFile('hash', $path, '', null, FileType::Text, 'text/plain', 0, '', true); // @phpstan-ignore-line
+        // Act: Construct a valid SmartFile
+        $file = $this->createTemporarySmartFile();
 
         // Arrange: Manually delete the file
         new Filesystem()->remove($file->path);
@@ -221,7 +207,7 @@ final class SmartFileTest extends TestCase
         $this->assertFileDoesNotExist($file->path);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to generate a data URI representation of the file "'.$path.'".');
+        $this->expectExceptionMessage('Failed to generate a data URI representation of the file "'.$file->path.'".');
 
         $file->toDataUri(); // Act: Attempt to generate the data URI
     }
@@ -252,6 +238,17 @@ final class SmartFileTest extends TestCase
         $this->assertSame($file1->path, $file2->path);
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));
+    }
+
+    private function createTemporarySmartFile(?string $contents = null): SmartFileInterface
+    {
+        // Arrange: Create a local temporary file
+        $path = $this->createTempFile(contents: $contents);
+
+        /** @var non-empty-string $name */
+        $name = basename($path);
+
+        return new SmartFile('hash', $path, $name, 'txt', FileType::Text, 'text/plain', \filesize($path) ?: 0, $name, true);
     }
 
     /**

@@ -18,8 +18,14 @@ trait TestFileTrait
         $this->cleanupTempFiles();
     }
 
+    /**
+     * @param non-empty-lowercase-string $suffix
+     *
+     * @return non-empty-string
+     */
     private function createTempFile(string $suffix = '.txt', ?string $contents = null): string
     {
+        /** @var non-empty-string $path */
         $path = $this->getFilesystem()->tempnam(sys_get_temp_dir(), $this->getTempFilePrefix(), $suffix);
 
         if (null !== $contents) {
@@ -43,6 +49,6 @@ trait TestFileTrait
 
     private function getTempFilePrefix(): string
     {
-        return '__1n__test_';
+        return '1tomany_datauri_test_';
     }
 }
