@@ -96,7 +96,7 @@ function parse_data(
         }
 
         if (!ctype_print($data)) {
-            throw new InvalidArgumentException('The data cannot contain non-printable text, control characters, or NULL bytes.');
+            throw new InvalidArgumentException('The data cannot contain non-printable, control, or NULL characters.');
         }
 
         // Resolve the directory to save the temporary file in
