@@ -15,7 +15,6 @@ use function base64_encode;
 use function basename;
 use function bin2hex;
 use function ctype_print;
-use function explode;
 use function fclose;
 use function fopen;
 use function hash_file;
@@ -28,19 +27,15 @@ use function is_string;
 use function is_writable;
 use function mime_content_type;
 use function parse_url;
-use function pathinfo;
 use function random_bytes;
+use function rtrim;
 use function sprintf;
-use function str_contains;
 use function str_ends_with;
 use function stream_get_contents;
 use function stripos;
 use function strtolower;
 use function sys_get_temp_dir;
 use function trim;
-
-use const FILEINFO_EXTENSION;
-use const PATHINFO_EXTENSION;
 
 /**
  * Parses file data into a `SmartFileInterface` object.
@@ -114,7 +109,7 @@ function parse_data(
         try {
             $tempFilePath = Path::join($directory, sprintf('1tomany_datauri_%s', bin2hex(random_bytes(6))));
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', \rtrim($e->getMessage(), '.')), previous: $e);
+            throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
         // Resolve the display name
@@ -169,7 +164,7 @@ function parse_data(
             /** @var non-empty-string $filePath */
             $filePath = Path::join($directory, Path::changeExtension($displayName, $fileType->getExtension() ?? ''));
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', \rtrim($e->getMessage(), '.')), previous: $e);
+            throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
         try {
