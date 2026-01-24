@@ -48,7 +48,7 @@ interface SmartFileInterface extends \Stringable
     public string $format { get; }
 
     /**
-     * @var int<0, max>
+     * @var non-negative-int
      */
     public int $size { get; }
 
@@ -82,7 +82,7 @@ interface SmartFileInterface extends \Stringable
     public function getBasename(): string;
 
     /**
-     * @return ?non-empty-string
+     * @return ?non-empty-lowercase-string
      */
     public function getExtension(): ?string;
 
@@ -94,7 +94,7 @@ interface SmartFileInterface extends \Stringable
     public function getFormat(): string;
 
     /**
-     * @return int<0, max>
+     * @return non-negative-int
      */
     public function getSize(): int;
 
