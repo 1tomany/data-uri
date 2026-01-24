@@ -38,7 +38,7 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     public string $name;
     public string $basename;
     public ?string $extension;
-    public FileType $fileType;
+    public FileType $type;
     public string $format;
     public int $size;
     public string $remoteKey;
@@ -103,10 +103,10 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         $this->extension = pathinfo(strtolower($this->path), PATHINFO_EXTENSION) ?: null;
 
         // Determine the FileType based on the extension
-        $this->fileType = FileType::fromExtension($this->extension);
+        $this->type = FileType::fromExtension($this->extension);
 
         // Force the MIME type for .jsonl files
-        if ($this->fileType->isJsonLines()) {
+        if ($this->type->isJsonLines()) {
             $format = 'application/jsonl';
         }
 
@@ -216,9 +216,9 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\SmartFileInterface
      */
-    public function getFileType(): FileType
+    public function getType(): FileType
     {
-        return $this->fileType;
+        return $this->type;
     }
 
     /**

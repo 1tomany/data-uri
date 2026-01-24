@@ -39,7 +39,7 @@ interface SmartFileInterface extends \Stringable
      */
     public ?string $extension { get; }
 
-    public FileType $fileType { get; }
+    public FileType $type { get; }
 
     /**
      * @var non-empty-string
@@ -85,7 +85,7 @@ interface SmartFileInterface extends \Stringable
      */
     public function getExtension(): ?string;
 
-    public function getFileType(): FileType;
+    public function getType(): FileType;
 
     /**
      * @return non-empty-string
