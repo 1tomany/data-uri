@@ -4,5 +4,4 @@ parameters:
     paths:
         - ./examples/
         - ./src/
-        - ./tests/Contract/
-        - ./tests/ParseDataTest.php
+        - ./tests/

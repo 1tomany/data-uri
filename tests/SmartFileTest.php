@@ -228,8 +228,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithDifferentHashesAreNotEqual(): void
     {
-        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
-        $file2 = new SmartFile('hash2', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
+        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
+        $file2 = new SmartFile('hash2', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
@@ -237,8 +237,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
     {
-        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
-        $file2 = new SmartFile('hash1', __DIR__.'/data/png-small.png', '', null, FileType::Png, 'image/png', 10289, '', false);
+        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
+        $file2 = new SmartFile('hash1', __DIR__.'/data/png-small.png', '', null, FileType::Png, 'image/png', 10289, '', false); // @phpstan-ignore-line
 
         $this->assertTrue($file1->equals($file2));
         $this->assertTrue($file2->equals($file1));
@@ -246,8 +246,8 @@ final class SmartFileTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
-        $file2 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false);
+        $file1 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
+        $file2 = new SmartFile('hash1', __DIR__.'/data/pdf-small.pdf', '', null, FileType::Pdf, 'application/pdf', 36916, '', false); // @phpstan-ignore-line
 
         $this->assertTrue($file1->equals($file2, true));
         $this->assertTrue($file2->equals($file1, true));
