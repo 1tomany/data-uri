@@ -24,11 +24,6 @@ final class SmartFileTest extends TestCase
 {
     use TestFileTrait;
 
-    protected function tearDown(): void
-    {
-        $this->cleanupTempFiles();
-    }
-
     public function testConstructorRequiresNonEmptyHash(): void
     {
         $this->expectException(InvalidArgumentException::class);

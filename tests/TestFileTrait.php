@@ -13,6 +13,11 @@ trait TestFileTrait
 {
     private ?Filesystem $filesystem = null;
 
+    protected function tearDown(): void
+    {
+        $this->cleanupTempFiles();
+    }
+
     private function createTempFile(string $suffix = '.txt', ?string $contents = null): string
     {
         $path = $this->getFilesystem()->tempnam(sys_get_temp_dir(), $this->getTempFilePrefix(), $suffix);
