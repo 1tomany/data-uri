@@ -46,13 +46,13 @@ use function trim;
  * This method takes data from a wide variety of sources and attempts
  * to create a temporary self-destructing file represented by an object
  * that implements `SmartFileInterface`. The data can be an existing
- * file, a public URL, or a data URL defined by RFC 2397 ("data:...").
+ * file, a public URL, or a data URI defined by RFC 2397 ("data:...").
  *
- * @param mixed $data The data to parse: an existing file, a public URL, or an RFC 2397 Data URL
- * @param ?string $displayName Display name for the temporary file; a random name is generated if empty
- * @param ?string $directory Directory to create the temporary file in, sys_get_temp_dir() is used if empty
- * @param bool $deleteOriginal If true and $data is a file, the file will be deleted after parse_data() runs
- * @param bool $selfDestruct If true, the temporary file will be deleted when the object that references it is destroyed
+ * @param mixed $data The data to parse: an existing file, a URL, or an RFC 2397 data URI
+ * @param ?string $displayName The temporary file name; a random name is generated if empty
+ * @param ?string $directory Directory to create the temporary file in, `sys_get_temp_dir()` is used if empty
+ * @param bool $deleteOriginal If `true` and `$data` is a file, the file will be deleted after `parse_data()` runs
+ * @param bool $selfDestruct If `true`, the temporary file will be deleted when the object that references it is destroyed
  * @param ?Filesystem $filesystem An instance of the Symfony Filesystem component used for mocks in tests
  *
  * @throws InvalidArgumentException if $data is not a string
@@ -263,13 +263,16 @@ function parse_text_data(
     bool $selfDestruct = true,
     ?Filesystem $filesystem = null,
 ): SmartFileInterface {
-    $extension = '.txt';
+    try {
+        // Generate a random name if one wasn't provided
+        if (!$displayName = trim($displayName ?? '')) {
+            $displayName = bin2hex(random_bytes(6));
+        }
 
-    // Generate a display name for the file if one wasn't provided
-    $displayName = trim($displayName ?? '');
-
-    if (!$displayName || !str_ends_with(strtolower($displayName), $extension)) {
-        $displayName = implode('', [bin2hex(random_bytes(6)), $extension]);
+        /** @var non-empty-string $displayName */
+        $displayName = Path::changeExtension($displayName, 'txt');
+    } catch (RandomException $e) {
+        throw new RuntimeException(sprintf('Generating a temporary name failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
     }
 
     return parse_base64_data(base64_encode($text), 'text/plain', $displayName, $directory, $selfDestruct, $filesystem);
