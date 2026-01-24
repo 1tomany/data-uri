@@ -177,11 +177,6 @@ function parse_data(
             throw new RuntimeException(sprintf('Failed to calculate a hash of the file "%s".', $filePath));
         }
 
-        // \PHPStan\dumpType($hash);
-        // \PHPStan\dumpType($filePath);
-        // \PHPStan\dumpType($displayName);
-        // \PHPStan\dumpType($format);
-
         $smartFile = new SmartFile($hash, $filePath, basename($filePath), $format, null, true, $selfDestruct);
     } finally {
         try {
