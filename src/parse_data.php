@@ -177,7 +177,7 @@ function parse_data(
         $extension = strtolower($extension ?: '') ?: null;
 
         // Rename the temporary file with the extension
-        if (empty($displayName) && !empty($extension)) {
+        if (!empty($extension)) {
             $filePath = $tempFilePath.'.'.$extension;
 
             try {
@@ -198,7 +198,7 @@ function parse_data(
             throw new RuntimeException('Failed to resolve the file format.');
         }
 
-        $smartFile = new SmartFile($hash, $filePath, $displayName ?: null, AssertValidMimeType::assert($format), null, true, $selfDestruct);
+        $smartFile = new SmartFile($hash, $filePath, $displayName, AssertValidMimeType::assert($format), null, true, $selfDestruct);
     } finally {
         if (is_resource($handle)) {
             @fclose($handle);
