@@ -47,12 +47,17 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
      * @var non-empty-string
      */
     public string $name;
+
+    /**
+     * @var non-empty-string
+     */
     public string $basename;
 
     /**
      * @var ?non-empty-lowercase-string
      */
     public ?string $extension;
+
     public FileType $type;
 
     /**
@@ -104,16 +109,16 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
         $this->path = $path;
 
         // Resolve the actual file name
-        $this->basename = basename($this->path);
+        $basename = basename($this->path);
 
-        // Resolve the display name
-        $displayName = trim($name ?? '') ?: $this->basename;
-
-        if (empty($displayName)) {
-            throw new InvalidArgumentException('The name cannot be empty.');
+        if (empty($basename = basename($this->path))) {
+            throw new InvalidArgumentException('The basename cannot be empty.');
         }
 
-        $this->name = $displayName;
+        $this->basename = $basename;
+
+        // Resolve the display name
+        $this->name = trim($name ?? '') ?: $this->basename;
 
         // File access validation tests
         if ($checkPath && !file_exists($this->path)) {

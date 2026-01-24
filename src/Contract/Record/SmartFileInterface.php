@@ -24,14 +24,16 @@ interface SmartFileInterface extends \Stringable
     public string $path { get; }
 
     /**
-     * The display or client name of the file.
+     * The display name of the file.
      *
      * @var non-empty-string
      */
     public string $name { get; }
 
     /**
-     * The name of the file as it exists on the filesystem.
+     * The name of the file on the filesystem.
+     *
+     * @var non-empty-string
      */
     public string $basename { get; }
 
@@ -79,6 +81,9 @@ interface SmartFileInterface extends \Stringable
 
     public function getDirectory(): string;
 
+    /**
+     * @return non-empty-string
+     */
     public function getBasename(): string;
 
     /**
@@ -103,8 +108,18 @@ interface SmartFileInterface extends \Stringable
      */
     public function getRemoteKey(): string;
 
+    /**
+     * Determines if two `SmartFileInterface` instances are equal.
+     *
+     * If the `$strict` argument is `false`, two objects are equal if their
+     * hashes are identical. However, if the `$strict` argument is `true`,
+     * the hash and path must be identical for the two objects to be equal.
+     */
     public function equals(self $file, bool $strict = false): bool;
 
+    /**
+     * Determines if the file the object represents exists.
+     */
     public function exists(): bool;
 
     /**
