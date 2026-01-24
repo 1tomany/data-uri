@@ -12,7 +12,6 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function base64_encode;
-use function unlink;
 
 #[Group('UnitTests')]
 final class SmartFileTest extends TestCase
