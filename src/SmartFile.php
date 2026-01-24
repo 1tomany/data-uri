@@ -131,9 +131,10 @@ readonly class SmartFile implements \Stringable, SmartFileInterface
                 $suffix = implode('.', [$suffix, $ext]);
             }
 
-            $this->remoteKey = $remoteKey.'.'.$suffix;
+            // Append the suffix to the remote key
+            $this->remoteKey = implode('/', [$remoteKey, $suffix]);
         } catch (\Random\RandomException|\Random\RandomError $e) {
-            throw new RuntimeException('Failed to generate a sufficiently random suffix.', previous: $e);
+            throw new RuntimeException('Failed to generate a sufficiently random remote key.', previous: $e);
         }
 
         $this->autoDelete = $autoDelete;
