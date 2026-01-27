@@ -117,7 +117,7 @@ final class DataDecoder
 
             // Read, decode, and stream the data
             if (!$stream = @fopen($data, 'rb')) {
-                throw new InvalidArgumentException('Opening a stream to decode the data failed.');
+                throw new InvalidArgumentException('Decoding the data using a stream failed.');
             }
 
             if (false === $contents = stream_get_contents($stream)) {
