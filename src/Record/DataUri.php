@@ -5,6 +5,9 @@ namespace OneToMany\DataUri\Record;
 use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 
+use function file_exists;
+use function unlink;
+
 class DataUri implements DataUriInterface
 {
     /**
@@ -26,8 +29,8 @@ class DataUri implements DataUriInterface
 
     public function __destruct()
     {
-        if (\file_exists($this->path)) {
-            @\unlink($this->path);
+        if (file_exists($this->path)) {
+            @unlink($this->path);
         }
     }
 

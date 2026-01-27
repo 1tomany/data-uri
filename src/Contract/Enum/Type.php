@@ -3,10 +3,9 @@
 namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
-use function str_replace;
+use function mime_content_type;
 use function strtolower;
 use function strtoupper;
-use function trim;
 
 enum Type
 {
@@ -32,9 +31,9 @@ enum Type
 
     public static function createFromPath(string $path): self
     {
-        $format = @\mime_content_type($path);
+        $format = @mime_content_type($path);
 
-        $type = match($format) {
+        $type = match ($format) {
             'application/octet-stream' => self::Bin,
             'image/bmp' => self::Bmp,
             'text/css' => self::Css,
@@ -69,7 +68,7 @@ enum Type
             return $this->name;
         }
 
-        return \strtoupper($this->name);
+        return strtoupper($this->name);
     }
 
     /**
@@ -89,7 +88,7 @@ enum Type
      */
     public function getFormat(): string
     {
-        $format = match($this) {
+        $format = match ($this) {
             self::Bmp => 'image/bmp',
             self::Css => 'text/css',
             self::Csv => 'text/csv',
