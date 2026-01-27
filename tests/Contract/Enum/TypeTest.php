@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 #[Group('UnitTests')]
 #[Group('ContractTests')]
 #[Group('EnumTests')]
-final class FileTypeTest extends TestCase
+final class TypeTest extends TestCase
 {
     #[DataProvider('providerFormatAndFileType')]
     public function testCreatingFileType(?string $format, Type $fileType): void

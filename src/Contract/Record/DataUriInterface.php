@@ -8,6 +8,12 @@ use OneToMany\DataUri\Exception\RuntimeException;
 interface DataUriInterface
 {
     /**
+     * Hashes must be at least four characters
+     * so the remote key bucket can be generated.
+     */
+    public const int MINIMUM_HASH_LENGTH = 4;
+
+    /**
      * @var non-empty-lowercase-string
      */
     public string $hash { get; }

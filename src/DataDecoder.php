@@ -4,7 +4,6 @@ namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
-use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Record\DataUri;
@@ -166,8 +165,8 @@ final class DataDecoder
         }
 
         // Validate minimum hash length
-        if (strlen($hash) < SmartFileInterface::MINIMUM_HASH_LENGTH) {
-            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, SmartFileInterface::MINIMUM_HASH_LENGTH));
+        if (strlen($hash) < DataUriInterface::MINIMUM_HASH_LENGTH) {
+            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, DataUriInterface::MINIMUM_HASH_LENGTH));
         }
 
         // Generate the URI as a combination of the hash and random name
