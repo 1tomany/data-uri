@@ -206,4 +206,50 @@ final class TypeTest extends TestCase
         return $provider;
     }
 
+    #[DataProvider('providerTypeAndIsDocument')]
+    public function testIsDocument(Type $type, bool $isDocument): void
+    {
+        $this->assertSame($isDocument, $type->isDocument());
+    }
+
+    /**
+     * @return list<list<bool|Type>>
+     */
+    public static function providerTypeAndIsDocument(): array
+    {
+        $provider = [
+            [Type::Bin, false],
+            [Type::Bmp, false],
+            [Type::Css, true],
+            [Type::Csv, true],
+            [Type::Doc, true],
+            [Type::Docx, true],
+            [Type::Gif, false],
+            [Type::Heic, false],
+            [Type::Heics, false],
+            [Type::Heif, false],
+            [Type::Heifs, false],
+            [Type::Html, true],
+            [Type::Jpeg, false],
+            [Type::Json, true],
+            [Type::Jsonl, true],
+            [Type::M4a, false],
+            [Type::Mov, false],
+            [Type::Mp3, false],
+            [Type::Mp4, false],
+            [Type::Pdf, true],
+            [Type::Php, true],
+            [Type::Png, false],
+            [Type::Tiff, false],
+            [Type::Txt, true],
+            [Type::Webp, false],
+            [Type::Xlsx, true],
+            [Type::Xml, true],
+            [Type::Zip, false],
+            [Type::Other, false],
+        ];
+
+        return $provider;
+    }
+
 }

@@ -84,7 +84,7 @@ enum Type
 
     public static function createFromPath(string $path): self
     {
-        return self::create(@mime_content_type($path));
+        return self::create(@mime_content_type($path) ?: null);
     }
 
     /**
@@ -180,7 +180,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Php|self::Pdf|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Php|self::Pdf|self::Txt|self::Xlsx|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -195,6 +195,7 @@ enum Type
             self::Pdf,
             self::Php,
             self::Txt,
+            self::Xlsx,
             self::Xml,
         ]);
     }
