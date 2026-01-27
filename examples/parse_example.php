@@ -22,13 +22,13 @@ print_r($text);
 print_r($data);
 print_r($file);
 
-// Loose equality compares the fingerprints
-// assert($data->equals($file));
-// assert($file->equals($data));
+// Loose equality compares hashes
+assert($data->equals($file, false));
+assert($file->equals($data, false));
 
-// Strict equality compares both the fingerprints and filepaths
-// assert(false === $data->equals($file, true));
-// assert(false === $file->equals($data, true));
+// Strict equality compares hashes and paths
+assert(false === $data->equals($file, true));
+assert(false === $file->equals($data, true));
 
-// Invokes destructors to delete temporary files
-// unset($data, $file);
+// Delete temporary files
+unset($text, $data, $file);
