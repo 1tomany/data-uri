@@ -22,18 +22,18 @@ The `DataDecoder::decode()` method is the most versatile as it allows for a wide
 * An existing and readable file
 
 ### `DataDecoder::decode()`
-The `decode()` method has the following parameters:
+The `DataDecoder::decode()` method has the following parameters:
 
 * `mixed $data` The data to decode
 * `?string $name` The display name for the temporary file. This is useful for handling file uploads where the original filename is preferred over the random name PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved. This is `null` by default.
 
-#### Inside `decode()`
-Under the hood, `decode()` uses the `fopen()` function, which means the data passed to it can be any [stream](https://www.php.net/manual/en/wrappers.php) that PHP supports.
+#### Inside `DataDecoder::decode()`
+Under the hood, `DataDecoder::decode()` uses the `fopen()` function, which means the data passed to it can be any [stream](https://www.php.net/manual/en/wrappers.php) that PHP supports.
 
 ### `DataDecoder::decodeBase64()`
 This method is to be used when the data is known to be base64 encoded but NOT encoded as a data URI.
 
-The `decodeBase64()` function has the following parameters:
+The `DataDecoder::decodeBase64()` method has the following parameters:
 
 * `string $data` The base64 encoded string
 * `string $format` The format of the data represented as a MIME type
@@ -42,7 +42,7 @@ The `decodeBase64()` function has the following parameters:
 ### `DataDecoder::decodeText()`
 This method is to be used when the data is known to be plaintext.
 
-The `decodeText()` function has the following arguments:
+The `DataDecoder::decodeText()` method has the following arguments:
 
 * `string $text` The plaintext string
 * `?string $name` See `DataDecoder::decode()`. The extension `.txt` will be appended to the `$name` if the value provided does not already use it.
