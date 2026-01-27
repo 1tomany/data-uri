@@ -113,7 +113,7 @@ final class DataDecoderTest extends TestCase
     /**
      * @param non-empty-string $data
      * @param non-negative-int $size
-     * @param non-empty-string string $format
+     * @param non-empty-string $format
      */
     #[DataProvider('providerDataAndMetadata')]
     public function testDecodingData(string $data, int $size, string $format): void
@@ -152,7 +152,7 @@ final class DataDecoderTest extends TestCase
     /**
      * @param non-empty-string $data
      * @param non-negative-int $size
-     * @param non-empty-string string $format
+     * @param non-empty-string $format
      */
     #[DataProvider('providerFileAndMetadata')]
     public function testParsingFile(string $data, int $size, string $format): void
@@ -190,7 +190,7 @@ final class DataDecoderTest extends TestCase
     /**
      * @param non-empty-string $data
      * @param non-negative-int $size
-     * @param non-empty-string string $format
+     * @param non-empty-string $format
      */
     #[DataProvider('providerBase64DataAndMetadata')]
     public function testDecodingBase64Data(string $data, int $size, string $format): void
