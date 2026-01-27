@@ -343,4 +343,149 @@ final class TypeTest extends TestCase
 
         return $provider;
     }
+
+    public function testIsBin(): void
+    {
+        $this->assertTrue(Type::Bin->isBin());
+    }
+
+    public function testIsBmp(): void
+    {
+        $this->assertTrue(Type::Bmp->isBmp());
+    }
+
+    public function testIsCss(): void
+    {
+        $this->assertTrue(Type::Css->isCss());
+    }
+
+    public function testIsCsv(): void
+    {
+        $this->assertTrue(Type::Csv->isCsv());
+    }
+
+    public function testIsDoc(): void
+    {
+        $this->assertTrue(Type::Doc->isDoc());
+    }
+
+    public function testIsDocx(): void
+    {
+        $this->assertTrue(Type::Docx->isDocx());
+    }
+
+    public function testIsGif(): void
+    {
+        $this->assertTrue(Type::Gif->isGif());
+    }
+
+    public function testIsHeic(): void
+    {
+        $this->assertTrue(Type::Heic->isHeic());
+    }
+
+    public function testIsHeics(): void
+    {
+        $this->assertTrue(Type::Heics->isHeics());
+    }
+
+    public function testIsHeif(): void
+    {
+        $this->assertTrue(Type::Heif->isHeif());
+    }
+
+    public function testIsHeifs(): void
+    {
+        $this->assertTrue(Type::Heifs->isHeifs());
+    }
+
+    public function testIsHtml(): void
+    {
+        $this->assertTrue(Type::Html->isHtml());
+    }
+
+    public function testIsJpeg(): void
+    {
+        $this->assertTrue(Type::Jpeg->isJpeg());
+    }
+
+    public function testIsJson(): void
+    {
+        $this->assertTrue(Type::Json->isJson());
+    }
+
+    public function testIsJsonl(): void
+    {
+        $this->assertTrue(Type::Jsonl->isJsonl());
+    }
+
+    public function testIsM4a(): void
+    {
+        $this->assertTrue(Type::M4a->isM4a());
+    }
+
+    public function testIsMov(): void
+    {
+        $this->assertTrue(Type::Mov->isMov());
+    }
+
+    public function testIsMp3(): void
+    {
+        $this->assertTrue(Type::Mp3->isMp3());
+    }
+
+    public function testIsMp4(): void
+    {
+        $this->assertTrue(Type::Mp4->isMp4());
+    }
+
+    public function testIsPdf(): void
+    {
+        $this->assertTrue(Type::Pdf->isPdf());
+    }
+
+    public function testIsPhp(): void
+    {
+        $this->assertTrue(Type::Php->isPhp());
+    }
+
+    public function testIsPng(): void
+    {
+        $this->assertTrue(Type::Png->isPng());
+    }
+
+    public function testIsTiff(): void
+    {
+        $this->assertTrue(Type::Tiff->isTiff());
+    }
+
+    public function testIsTxt(): void
+    {
+        $this->assertTrue(Type::Txt->isTxt());
+    }
+
+    public function testIsWebp(): void
+    {
+        $this->assertTrue(Type::Webp->isWebp());
+    }
+
+    public function testIsXlsx(): void
+    {
+        $this->assertTrue(Type::Xlsx->isXlsx());
+    }
+
+    public function testIsXml(): void
+    {
+        $this->assertTrue(Type::Xml->isXml());
+    }
+
+    public function testIsZip(): void
+    {
+        $this->assertTrue(Type::Zip->isZip());
+    }
+
+    public function testIsOther(): void
+    {
+        $this->assertTrue(Type::Other->isOther());
+    }
 }

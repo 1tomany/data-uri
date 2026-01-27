@@ -357,6 +357,38 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::M4a $this
+     */
+    public function isM4a(): bool
+    {
+        return self::M4a === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Mov $this
+     */
+    public function isMov(): bool
+    {
+        return self::Mov === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Mp3 $this
+     */
+    public function isMp3(): bool
+    {
+        return self::Mp3 === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Mp4 $this
+     */
+    public function isMp4(): bool
+    {
+        return self::Mp4 === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Pdf $this
      */
     public function isPdf(): bool
