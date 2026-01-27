@@ -6,6 +6,7 @@ use function in_array;
 use function mime_content_type;
 use function strtolower;
 use function strtoupper;
+use function trim;
 
 enum Type
 {
@@ -29,8 +30,8 @@ enum Type
     case Mp3;
     case Mp4;
     case Pdf;
-    case Php;
     case Png;
+    case Php;
     case Tiff;
     case Txt;
     case Webp;
@@ -39,11 +40,11 @@ enum Type
     case Zip;
     case Other;
 
-    public static function createFromPath(string $path): self
+    public static function create(?string $format): self
     {
-        $format = @mime_content_type($path);
+        $format = trim($format ?? '');
 
-        $type = match ($format) {
+        $type = match (strtolower($format)) {
             'application/octet-stream' => self::Bin,
             'image/bmp' => self::Bmp,
             'text/css' => self::Css,
@@ -56,6 +57,7 @@ enum Type
             'image/heif' => self::Heif,
             'image/heif-sequence' => self::Heifs,
             'text/html' => self::Html,
+            'image/jpg' => self::Jpeg,
             'image/jpeg' => self::Jpeg,
             'application/json' => self::Json,
             'application/jsonl' => self::Jsonl,
@@ -67,9 +69,9 @@ enum Type
             'application/pdf' => self::Pdf,
             'text/x-php' => self::Php,
             'image/png' => self::Png,
+            'image/tiff' => self::Tiff,
             'application/x-empty' => self::Txt,
             'text/plain' => self::Txt,
-            'image/tiff' => self::Tiff,
             'image/webp' => self::Webp,
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
             'application/xml' => self::Xml,
@@ -78,6 +80,11 @@ enum Type
         };
 
         return $type ?? self::Other;
+    }
+
+    public static function createFromPath(string $path): self
+    {
+        return self::create(@mime_content_type($path));
     }
 
     /**
@@ -349,19 +356,19 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Php $this
-     */
-    public function isPhp(): bool
-    {
-        return self::Php === $this;
-    }
-
-    /**
      * @phpstan-assert-if-true self::Pdf $this
      */
     public function isPdf(): bool
     {
         return self::Pdf === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Php $this
+     */
+    public function isPhp(): bool
+    {
+        return self::Php === $this;
     }
 
     /**
