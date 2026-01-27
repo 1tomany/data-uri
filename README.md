@@ -9,9 +9,9 @@ composer require 1tomany/data-uri
 ## API Overview
 The three methods exposed by this library are:
 
-* `OneToMany\DataUri\DataDecoder::decode(mixed $data, ?string $name = null)`
-* `OneToMany\DataUri\DataDecoder::decodeBase64(string $data, string $format, ?string $name = null)`
-* `OneToMany\DataUri\DataDecoder::decodeText(string $text, ?string $name = null)`
+* `OneToMany\DataUri\DataDecoder::decode()`
+* `OneToMany\DataUri\DataDecoder::decodeBase64()`
+* `OneToMany\DataUri\DataDecoder::decodeText()`
 
 Each method returns an object that implements the `OneToMany\DataUri\Contract\Record\DataUriInterface` interface. In this implementation, the value object will automatically delete the file it represents when it is destructed or garbage collected.
 

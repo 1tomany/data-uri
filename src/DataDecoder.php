@@ -132,9 +132,7 @@ final class DataDecoder
             }
         }
 
-        $format = @mime_content_type($tempPath) ?: 'application/octet-stream';
-
-        // Attempt to determine the file format
+        // Attempt to determine the file type
         $type = Type::createFromPath($tempPath);
 
         if ($extension = $type->getExtension()) {
@@ -149,9 +147,10 @@ final class DataDecoder
             $path = Path::join(Path::getDirectory($tempPath), $tempName);
 
             try {
+                // Rename the temporary file with an extension
                 $this->filesystem->rename($tempPath, $path, true);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Failed to rename "%s" to "%s".', $tempPath, $path), previous: $e);
+                throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $tempPath, $path), previous: $e);
             }
         } else {
             $path = $tempPath;
@@ -173,7 +172,7 @@ final class DataDecoder
         $uri = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $tempName]);
 
         if (false === $size = @filesize($path)) {
-            throw new RuntimeException('failed to get filezie');
+            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
         }
 
         return new DataUri($hash, $path, $displayName, $size, $type, $uri);
@@ -187,14 +186,16 @@ final class DataDecoder
     public function decodeText(string $text, ?string $name = null): DataUriInterface
     {
         try {
+            $type = Type::Txt;
+
             // Generate a random name if needed
             if (empty($name = trim($name ?? ''))) {
-                $name = $this->randomString(8);
+                $name = $this->randomString(12);
             }
 
             // Append the .txt extension if needed
-            if (!Path::hasExtension($name, 'txt', true)) {
-                $name = sprintf('%s.txt', $name);
+            if (!Path::hasExtension($name, $type->getExtension(), true)) {
+                $name = sprintf('%s.%s', $name, $type->getExtension());
             }
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating a temporary name failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
