@@ -2,7 +2,6 @@
 
 namespace OneToMany\DataUri\Tests;
 
-use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\DataDecoder;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -15,11 +14,9 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function assert;
-use function base64_encode;
-use function basename;
 use function random_bytes;
+use function sprintf;
 use function sys_get_temp_dir;
-use function vsprintf;
 
 #[Group('UnitTests')]
 final class DataDecoderTest extends TestCase
@@ -101,7 +98,7 @@ final class DataDecoderTest extends TestCase
 
     public function testParsingFileWithoutNameUsesFileName(): void
     {
-        $name = \sprintf('%s.txt', __FUNCTION__);
+        $name = sprintf('%s.txt', __FUNCTION__);
         $path = Path::join(sys_get_temp_dir(), $name);
 
         $fs = new Filesystem();
@@ -113,8 +110,13 @@ final class DataDecoderTest extends TestCase
         $fs->remove($path);
     }
 
+    /**
+     * @param non-empty-string $data
+     * @param non-negative-int $size
+     * @param non-empty-string string $format
+     */
     #[DataProvider('providerDataAndMetadata')]
-    public function testDecodingData(string $data, string $format, int $size): void
+    public function testDecodingData(string $data, int $size, string $format): void
     {
         $file = new DataDecoder()->decode($data);
 
@@ -124,26 +126,54 @@ final class DataDecoderTest extends TestCase
     }
 
     /**
-     * @return list<list<int|non-empty-string>>
+     * @return list<list<non-negative-int|non-empty-string>>
      */
     public static function providerDataAndMetadata(): array
     {
         $provider = [
-            ['data:,Test', 'text/plain', 4],
-            ['data:text/plain,Test', 'text/plain', 4],
-            ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 11],
-            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13],
-            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13],
-            ['data:application/json,%7B%22id%22%3A10%7D', 'application/json', 9],
-            ['data:application/json;base64,eyJpZCI6MTB9', 'application/json', 9],
+            ['data:,Test', 4, 'text/plain',],
+            ['data:text/plain,Test', 4, 'text/plain'],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 11, 'text/plain'],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
+            ['data:application/json,%7B%22id%22%3A10%7D', 9, 'application/json'],
+            ['data:application/json;base64,eyJpZCI6MTB9', 9, 'application/json'],
 
             // 1x1 Transparent GIF
-            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'image/gif', 43],
+            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
 
             // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
-            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 67],
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 67, 'application/pdf'],
         ];
 
         return $provider;
+    }
+
+    /**
+     * @param non-empty-string $data
+     * @param non-negative-int $size
+     * @param non-empty-string string $format
+     */
+    #[DataProvider('providerFileAndMetadata')]
+    public function testParsingFile(string $data, int $size, string $format): void
+    {
+        $file = new DataDecoder()->decode($data);
+
+        $this->assertFileExists($file->getPath());
+        $this->assertEquals($size, $file->getSize());
+        $this->assertEquals($format, $file->getFormat());
+    }
+
+    /**
+     * @return list<list<non-negative-int|non-empty-string>>
+     */
+    public static function providerFileAndMetadata(): array
+    {
+        return [
+            [__DIR__.'/data/pdf-small.pdf', 36916, 'application/pdf'],
+            [__DIR__.'/data/png-small.png', 10289, 'image/png'],
+            [__DIR__.'/data/text-small.txt', 86, 'text/plain'],
+            [__DIR__.'/data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        ];
     }
 }
