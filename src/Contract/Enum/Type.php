@@ -180,7 +180,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Php,self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Php|self::Txt|self::Xml $this
      */
     public function isText(): bool
     {
