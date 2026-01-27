@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri\Contract\Record;
 
 use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Exception\RuntimeException;
 
 interface DataUriInterface
 {
@@ -42,4 +43,74 @@ interface DataUriInterface
      * @var non-empty-lowercase-string
      */
     public string $format { get; }
+
+    /**
+     * @return non-empty-lowercase-string
+     */
+    public function getHash(): string;
+
+    /**
+     * @return non-empty-string
+     */
+    public function getPath(): string;
+
+    /**
+     * @return non-empty-string
+     */
+    public function getName(): string;
+
+    /**
+     * @return non-negative-int
+     */
+    public function getSize(): int;
+
+    public function getType(): Type;
+
+    /**
+     * @return non-empty-string
+     */
+    public function getUri(): string;
+
+    // public function getDirectory(): string;
+
+    /**
+     * @return ?non-empty-lowercase-string
+     */
+    public function getExtension(): ?string;
+
+    /**
+     * @return non-empty-lowercase-string
+     */
+    public function getFormat(): string;
+
+    /**
+     * Determines if two `DataUriInterface` instances are equal.
+     *
+     * If the `$strict` argument is `false`, two objects are equal if their
+     * hashes are identical. However, if the `$strict` argument is `true`,
+     * the hash and path must be identical for the two objects to be equal.
+     */
+    public function equals(self $file, bool $strict = false): bool;
+
+    /**
+     * Determines if the file the object represents exists.
+     */
+    public function exists(): bool;
+
+    /**
+     * @throws RuntimeException when reading the file fails
+     */
+    public function read(): string;
+
+    /**
+     * @throws RuntimeException when reading or encoding the file fails
+     */
+    public function toBase64(): string;
+
+    /**
+     * @return non-empty-string
+     *
+     * @throws RuntimeException when reading or encoding the file fails
+     */
+    public function toUri(): string;
 }

@@ -300,7 +300,6 @@ enum Type
         return self::Php === $this;
     }
 
-
     /**
      * @phpstan-assert-if-true self::Pdf $this
      */
