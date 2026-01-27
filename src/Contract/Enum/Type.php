@@ -24,6 +24,10 @@ enum Type
     case Jpeg;
     case Json;
     case Jsonl;
+    case M4a;
+    case Mov;
+    case Mp3;
+    case Mp4;
     case Pdf;
     case Php;
     case Png;
@@ -55,6 +59,11 @@ enum Type
             'image/jpeg' => self::Jpeg,
             'application/json' => self::Json,
             'application/jsonl' => self::Jsonl,
+            'audio/x-m4a' => self::M4a,
+            'audio/mp4' => self::M4a,
+            'video/quicktime' => self::Mov,
+            'audio/mpeg' => self::Mp3,
+            'video/mp4' => self::Mp4,
             'application/pdf' => self::Pdf,
             'text/x-php' => self::Php,
             'image/png' => self::Png,
@@ -115,6 +124,10 @@ enum Type
             self::Jpeg => 'image/jpeg',
             self::Json => 'application/json',
             self::Jsonl => 'application/jsonl',
+            self::M4a => 'audio/x-m4a',
+            self::Mov => 'video/quicktime',
+            self::Mp3 => 'audio/mpeg',
+            self::Mp4 => 'video/mp4',
             self::Pdf => 'application/pdf',
             self::Php => 'text/x-php',
             self::Png => 'image/png',
@@ -131,7 +144,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Pdf|self::Png|self::Tiff|self::Webp|self::Xlsx|self::Zip $this
+     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Pdf|self::Png|self::Tiff|self::Webp|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool
     {
@@ -146,6 +159,10 @@ enum Type
             self::Heif,
             self::Heifs,
             self::Jpeg,
+            self::M4a,
+            self::Mov,
+            self::Mp3,
+            self::Mp4,
             self::Pdf,
             self::Png,
             self::Tiff,
