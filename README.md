@@ -13,7 +13,7 @@ The three methods exposed by this library are:
 * `OneToMany\DataUri\DataDecoder::decodeBase64(string $data, string $format, ?string $name = null)`
 * `OneToMany\DataUri\DataDecoder::decodeText(string $text, ?string $name = null)`
 
-Each method returns an object that implements the `OneToMany\DataUri\Contract\Record\DataUriInterface` interface.
+Each method returns an object that implements the `OneToMany\DataUri\Contract\Record\DataUriInterface` interface. In this implementation, the value object will automatically delete the file it represents when it is destructed or garbage collected.
 
 The `DataDecoder::decode()` method is the most versatile as it allows for a wide variety of inputs:
 
