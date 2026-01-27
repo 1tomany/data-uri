@@ -17,6 +17,9 @@ enum Type
     case Docx;
     case Gif;
     case Heic;
+    case Heics;
+    case Heif;
+    case Heifs;
     case Html;
     case Jpeg;
     case Json;
@@ -45,6 +48,9 @@ enum Type
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
             'image/gif' => self::Gif,
             'image/heic' => self::Heic,
+            'image/heic-sequence' => self::Heics,
+            'image/heif' => self::Heif,
+            'image/heif-sequence' => self::Heifs,
             'text/html' => self::Html,
             'image/jpeg' => self::Jpeg,
             'application/json' => self::Json,
@@ -102,6 +108,9 @@ enum Type
             self::Docx => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             self::Gif => 'image/gif',
             self::Heic => 'image/heic',
+            self::Heics => 'image/heic-sequence',
+            self::Heif => 'image/heif',
+            self::Heifs => 'image/heif-sequence',
             self::Html => 'text/html',
             self::Jpeg => 'image/jpeg',
             self::Json => 'application/json',
@@ -122,7 +131,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Jpeg|self::Pdf|self::Png|self::Tiff|self::Webp|self::Xlsx|self::Zip $this
+     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Pdf|self::Png|self::Tiff|self::Webp|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool
     {
@@ -133,6 +142,9 @@ enum Type
             self::Docx,
             self::Gif,
             self::Heic,
+            self::Heics,
+            self::Heif,
+            self::Heifs,
             self::Jpeg,
             self::Pdf,
             self::Png,
@@ -164,7 +176,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Jpeg|self::Png|self::Tiff|self::Webp $this
+     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Png|self::Tiff|self::Webp $this
      */
     public function isImage(): bool
     {
@@ -172,6 +184,9 @@ enum Type
             self::Bmp,
             self::Gif,
             self::Heic,
+            self::Heics,
+            self::Heif,
+            self::Heifs,
             self::Jpeg,
             self::Png,
             self::Tiff,
