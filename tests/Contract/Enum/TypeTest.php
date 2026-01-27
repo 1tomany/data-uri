@@ -252,4 +252,95 @@ final class TypeTest extends TestCase
         return $provider;
     }
 
+    #[DataProvider('providerFileAndIsImage')]
+    public function testIsImage(Type $type, bool $isImage): void
+    {
+        $this->assertSame($isImage, $type->isImage());
+    }
+
+    /**
+     * @return list<list<bool|Type>>
+     */
+    public static function providerFileAndIsImage(): array
+    {
+        $provider = [
+            [Type::Bin, false],
+            [Type::Bmp, true],
+            [Type::Css, false],
+            [Type::Csv, false],
+            [Type::Doc, false],
+            [Type::Docx, false],
+            [Type::Gif, true],
+            [Type::Heic, true],
+            [Type::Heics, true],
+            [Type::Heif, true],
+            [Type::Heifs, true],
+            [Type::Html, false],
+            [Type::Jpeg, true],
+            [Type::Json, false],
+            [Type::Jsonl, false],
+            [Type::M4a, false],
+            [Type::Mov, false],
+            [Type::Mp3, false],
+            [Type::Mp4, false],
+            [Type::Pdf, false],
+            [Type::Php, false],
+            [Type::Png, true],
+            [Type::Tiff, true],
+            [Type::Txt, false],
+            [Type::Webp, true],
+            [Type::Xlsx, false],
+            [Type::Xml, false],
+            [Type::Zip, false],
+            [Type::Other, false],
+        ];
+
+        return $provider;
+    }
+
+    #[DataProvider('providerTypeAndIsText')]
+    public function testIsText(Type $file, bool $isText): void
+    {
+        $this->assertSame($isText, $file->isText());
+    }
+
+    /**
+     * @return list<list<bool|Type>>
+     */
+    public static function providerTypeAndIsText(): array
+    {
+        $provider = [
+            [Type::Bin, false],
+            [Type::Bmp, false],
+            [Type::Css, true],
+            [Type::Csv, true],
+            [Type::Doc, false],
+            [Type::Docx, false],
+            [Type::Gif, false],
+            [Type::Heic, false],
+            [Type::Heics, false],
+            [Type::Heif, false],
+            [Type::Heifs, false],
+            [Type::Html, true],
+            [Type::Jpeg, false],
+            [Type::Json, true],
+            [Type::Jsonl, true],
+            [Type::M4a, false],
+            [Type::Mov, false],
+            [Type::Mp3, false],
+            [Type::Mp4, false],
+            [Type::Pdf, false],
+            [Type::Php, true],
+            [Type::Png, false],
+            [Type::Tiff, false],
+            [Type::Txt, true],
+            [Type::Webp, false],
+            [Type::Xlsx, false],
+            [Type::Xml, true],
+            [Type::Zip, false],
+            [Type::Other, false],
+        ];
+
+        return $provider;
+    }
 }
