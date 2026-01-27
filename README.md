@@ -28,7 +28,7 @@ The `DataDecoder::decode()` method has the following parameters:
 * `?string $name` The display name for the temporary file. This is useful for handling file uploads where the original filename is preferred over the random name PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved. This is `null` by default.
 
 #### Inside `DataDecoder::decode()`
-Under the hood, `DataDecoder::decode()` uses the `fopen()` function, which means the data passed to it can be any [stream](https://www.php.net/manual/en/wrappers.php) that PHP supports.
+Under the hood, `DataDecoder::decode()` uses the `fopen()` and `stream_get_contents()` functions, which means the data passed to it can be any [stream](https://www.php.net/manual/en/wrappers.php) that PHP supports.
 
 ### `DataDecoder::decodeBase64()`
 This method is to be used when the data is known to be base64 encoded but NOT encoded as a data URI.
