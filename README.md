@@ -17,9 +17,9 @@ Each method returns an object that implements the `OneToMany\DataUri\Contract\Re
 
 The `DataDecoder::decode()` method is the most versatile as it allows for a wide variety of inputs:
 
-* A data URI string as defined in [RFC2397](https://www.rfc-editor.org/rfc/rfc2397.html)
-* A publicly accessible HTTP or HTTPS URL
-* An existing and readable file
+* A data URI defined in [RFC2397](https://www.rfc-editor.org/rfc/rfc2397.html)
+* A public HTTP or HTTPS URL
+* A readable file
 
 ### `DataDecoder::decode()`
 The `DataDecoder::decode()` method has the following parameters:
