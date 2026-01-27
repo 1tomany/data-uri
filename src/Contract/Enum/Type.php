@@ -276,6 +276,30 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Heics $this
+     */
+    public function isHeics(): bool
+    {
+        return self::Heics === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Heif $this
+     */
+    public function isHeif(): bool
+    {
+        return self::Heif === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Heifs $this
+     */
+    public function isHeifs(): bool
+    {
+        return self::Heifs === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Html $this
      */
     public function isHtml(): bool
