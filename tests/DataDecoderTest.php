@@ -228,4 +228,13 @@ final class DataDecoderTest extends TestCase
 
         $this->assertEquals('example.test.txt', $file->getName());
     }
+
+    public function testDecodingTextData(): void
+    {
+        $file = new DataDecoder()->decodeText('Hello, world!', 'hello_world.txt');
+
+        $this->assertFileExists($file->getPath());
+        $this->assertEquals('Hello, world!', $file->read());
+        $this->assertEquals('hello_world.txt', $file->getName());
+    }
 }
