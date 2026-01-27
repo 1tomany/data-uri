@@ -101,7 +101,7 @@ final class DataDecoderTest extends TestCase
 
     public function testParsingFileWithoutNameUsesFileName(): void
     {
-        $name = sprintf('%s.txt', __FUNCTION__);
+        $name = \sprintf('%s.txt', __FUNCTION__);
         $path = Path::join(sys_get_temp_dir(), $name);
 
         $fs = new Filesystem();
@@ -111,5 +111,39 @@ final class DataDecoderTest extends TestCase
         $this->assertEquals($name, $file->getName());
 
         $fs->remove($path);
+    }
+
+    #[DataProvider('providerDataAndMetadata')]
+    public function testDecodingData(string $data, string $format, int $size): void
+    {
+        $file = new DataDecoder()->decode($data);
+
+        $this->assertFileExists($file->getPath());
+        $this->assertEquals($size, $file->getSize());
+        $this->assertEquals($format, $file->getFormat());
+    }
+
+    /**
+     * @return list<list<int|non-empty-string>>
+     */
+    public static function providerDataAndMetadata(): array
+    {
+        $provider = [
+            ['data:,Test', 'text/plain', 4],
+            ['data:text/plain,Test', 'text/plain', 4],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 'text/plain', 11],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 'text/plain', 13],
+            ['data:application/json,%7B%22id%22%3A10%7D', 'application/json', 9],
+            ['data:application/json;base64,eyJpZCI6MTB9', 'application/json', 9],
+
+            // 1x1 Transparent GIF
+            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'image/gif', 43],
+
+            // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 'application/pdf', 67],
+        ];
+
+        return $provider;
     }
 }
