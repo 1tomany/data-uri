@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function assert;
 use function base64_encode;
@@ -23,8 +24,6 @@ use function vsprintf;
 #[Group('UnitTests')]
 final class DataDecoderTest extends TestCase
 {
-    // use TestFileTrait;
-
     public function testDecodingDataRequiresStringableData(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -95,8 +94,22 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingDataCanSetName(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21,', 'Hello_World.txt');
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.txt');
 
         $this->assertEquals('Hello_World.txt', $file->name);
+    }
+
+    public function testParsingFileWithoutNameUsesFileName(): void
+    {
+        $name = sprintf('%s.txt', __FUNCTION__);
+        $path = Path::join(sys_get_temp_dir(), $name);
+
+        $fs = new Filesystem();
+        $fs->dumpFile($path, __FUNCTION__);
+
+        $file = new DataDecoder()->decode($path);
+        $this->assertEquals($name, $file->getName());
+
+        $fs->remove($path);
     }
 }
