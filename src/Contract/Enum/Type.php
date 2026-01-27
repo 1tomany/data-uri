@@ -22,11 +22,14 @@ enum Type
     case Json;
     case Jsonl;
     case Pdf;
+    case Php;
     case Png;
     case Tiff;
     case Txt;
     case Webp;
+    case Xlsx;
     case Xml;
+    case Zip;
     case Other;
 
     public static function createFromPath(string $path): self
@@ -47,12 +50,15 @@ enum Type
             'application/json' => self::Json,
             'application/jsonl' => self::Jsonl,
             'application/pdf' => self::Pdf,
+            'text/x-php' => self::Php,
             'image/png' => self::Png,
             'application/x-empty' => self::Txt,
             'text/plain' => self::Txt,
             'image/tiff' => self::Tiff,
             'image/webp' => self::Webp,
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
             'application/xml' => self::Xml,
+            'application/zip' => self::Zip,
             default => null,
         };
 
@@ -101,11 +107,14 @@ enum Type
             self::Json => 'application/json',
             self::Jsonl => 'application/jsonl',
             self::Pdf => 'application/pdf',
+            self::Php => 'text/x-php',
             self::Png => 'image/png',
             self::Txt => 'text/plain',
             self::Tiff => 'image/tiff',
             self::Webp => 'image/webp',
+            self::Xlsx => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             self::Xml => 'application/xml',
+            self::Zip => 'application/zip',
             default => 'application/octet-stream',
         };
 
@@ -113,7 +122,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Jpeg|self::Pdf|self::Png|self::Tiff|self::Webp $this
+     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Jpeg|self::Pdf|self::Png|self::Tiff|self::Webp|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool
     {
@@ -129,11 +138,13 @@ enum Type
             self::Png,
             self::Tiff,
             self::Webp,
+            self::Xlsx,
+            self::Zip,
         ]);
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Pdf|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Php|self::Pdf|self::Txt|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -146,6 +157,7 @@ enum Type
             self::Json,
             self::Jsonl,
             self::Pdf,
+            self::Php,
             self::Txt,
             self::Xml,
         ]);
@@ -168,7 +180,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Php,self::Txt|self::Xml $this
      */
     public function isText(): bool
     {
@@ -178,6 +190,7 @@ enum Type
             self::Html,
             self::Json,
             self::Jsonl,
+            self::Php,
             self::Txt,
             self::Xml,
         ]);
@@ -280,6 +293,15 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Php $this
+     */
+    public function isPhp(): bool
+    {
+        return self::Php === $this;
+    }
+
+
+    /**
      * @phpstan-assert-if-true self::Pdf $this
      */
     public function isPdf(): bool
@@ -320,11 +342,27 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Xlsx $this
+     */
+    public function isXlsx(): bool
+    {
+        return self::Xlsx === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Xml $this
      */
     public function isXml(): bool
     {
         return self::Xml === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Zip $this
+     */
+    public function isZip(): bool
+    {
+        return self::Zip === $this;
     }
 
     /**
