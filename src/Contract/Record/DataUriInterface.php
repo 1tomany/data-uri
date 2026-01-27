@@ -2,10 +2,10 @@
 
 namespace OneToMany\DataUri\Contract\Record;
 
-use OneToMany\DataUri\Contract\Enum\FileType;
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Exception\RuntimeException;
 
-interface SmartFileInterface extends \Stringable
+interface DataUriInterface extends \Stringable
 {
     /**
      * Hashes must be at least four characters
@@ -24,25 +24,26 @@ interface SmartFileInterface extends \Stringable
     public string $path { get; }
 
     /**
-     * The display name of the file.
-     *
      * @var non-empty-string
      */
     public string $name { get; }
 
     /**
-     * The name of the file on the filesystem.
-     *
+     * @var non-negative-int
+     */
+    public int $size { get; }
+
+    public Type $type { get; }
+
+    /**
      * @var non-empty-string
      */
-    public string $basename { get; }
+    public string $uri { get; }
 
     /**
      * @var ?non-empty-lowercase-string
      */
     public ?string $extension { get; }
-
-    public FileType $type { get; }
 
     /**
      * @var non-empty-lowercase-string
@@ -50,22 +51,7 @@ interface SmartFileInterface extends \Stringable
     public string $format { get; }
 
     /**
-     * @var non-negative-int
-     */
-    public int $size { get; }
-
-    /**
-     * @var non-empty-string
-     */
-    public string $remoteKey { get; }
-
-    /**
-     * If true, the file is deleted when the destructor is called.
-     */
-    public bool $autoDelete { get; }
-
-    /**
-     * @return non-empty-string
+     * @return non-empty-lowercase-string
      */
     public function getHash(): string;
 
@@ -79,19 +65,24 @@ interface SmartFileInterface extends \Stringable
      */
     public function getName(): string;
 
-    public function getDirectory(): string;
+    /**
+     * @return non-negative-int
+     */
+    public function getSize(): int;
+
+    public function getType(): Type;
 
     /**
      * @return non-empty-string
      */
-    public function getBasename(): string;
+    public function getUri(): string;
+
+    // public function getDirectory(): string;
 
     /**
      * @return ?non-empty-lowercase-string
      */
     public function getExtension(): ?string;
-
-    public function getType(): FileType;
 
     /**
      * @return non-empty-lowercase-string
@@ -99,17 +90,7 @@ interface SmartFileInterface extends \Stringable
     public function getFormat(): string;
 
     /**
-     * @return non-negative-int
-     */
-    public function getSize(): int;
-
-    /**
-     * @return non-empty-string
-     */
-    public function getRemoteKey(): string;
-
-    /**
-     * Determines if two `SmartFileInterface` instances are equal.
+     * Determines if two `DataUriInterface` instances are equal.
      *
      * If the `$strict` argument is `false`, two objects are equal if their
      * hashes are identical. However, if the `$strict` argument is `true`,
@@ -137,5 +118,5 @@ interface SmartFileInterface extends \Stringable
      *
      * @throws RuntimeException when reading or encoding the file fails
      */
-    public function toDataUri(): string;
+    public function toUri(): string;
 }
