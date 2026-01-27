@@ -131,7 +131,7 @@ final class DataDecoderTest extends TestCase
     public static function providerDataAndMetadata(): array
     {
         $provider = [
-            ['data:,Test', 4, 'text/plain',],
+            ['data:,Test', 4, 'text/plain'],
             ['data:text/plain,Test', 4, 'text/plain'],
             ['data:text/plain;charset=US-ASCII,Hello%20world', 11, 'text/plain'],
             ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
