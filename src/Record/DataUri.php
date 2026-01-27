@@ -39,6 +39,14 @@ class DataUri implements DataUriInterface
     }
 
     /**
+     * @see OneToMany\DataUri\Contract\Record\DataUriInterface
+     */
+    public function __toString(): string
+    {
+        return $this->path;
+    }
+
+    /**
      * @var ?non-empty-lowercase-string
      */
     public ?string $extension {

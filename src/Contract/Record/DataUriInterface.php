@@ -5,7 +5,7 @@ namespace OneToMany\DataUri\Contract\Record;
 use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Exception\RuntimeException;
 
-interface DataUriInterface
+interface DataUriInterface extends \Stringable
 {
     /**
      * Hashes must be at least four characters

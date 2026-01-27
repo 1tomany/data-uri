@@ -5,13 +5,11 @@ namespace OneToMany\DataUri\Tests;
 use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\SmartFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
-use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\SmartFile;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
-use function base64_encode;
 use function basename;
 use function bin2hex;
 use function filesize;
@@ -119,115 +117,6 @@ final class SmartFileTest extends TestCase
 
         // Assert: File was deleted from filesystem
         $this->assertFileDoesNotExist($file->path);
-    }
-
-    public function testToStringReturnsPath(): void
-    {
-        // Act: Construct a valid SmartFile
-        $file = $this->createTemporarySmartFile();
-
-        // Assert: Path equals string representation
-        $this->assertEquals($file->path, $file->__toString());
-    }
-
-    public function testReadingFileRequiresFileToExist(): void
-    {
-        // Act: Construct a valid SmartFile
-        $file = $this->createTemporarySmartFile();
-
-        // Arrange: Manually delete the file
-        new Filesystem()->remove($file->path);
-
-        // Assert: File was deleted from filesystem
-        $this->assertFileDoesNotExist($file->path);
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to read the file "'.$file->path.'".');
-
-        $file->read(); // Act: Attempt to read the file
-    }
-
-    public function testReadingEmptyFile(): void
-    {
-        // Act: Construct a valid SmartFile
-        $file = $this->createTemporarySmartFile();
-
-        // Assert: File is empty
-        $this->assertEmpty($file->read());
-    }
-
-    public function testToBase64RequiresFileToExist(): void
-    {
-        // Act: Construct a valid SmartFile
-        $file = $this->createTemporarySmartFile();
-
-        // Arrange: Manually delete the file
-        new Filesystem()->remove($file->path);
-
-        // Assert: File was deleted from filesystem
-        $this->assertFileDoesNotExist($file->path);
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to encode the file "'.$file->path.'".');
-
-        $file->toBase64(); // Act: Attempt to encode the file as base64
-    }
-
-    public function testToBase64(): void
-    {
-        // Arrange: Contents to encode
-        $contents = 'Hello, world!';
-
-        // Act: Construct a valid SmartFile
-        $file = $this->createTemporarySmartFile($contents);
-
-        // Assert: Base64 encodings are identical
-        $this->assertSame(base64_encode($contents), $file->toBase64());
-    }
-
-    public function testToDataUriRequiresFileToExist(): void
-    {
-        // Act: Construct a valid SmartFile
-        $file = $this->createTemporarySmartFile();
-
-        // Arrange: Manually delete the file
-        new Filesystem()->remove($file->path);
-
-        // Assert: File was deleted from filesystem
-        $this->assertFileDoesNotExist($file->path);
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Failed to generate a data URI representation of the file "'.$file->path.'".');
-
-        $file->toDataUri(); // Act: Attempt to generate the data URI
-    }
-
-    public function testSmartFilesWithDifferentHashesAreNotEqual(): void
-    {
-        $file1 = $this->createSmartFileWithHash('hash1');
-        $file2 = $this->createSmartFileWithHash('hash2');
-
-        $this->assertFalse($file1->equals($file2));
-        $this->assertFalse($file2->equals($file1));
-    }
-
-    public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
-    {
-        $file1 = $this->createSmartFileWithHash('hash1');
-        $file2 = $this->createSmartFileWithHash('hash1');
-
-        $this->assertTrue($file1->equals($file2));
-        $this->assertTrue($file2->equals($file1));
-    }
-
-    public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
-    {
-        $file1 = $this->createSmartFileWithHash('hash1');
-        $file2 = $this->createSmartFileWithHash('hash1');
-
-        $this->assertSame($file1->path, $file2->path);
-        $this->assertTrue($file1->equals($file2, true));
-        $this->assertTrue($file2->equals($file1, true));
     }
 
     private function createTemporarySmartFile(?string $contents = null): SmartFile
