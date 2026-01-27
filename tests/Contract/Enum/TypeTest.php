@@ -346,146 +346,146 @@ final class TypeTest extends TestCase
 
     public function testIsBin(): void
     {
-        $this->assertTrue(Type::Bin->isBin());
+        $this->assertTrue(Type::Bin->isBin()); // @phpstan-ignore-line
     }
 
     public function testIsBmp(): void
     {
-        $this->assertTrue(Type::Bmp->isBmp());
+        $this->assertTrue(Type::Bmp->isBmp()); // @phpstan-ignore-line
     }
 
     public function testIsCss(): void
     {
-        $this->assertTrue(Type::Css->isCss());
+        $this->assertTrue(Type::Css->isCss()); // @phpstan-ignore-line
     }
 
     public function testIsCsv(): void
     {
-        $this->assertTrue(Type::Csv->isCsv());
+        $this->assertTrue(Type::Csv->isCsv()); // @phpstan-ignore-line
     }
 
     public function testIsDoc(): void
     {
-        $this->assertTrue(Type::Doc->isDoc());
+        $this->assertTrue(Type::Doc->isDoc()); // @phpstan-ignore-line
     }
 
     public function testIsDocx(): void
     {
-        $this->assertTrue(Type::Docx->isDocx());
+        $this->assertTrue(Type::Docx->isDocx()); // @phpstan-ignore-line
     }
 
     public function testIsGif(): void
     {
-        $this->assertTrue(Type::Gif->isGif());
+        $this->assertTrue(Type::Gif->isGif()); // @phpstan-ignore-line
     }
 
     public function testIsHeic(): void
     {
-        $this->assertTrue(Type::Heic->isHeic());
+        $this->assertTrue(Type::Heic->isHeic()); // @phpstan-ignore-line
     }
 
     public function testIsHeics(): void
     {
-        $this->assertTrue(Type::Heics->isHeics());
+        $this->assertTrue(Type::Heics->isHeics()); // @phpstan-ignore-line
     }
 
     public function testIsHeif(): void
     {
-        $this->assertTrue(Type::Heif->isHeif());
+        $this->assertTrue(Type::Heif->isHeif()); // @phpstan-ignore-line
     }
 
     public function testIsHeifs(): void
     {
-        $this->assertTrue(Type::Heifs->isHeifs());
+        $this->assertTrue(Type::Heifs->isHeifs()); // @phpstan-ignore-line
     }
 
     public function testIsHtml(): void
     {
-        $this->assertTrue(Type::Html->isHtml());
+        $this->assertTrue(Type::Html->isHtml()); // @phpstan-ignore-line
     }
 
     public function testIsJpeg(): void
     {
-        $this->assertTrue(Type::Jpeg->isJpeg());
+        $this->assertTrue(Type::Jpeg->isJpeg()); // @phpstan-ignore-line
     }
 
     public function testIsJson(): void
     {
-        $this->assertTrue(Type::Json->isJson());
+        $this->assertTrue(Type::Json->isJson()); // @phpstan-ignore-line
     }
 
     public function testIsJsonl(): void
     {
-        $this->assertTrue(Type::Jsonl->isJsonl());
+        $this->assertTrue(Type::Jsonl->isJsonl()); // @phpstan-ignore-line
     }
 
     public function testIsM4a(): void
     {
-        $this->assertTrue(Type::M4a->isM4a());
+        $this->assertTrue(Type::M4a->isM4a()); // @phpstan-ignore-line
     }
 
     public function testIsMov(): void
     {
-        $this->assertTrue(Type::Mov->isMov());
+        $this->assertTrue(Type::Mov->isMov()); // @phpstan-ignore-line
     }
 
     public function testIsMp3(): void
     {
-        $this->assertTrue(Type::Mp3->isMp3());
+        $this->assertTrue(Type::Mp3->isMp3()); // @phpstan-ignore-line
     }
 
     public function testIsMp4(): void
     {
-        $this->assertTrue(Type::Mp4->isMp4());
+        $this->assertTrue(Type::Mp4->isMp4()); // @phpstan-ignore-line
     }
 
     public function testIsPdf(): void
     {
-        $this->assertTrue(Type::Pdf->isPdf());
+        $this->assertTrue(Type::Pdf->isPdf()); // @phpstan-ignore-line
     }
 
     public function testIsPhp(): void
     {
-        $this->assertTrue(Type::Php->isPhp());
+        $this->assertTrue(Type::Php->isPhp()); // @phpstan-ignore-line
     }
 
     public function testIsPng(): void
     {
-        $this->assertTrue(Type::Png->isPng());
+        $this->assertTrue(Type::Png->isPng()); // @phpstan-ignore-line
     }
 
     public function testIsTiff(): void
     {
-        $this->assertTrue(Type::Tiff->isTiff());
+        $this->assertTrue(Type::Tiff->isTiff()); // @phpstan-ignore-line
     }
 
     public function testIsTxt(): void
     {
-        $this->assertTrue(Type::Txt->isTxt());
+        $this->assertTrue(Type::Txt->isTxt()); // @phpstan-ignore-line
     }
 
     public function testIsWebp(): void
     {
-        $this->assertTrue(Type::Webp->isWebp());
+        $this->assertTrue(Type::Webp->isWebp()); // @phpstan-ignore-line
     }
 
     public function testIsXlsx(): void
     {
-        $this->assertTrue(Type::Xlsx->isXlsx());
+        $this->assertTrue(Type::Xlsx->isXlsx()); // @phpstan-ignore-line
     }
 
     public function testIsXml(): void
     {
-        $this->assertTrue(Type::Xml->isXml());
+        $this->assertTrue(Type::Xml->isXml()); // @phpstan-ignore-line
     }
 
     public function testIsZip(): void
     {
-        $this->assertTrue(Type::Zip->isZip());
+        $this->assertTrue(Type::Zip->isZip()); // @phpstan-ignore-line
     }
 
     public function testIsOther(): void
     {
-        $this->assertTrue(Type::Other->isOther());
+        $this->assertTrue(Type::Other->isOther()); // @phpstan-ignore-line
     }
 }
