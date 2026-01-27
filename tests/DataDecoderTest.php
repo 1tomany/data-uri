@@ -73,7 +73,7 @@ final class DataDecoderTest extends TestCase
     public function testDecodingDataRequiresValidDataUri(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Decoding the data using a stream failed.');
+        $this->expectExceptionMessage('Decoding the data stream failed.');
 
         new DataDecoder()->decode('data:image/gif;base64,!R0lG**AQ/ABAIAAAAAAA++ACH5BAEAAAAALAA?AEAOw==');
     }
@@ -175,5 +175,57 @@ final class DataDecoderTest extends TestCase
             [__DIR__.'/data/text-small.txt', 86, 'text/plain'],
             [__DIR__.'/data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         ];
+    }
+
+    public function testDecodingBase64DataRequiresValidFormat(): void
+    {
+        $format = 'invalid_mime_type';
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Decoding the data stream failed.');
+
+        new DataDecoder()->decodeBase64('SGVsbG8sIHdvcmxkIQ==', $format);
+    }
+
+    /**
+     * @param non-empty-string $data
+     * @param non-negative-int $size
+     * @param non-empty-string string $format
+     */
+    #[DataProvider('providerBase64DataAndMetadata')]
+    public function testDecodingBase64Data(string $data, int $size, string $format): void
+    {
+        $file = new DataDecoder()->decodeBase64($data, $format);
+
+        $this->assertFileExists($file->getPath());
+        $this->assertEquals($size, $file->getSize());
+        $this->assertEquals($format, $file->getFormat());
+    }
+
+    /**
+     * @return list<list<non-negative-int|non-empty-string>>
+     */
+    public static function providerBase64DataAndMetadata(): array
+    {
+        $provider = [
+            ['eyJpZCI6MTB9', 9, 'application/json'],
+            ['SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
+            ['R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
+            ['iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 68, 'image/png'],
+        ];
+
+        return $provider;
+    }
+
+    public function testDecodingTextDataGeneratesNameIfNameIsEmpty(): void
+    {
+        $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', '')->getName());
+    }
+
+    public function testDecodingTextDataAppendsTxtExtensionIfNameProvidedWithoutOne(): void
+    {
+        $file = new DataDecoder()->decodeText('Hello, world!', 'example.test');
+
+        $this->assertEquals('example.test.txt', $file->getName());
     }
 }

@@ -117,7 +117,7 @@ final class DataDecoder
 
             // Read, decode, and stream the data
             if (!$stream = @fopen($data, 'rb')) {
-                throw new InvalidArgumentException('Decoding the data using a stream failed.');
+                throw new InvalidArgumentException('Decoding the data stream failed.');
             }
 
             if (false === $contents = stream_get_contents($stream)) {
@@ -187,18 +187,20 @@ final class DataDecoder
     public function decodeText(string $text, ?string $name = null): DataUriInterface
     {
         try {
-            // Generate a random name if one wasn't provided
-            if (!$name = trim($name ?? '')) {
-                $name = bin2hex(random_bytes(6));
+            // Generate a random name if needed
+            if (empty($name = trim($name ?? ''))) {
+                $name = $this->randomString(8);
             }
 
-            /** @var non-empty-string $name */
-            $name = Path::changeExtension($name, 'txt');
-        } catch (RandomException $e) {
+            // Append the .txt extension if needed
+            if (!Path::hasExtension($name, 'txt', true)) {
+                $name = sprintf('%s.txt', $name);
+            }
+        } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating a temporary name failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
-        return $this->decode($this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name));
+        return $this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name);
     }
 
     /**
