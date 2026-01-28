@@ -14,9 +14,9 @@ interface DataUriInterface extends \Stringable
     public const int MINIMUM_HASH_LENGTH = 4;
 
     /**
-     * @var non-empty-lowercase-string|\Closure
+     * @var non-empty-lowercase-string
      */
-    public string|\Closure $hash { get; }
+    public string $hash { get; }
 
     /**
      * @var non-empty-string
