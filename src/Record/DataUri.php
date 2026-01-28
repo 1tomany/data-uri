@@ -20,16 +20,6 @@ use function unlink;
 class DataUri implements DataUriInterface
 {
     /**
-     * @var ?non-empty-lowercase-string
-     */
-    private ?string $_hash = null;
-
-    /**
-     * @var ?non-empty-string
-     */
-    private ?string $_uri = null;
-
-    /**
      * @param non-empty-string $path
      * @param non-empty-string $name
      * @param non-negative-int $size
@@ -61,14 +51,30 @@ class DataUri implements DataUriInterface
      * @var non-empty-lowercase-string
      */
     public string $hash {
-        get => $this->getHash();
+        get {
+            $prop = new \ReflectionProperty($this, 'hash');
+
+            if (!$prop->isInitialized($this)) {
+                $this->hash = $this->calculateHash();
+            }
+
+            return $this->hash;
+        }
     }
 
     /**
      * @var non-empty-string
      */
     public string $uri {
-        get => $this->getUri();
+        get {
+            $prop = new \ReflectionProperty($this, 'uri');
+
+            if (!$prop->isInitialized($this)) {
+                $this->uri = $this->resolveUri();
+            }
+
+            return $this->uri;
+        }
     }
 
     /**
@@ -90,19 +96,9 @@ class DataUri implements DataUriInterface
      */
     public function getHash(): string
     {
-        if (null === $this->_hash) {
-            if (!$hash = @hash_file('sha256', $this->path)) {
-                throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $this->path));
-            }
+        $this->hash = $this->calculateHash();
 
-            if (strlen($hash) < DataUriInterface::MINIMUM_HASH_LENGTH) {
-                throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, DataUriInterface::MINIMUM_HASH_LENGTH));
-            }
-
-            $this->_hash = $hash;
-        }
-
-        return $this->_hash;
+        return $this->hash;
     }
 
     /**
@@ -142,15 +138,7 @@ class DataUri implements DataUriInterface
      */
     public function getUri(): string
     {
-        try {
-            if (null === $this->_uri) {
-                $this->_uri = FilenameHelper::changeExtension(implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameHelper::generate(12)]), $this->extension);
-            }
-        } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the URI of the file "%s" failed.', $this->path), previous: $e);
-        }
-
-        return $this->_uri;
+        return $this->uri;
     }
 
     /**
@@ -226,6 +214,34 @@ class DataUri implements DataUriInterface
             return sprintf('data:%s;base64,%s', $this->format, $this->toBase64());
         } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Encoding the file "%s" as a data URI failed.', $this->path), previous: $e);
+        }
+    }
+
+    /**
+     * @return non-empty-lowercase-string
+     */
+    private function calculateHash(): string
+    {
+        if (!$hash = @hash_file('sha256', $this->path)) {
+            throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $this->path));
+        }
+
+        if (strlen($hash) < DataUriInterface::MINIMUM_HASH_LENGTH) {
+            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, DataUriInterface::MINIMUM_HASH_LENGTH));
+        }
+
+        return $hash;
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private function resolveUri(): string
+    {
+        try {
+            return FilenameHelper::changeExtension(implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameHelper::generate(12)]), $this->extension);
+        } catch (DataUriExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Generating the URI of the file "%s" failed.', $this->path), previous: $e);
         }
     }
 }
