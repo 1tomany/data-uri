@@ -6,28 +6,41 @@ use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\RuntimeException;
+use OneToMany\DataUri\Helper\FilenameGenerator;
 
 use function file_exists;
 use function file_get_contents;
+use function hash_file;
+use function implode;
 use function sprintf;
+use function strlen;
+use function substr;
 use function unlink;
 
 class DataUri implements DataUriInterface
 {
     /**
-     * @param non-empty-lowercase-string $hash
+     * @var ?non-empty-lowercase-string
+     */
+    private ?string $_hash = null;
+
+    /**
+     * @var ?non-empty-string
+     */
+    private ?string $_uri = null;
+
+    /**
      * @param non-empty-string $path
      * @param non-empty-string $name
      * @param non-negative-int $size
-     * @param non-empty-string $uri
      */
     public function __construct(
-        public readonly string $hash,
+        // public readonly string $hash,
         public readonly string $path,
         public readonly string $name,
         public readonly int $size,
         public readonly Type $type,
-        public readonly string $uri,
+        // public readonly string $uri,
     ) {
     }
 
@@ -44,6 +57,20 @@ class DataUri implements DataUriInterface
     public function __toString(): string
     {
         return $this->path;
+    }
+
+    /**
+     * @var non-empty-lowercase-string
+     */
+    public string $hash {
+        get => $this->getHash();
+    }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $uri {
+        get => $this->getUri();
     }
 
     /**
@@ -65,7 +92,19 @@ class DataUri implements DataUriInterface
      */
     public function getHash(): string
     {
-        return $this->hash;
+        if (null === $this->_hash) {
+            if (!$hash = hash_file('sha256', $this->path)) {
+                throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $this->path));
+            }
+
+            if (strlen($hash) < DataUriInterface::MINIMUM_HASH_LENGTH) {
+                throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, DataUriInterface::MINIMUM_HASH_LENGTH));
+            }
+
+            $this->_hash = $hash;
+        }
+
+        return $this->_hash;
     }
 
     /**
@@ -105,7 +144,11 @@ class DataUri implements DataUriInterface
      */
     public function getUri(): string
     {
-        return $this->uri;
+        if (null === $this->_uri) {
+            $this->_uri = implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameGenerator::generate(12, $this->extension)]);
+        }
+
+        return $this->_uri;
     }
 
     /**

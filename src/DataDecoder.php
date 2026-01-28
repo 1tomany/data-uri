@@ -18,7 +18,6 @@ use function ctype_print;
 use function filesize;
 use function fopen;
 use function hash_file;
-use function implode;
 use function in_array;
 use function is_dir;
 use function is_file;
@@ -100,8 +99,10 @@ final class DataDecoder
 
         if ($dataIsFile) {
             try {
+                $start = microtime(true);
                 // Copy the data to the temporary file
                 $this->filesystem->copy($data, $tempPath, true);
+                var_dump(microtime(true) - $start);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
             }
@@ -131,10 +132,8 @@ final class DataDecoder
                 throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempPath), previous: $e);
             }
         }
-
         // Attempt to determine the file type
         $type = Type::createFromPath($tempPath);
-
         if ($extension = $type->getExtension()) {
             try {
                 /** @var non-empty-string $tempName */
@@ -159,23 +158,19 @@ final class DataDecoder
         /** @var non-empty-string $displayName */
         $displayName = basename($displayName ?: $path);
 
-        if (!$hash = hash_file('sha256', $path)) {
-            throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $path));
-        }
+        // if (!$hash = hash_file('sha256', $path)) {
+        //     throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $path));
+        // }
 
         // Validate minimum hash length
-        if (strlen($hash) < DataUriInterface::MINIMUM_HASH_LENGTH) {
-            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, DataUriInterface::MINIMUM_HASH_LENGTH));
-        }
 
         // Generate the URI as a combination of the hash and random name
-        $uri = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $tempName]);
 
         if (false === $size = @filesize($path)) {
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
         }
 
-        return new DataUri($hash, $path, $displayName, $size, $type, $uri);
+        return new DataUri($path, $displayName, $size, $type);
     }
 
     public function decodeBase64(string $data, string $format, ?string $name = null): DataUriInterface
