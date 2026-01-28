@@ -113,17 +113,18 @@ final class DataUriTest extends TestCase
 
     public function testFilesWithDifferentHashesAreNotEqual(): void
     {
-        $file1 = new DataUri('hash1', '/path/to/file1.txt', 'file1.txt', 1, Type::Txt, 'fi/le/abc123.txt');
-        $file2 = new DataUri('hash2', '/path/to/file2.txt', 'file2.txt', 1, Type::Txt, 'fi/le/def456.txt');
+        $file1 = $this->decodeFile('pdf-small.pdf');
+        $file2 = $this->decodeFile('png-small.png');
 
         $this->assertFalse($file1->equals($file2));
         $this->assertFalse($file2->equals($file1));
+        $this->assertNotEquals($file1->getHash(), $file2->getHash());
     }
 
     public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
     {
-        $file1 = new DataUri('hash1', '/path/to/file1.txt', 'file1.txt', 1, Type::Txt, 'fi/le/abc123.txt');
-        $file2 = new DataUri('hash1', '/path/to/file2.txt', 'file2.txt', 1, Type::Txt, 'fi/le/def456.txt');
+        $file1 = $this->decodeFile('pdf-small.pdf');
+        $file2 = $this->decodeFile('pdf-small.pdf');
 
         $this->assertTrue($file1->equals($file2, false));
         $this->assertTrue($file2->equals($file1, false));
@@ -133,19 +134,18 @@ final class DataUriTest extends TestCase
 
     public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
     {
-        $file1 = new DataUri('hash1', '/path/to/file1.txt', 'file1.txt', 1, Type::Txt, 'fi/le/abc123.txt');
-        $file2 = new DataUri('hash1', '/path/to/file1.txt', 'file1.txt', 1, Type::Txt, 'fi/le/def456.txt');
+        $file = $this->decodeFile();
 
-        $this->assertTrue($file1->equals($file2, true));
-        $this->assertTrue($file2->equals($file1, true));
-        $this->assertEquals($file1->getHash(), $file2->getHash());
-        $this->assertEquals($file1->getPath(), $file2->getPath());
+        $this->assertTrue($file->equals($file, true));
     }
 
-    private function decodeFile(): DataUri
+    /**
+     * @param non-empty-string $path
+     */
+    private function decodeFile(string $path = 'pdf-small.pdf'): DataUri
     {
         /** @var DataUri&DataUriInterface $file */
-        $file = new DataDecoder()->decode(__DIR__.'/../data/pdf-small.pdf');
+        $file = new DataDecoder()->decode(__DIR__.'/../data/'.$path);
 
         return $file;
     }
