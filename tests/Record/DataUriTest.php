@@ -54,7 +54,7 @@ final class DataUriTest extends TestCase
     public function testGettingHashRequiresFileToExist(): void
     {
         // Arrange
-        $file = new DataUri('/invalid/path/to/file.txt', 'file.txt', 0, Type::Txt);
+        $file = new DataUri('file.txt', 'file.txt', 0, Type::Txt);
         $this->assertFileDoesNotExist($file->getPath());
 
         // Assert
@@ -68,9 +68,7 @@ final class DataUriTest extends TestCase
     public function testReadingFileRequiresFileToExist(): void
     {
         // Arrange
-        $file = $this->decodeFile();
-
-        new Filesystem()->remove($file->getPath());
+        $file = new DataUri('file.txt', 'file.txt', 0, Type::Txt);
         $this->assertFileDoesNotExist($file->getPath());
 
         // Assert
@@ -84,9 +82,7 @@ final class DataUriTest extends TestCase
     public function testToBase64RequiresFileToExist(): void
     {
         // Arrange
-        $file = $this->decodeFile();
-
-        new Filesystem()->remove($file->getPath());
+        $file = new DataUri('file.txt', 'file.txt', 0, Type::Txt);
         $this->assertFileDoesNotExist($file->getPath());
 
         // Assert
@@ -112,9 +108,7 @@ final class DataUriTest extends TestCase
     public function testToDataUriRequiresFileToExist(): void
     {
         // Arrange
-        $file = $this->decodeFile();
-
-        new Filesystem()->remove($file->getPath());
+        $file = new DataUri('file.txt', 'file.txt', 0, Type::Txt);
         $this->assertFileDoesNotExist($file->getPath());
 
         // Assert
