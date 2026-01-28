@@ -170,25 +170,13 @@ final class DataDecoder
 
     public function decodeText(string $text, ?string $name = null): DataUriInterface
     {
-        $type = Type::Txt;
-
         try {
-            $name = FilenameHelper::changeExtension(trim($name ?? '') ?: FilenameHelper::generate(12), $type->getExtension());
-
-            // // Generate a random name if needed
-            // if (empty($name = trim($name ?? ''))) {
-            //     $name = $this->randomString(12);
-            // }
-
-            // // Append the .txt extension if needed
-            // if (!Path::hasExtension($name, $type->getExtension())) {
-            //     $name = sprintf('%s.%s', $name, $type->getExtension());
-            // }
+            $name = FilenameHelper::changeExtension(trim($name ?? '') ?: FilenameHelper::generate(12), Type::Txt->getExtension());
         } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating a temporary name failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
+            throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
-        return $this->decodeBase64(base64_encode($text), $type->getFormat(), $name);
+        return $this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name);
     }
 
     /**
