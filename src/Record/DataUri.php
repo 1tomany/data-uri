@@ -156,15 +156,7 @@ class DataUri implements DataUriInterface
      */
     public function equals(DataUriInterface $file, bool $strict = false): bool
     {
-        if ($this->hash === $file->getHash()) {
-            if (false === $strict) {
-                return true;
-            }
-
-            return $this->path === $file->getPath();
-        }
-
-        return false;
+        return $this->hash === $file->getHash() ? (!$strict ?: $this->path === $file->getPath()) : false;
     }
 
     /**
