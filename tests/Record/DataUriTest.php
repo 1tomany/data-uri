@@ -121,7 +121,7 @@ final class DataUriTest extends TestCase
         $this->assertNotEquals($file1->getHash(), $file2->getHash());
     }
 
-    public function testSmartFilesWithIdenticalHashesAreLooselyEqual(): void
+    public function testFilesWithIdenticalHashesAreLooselyEqual(): void
     {
         $file1 = $this->decodeFile('pdf-small.pdf');
         $file2 = $this->decodeFile('pdf-small.pdf');
@@ -132,7 +132,7 @@ final class DataUriTest extends TestCase
         $this->assertNotEquals($file1->getPath(), $file2->getPath());
     }
 
-    public function testSmartFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
+    public function testFilesWithIdenticalHashesAndPathsAreStrictlyEqual(): void
     {
         $file = $this->decodeFile();
 
