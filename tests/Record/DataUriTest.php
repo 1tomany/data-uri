@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri\Tests\Record;
 
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\DataDecoder;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -48,6 +49,20 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->assertEquals($file->getPath(), $toString);
+    }
+
+    public function testGettingHashRequiresFileToExist(): void
+    {
+        // Arrange
+        $file = new DataUri('/invalid/path/to/file.txt', 'file.txt', 0, Type::Txt);
+        $this->assertFileDoesNotExist($file->getPath());
+
+        // Assert
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Calculating the hash of the file "'.$file->getPath().'" failed.');
+
+        // Act
+        $file->getHash();
     }
 
     public function testReadingFileRequiresFileToExist(): void

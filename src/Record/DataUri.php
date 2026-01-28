@@ -93,7 +93,7 @@ class DataUri implements DataUriInterface
     public function getHash(): string
     {
         if (null === $this->_hash) {
-            if (!$hash = hash_file('sha256', $this->path)) {
+            if (!$hash = @hash_file('sha256', $this->path)) {
                 throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $this->path));
             }
 
