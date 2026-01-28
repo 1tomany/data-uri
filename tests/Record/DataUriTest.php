@@ -127,7 +127,7 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Generating the URI of the file "'.$file->getPath().'" failed.');
+        $this->expectExceptionMessage('Encoding the file "'.$file->getPath().'" as a data URI failed.');
 
         // Act
         $file->toDataUri();

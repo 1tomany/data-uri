@@ -225,7 +225,7 @@ class DataUri implements DataUriInterface
         try {
             return sprintf('data:%s;base64,%s', $this->format, $this->toBase64());
         } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the URI of the file "%s" failed.', $this->path), previous: $e);
+            throw new RuntimeException(sprintf('Encoding the file "%s" as a data URI failed.', $this->path), previous: $e);
         }
     }
 }
