@@ -6,6 +6,7 @@ use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
+use OneToMany\DataUri\Helper\FilenameHelper;
 use OneToMany\DataUri\Record\DataUri;
 use Random\RandomError;
 use Random\RandomException;
@@ -74,7 +75,7 @@ final class DataDecoder
         }
 
         // Generate a random file name
-        $tempName = $this->randomString(12);
+        $tempName = FilenameHelper::generate(12);
 
         // Resolve the display name
         $displayName = trim($name ?? '');
@@ -170,8 +171,10 @@ final class DataDecoder
 
     public function decodeText(string $text, ?string $name = null): DataUriInterface
     {
+        $type = Type::Txt;
+
         try {
-            $type = Type::Txt;
+            $name = trim($name ?? '');
 
             // Generate a random name if needed
             if (empty($name = trim($name ?? ''))) {
@@ -179,7 +182,7 @@ final class DataDecoder
             }
 
             // Append the .txt extension if needed
-            if (!Path::hasExtension($name, $type->getExtension(), true)) {
+            if (!Path::hasExtension($name, $type->getExtension())) {
                 $name = sprintf('%s.%s', $name, $type->getExtension());
             }
         } catch (FilesystemExceptionInterface $e) {

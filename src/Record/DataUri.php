@@ -6,7 +6,7 @@ use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\RuntimeException;
-use OneToMany\DataUri\Helper\FilenameGenerator;
+use OneToMany\DataUri\Helper\FilenameHelper;
 
 use function file_exists;
 use function file_get_contents;
@@ -145,7 +145,7 @@ class DataUri implements DataUriInterface
     public function getUri(): string
     {
         if (null === $this->_uri) {
-            $this->_uri = implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameGenerator::generate(12, $this->extension)]);
+            $this->_uri = FilenameHelper::changeExtension(implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameHelper::generate(12)]), $this->extension);
         }
 
         return $this->_uri;

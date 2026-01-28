@@ -2,18 +2,19 @@
 
 namespace OneToMany\DataUri\Helper;
 
+use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
 use Symfony\Component\Filesystem\Path;
 
-use function implode;
 use function max;
+use function sprintf;
 use function strtolower;
 use function trim;
 
-final readonly class FilenameGenerator
+final readonly class FilenameHelper
 {
     private function __construct()
     {
@@ -21,11 +22,10 @@ final readonly class FilenameGenerator
 
     /**
      * @param positive-int $length
-     * @param ?non-empty-string $extension
      *
      * @return non-empty-string
      */
-    public static function generate(int $length, ?string $extension = null): string
+    public static function generate(int $length): string
     {
         try {
             /** @var non-empty-string $filename */
@@ -34,12 +34,29 @@ final readonly class FilenameGenerator
             throw new RuntimeException('Generating a sufficiently random filename failed.', previous: $e);
         }
 
-        // Append the extension if provided
+        return $filename;
+    }
+
+    /**
+     * @param non-empty-string $filename
+     * @param ?non-empty-string $extension
+     *
+     * @return non-empty-string
+     */
+    public static function changeExtension(string $filename, ?string $extension, bool $forceLowercase = true): string
+    {
+        if (!$filename = Path::getFilenameWithoutExtension(trim($filename))) {
+            throw new InvalidArgumentException('The filename cannot be empty.');
+        }
+
         $extension = trim($extension ?? '');
 
-        if ($extension && !Path::hasExtension($filename, $extension, true)) {
-            $filename = implode('.', [$filename, strtolower($extension)]);
+        if (!$extension) {
+            return $filename;
         }
+
+        /** @var non-empty-string $filename */
+        $filename = sprintf('%s.%s', $filename, $forceLowercase ? strtolower($extension) : $extension);
 
         return $filename;
     }

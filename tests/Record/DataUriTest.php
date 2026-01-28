@@ -2,7 +2,6 @@
 
 namespace OneToMany\DataUri\Tests\Record;
 
-use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\DataDecoder;
 use OneToMany\DataUri\Exception\RuntimeException;
