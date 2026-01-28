@@ -52,9 +52,7 @@ class DataUri implements DataUriInterface
      */
     public string $hash {
         get {
-            $prop = new \ReflectionProperty($this, 'hash');
-
-            if (!$prop->isInitialized($this)) {
+            if (!$this->isPropInitialized(__PROPERTY__)) {
                 $this->hash = $this->calculateHash();
             }
 
@@ -67,9 +65,7 @@ class DataUri implements DataUriInterface
      */
     public string $uri {
         get {
-            $prop = new \ReflectionProperty($this, 'uri');
-
-            if (!$prop->isInitialized($this)) {
+            if (!$this->isPropInitialized(__PROPERTY__)) {
                 $this->uri = $this->resolveUri();
             }
 
@@ -215,6 +211,11 @@ class DataUri implements DataUriInterface
         } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Encoding the file "%s" as a data URI failed.', $this->path), previous: $e);
         }
+    }
+
+    private function isPropInitialized(string $property): bool
+    {
+        return new \ReflectionProperty($this, $property)->isInitialized($this);
     }
 
     /**
