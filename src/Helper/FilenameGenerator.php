@@ -2,7 +2,6 @@
 
 namespace OneToMany\DataUri\Helper;
 
-use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Random\RandomError;
 use Random\RandomException;
@@ -10,6 +9,7 @@ use Random\Randomizer;
 use Symfony\Component\Filesystem\Path;
 
 use function implode;
+use function max;
 use function strtolower;
 use function trim;
 
@@ -29,7 +29,7 @@ final readonly class FilenameGenerator
     {
         try {
             /** @var non-empty-string $filename */
-            $filename = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', \max(1, $length));
+            $filename = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', max(1, $length));
         } catch (RandomException|RandomError $e) {
             throw new RuntimeException('Generating a sufficiently random filename failed.', previous: $e);
         }
