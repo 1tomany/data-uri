@@ -53,7 +53,7 @@ class DataUri implements DataUriInterface
     public string $hash {
         get {
             if (!$this->isPropInitialized(__PROPERTY__)) {
-                $this->hash = $this->calculateHash();
+                $this->hash = $this->generateHash();
             }
 
             return $this->hash;
@@ -63,13 +63,13 @@ class DataUri implements DataUriInterface
     /**
      * @var non-empty-string
      */
-    public string $uri {
+    public string $key {
         get {
             if (!$this->isPropInitialized(__PROPERTY__)) {
-                $this->uri = $this->resolveUri();
+                $this->key = $this->generateKey();
             }
 
-            return $this->uri;
+            return $this->key;
         }
     }
 
@@ -130,9 +130,9 @@ class DataUri implements DataUriInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\DataUriInterface
      */
-    public function getUri(): string
+    public function getKey(): string
     {
-        return $this->uri;
+        return $this->key;
     }
 
     /**
@@ -211,10 +211,10 @@ class DataUri implements DataUriInterface
     /**
      * @return non-empty-lowercase-string
      */
-    private function calculateHash(): string
+    private function generateHash(): string
     {
         if (!$hash = @hash_file('sha256', $this->path)) {
-            throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $this->path));
+            throw new RuntimeException(sprintf('Generating the hash of the file "%s" failed.', $this->path));
         }
 
         if (strlen($hash) < DataUriInterface::MINIMUM_HASH_LENGTH) {
@@ -227,12 +227,12 @@ class DataUri implements DataUriInterface
     /**
      * @return non-empty-string
      */
-    private function resolveUri(): string
+    private function generateKey(): string
     {
         try {
             return FilenameHelper::changeExtension(implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameHelper::generate(12)]), $this->extension);
         } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the URI of the file "%s" failed.', $this->path), previous: $e);
+            throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->path), previous: $e);
         }
     }
 }

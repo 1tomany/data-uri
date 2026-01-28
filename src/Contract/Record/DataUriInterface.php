@@ -38,7 +38,7 @@ interface DataUriInterface extends \Stringable
     /**
      * @var non-empty-string
      */
-    public string $uri { get; }
+    public string $key { get; }
 
     /**
      * @var ?non-empty-lowercase-string
@@ -78,9 +78,9 @@ interface DataUriInterface extends \Stringable
     /**
      * @return non-empty-string
      *
-     * @throws RuntimeException when generating the URI fails
+     * @throws RuntimeException when generating the key fails
      */
-    public function getUri(): string;
+    public function getKey(): string;
 
     /**
      * @return ?non-empty-lowercase-string

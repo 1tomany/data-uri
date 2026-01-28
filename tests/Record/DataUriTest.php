@@ -59,13 +59,13 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Calculating the hash of the file "'.$file->getPath().'" failed.');
+        $this->expectExceptionMessage('Generating the hash of the file "'.$file->getPath().'" failed.');
 
         // Act
         $file->getHash();
     }
 
-    public function testGettingUriRequiresFileToExist(): void
+    public function testGettingKeyRequiresFileToExist(): void
     {
         // Arrange
         $file = new DataUri('file.txt', 'file.txt', 0, Type::Txt);
@@ -73,10 +73,10 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Generating the URI of the file "'.$file->getPath().'" failed.');
+        $this->expectExceptionMessage('Generating the key for the file "'.$file->getPath().'" failed.');
 
         // Act
-        $file->getUri();
+        $file->getKey();
     }
 
     public function testReadingFileRequiresFileToExist(): void
