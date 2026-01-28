@@ -3,14 +3,12 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Helper\FilenameHelper;
 use OneToMany\DataUri\Record\DataUri;
-use Random\RandomError;
-use Random\RandomException;
-use Random\Randomizer;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
@@ -174,39 +172,22 @@ final class DataDecoder
         $type = Type::Txt;
 
         try {
-            $name = trim($name ?? '');
+            $name = FilenameHelper::changeExtension(trim($name ?? '') ?: FilenameHelper::generate(12), $type->getExtension());
 
-            // Generate a random name if needed
-            if (empty($name = trim($name ?? ''))) {
-                $name = $this->randomString(12);
-            }
+            // // Generate a random name if needed
+            // if (empty($name = trim($name ?? ''))) {
+            //     $name = $this->randomString(12);
+            // }
 
-            // Append the .txt extension if needed
-            if (!Path::hasExtension($name, $type->getExtension())) {
-                $name = sprintf('%s.%s', $name, $type->getExtension());
-            }
-        } catch (FilesystemExceptionInterface $e) {
+            // // Append the .txt extension if needed
+            // if (!Path::hasExtension($name, $type->getExtension())) {
+            //     $name = sprintf('%s.%s', $name, $type->getExtension());
+            // }
+        } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating a temporary name failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
-        return $this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name);
-    }
-
-    /**
-     * @param positive-int $length
-     *
-     * @return non-empty-string
-     */
-    private function randomString(int $length): string
-    {
-        try {
-            /** @var non-empty-string $randomString */
-            $randomString = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
-        } catch (RandomException|RandomError $e) {
-            throw new RuntimeException('Generating a sufficiently random string failed.', previous: $e);
-        }
-
-        return $randomString;
+        return $this->decodeBase64(base64_encode($text), $type->getFormat(), $name);
     }
 
     /**

@@ -45,7 +45,7 @@ final readonly class FilenameHelper
      */
     public static function changeExtension(string $filename, ?string $extension, bool $forceLowercase = true): string
     {
-        if (!$filename = Path::getFilenameWithoutExtension(trim($filename))) {
+        if (!$filename = trim($filename)) {
             throw new InvalidArgumentException('The filename cannot be empty.');
         }
 
@@ -55,8 +55,15 @@ final readonly class FilenameHelper
             return $filename;
         }
 
-        /** @var non-empty-string $filename */
-        $filename = sprintf('%s.%s', $filename, $forceLowercase ? strtolower($extension) : $extension);
+        $extension = $forceLowercase ? strtolower($extension) : $extension;
+
+        if (Path::hasExtension($filename, $extension)) {
+            /** @var non-empty-string $filename */
+            $filename = Path::changeExtension($filename, $extension);
+        } else {
+            /** @var non-empty-string $filename */
+            $filename = sprintf('%s.%s', $filename, $extension);
+        }
 
         return $filename;
     }
