@@ -53,7 +53,7 @@ interface DataUriInterface extends \Stringable
     /**
      * @return non-empty-lowercase-string
      *
-     * @throws RuntimeException when calculating the hash fails
+     * @throws RuntimeException when generating the hash fails
      * @throws RuntimeException when the hash length is insufficient
      */
     public function getHash(): string;
