@@ -65,6 +65,20 @@ final class DataUriTest extends TestCase
         $file->getHash();
     }
 
+    public function testGettingUriRequiresFileToExist(): void
+    {
+        // Arrange
+        $file = new DataUri('file.txt', 'file.txt', 0, Type::Txt);
+        $this->assertFileDoesNotExist($file->getPath());
+
+        // Assert
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Generating the URI of the file "'.$file->getPath().'" failed.');
+
+        // Act
+        $file->getUri();
+    }
+
     public function testReadingFileRequiresFileToExist(): void
     {
         // Arrange
@@ -116,7 +130,7 @@ final class DataUriTest extends TestCase
         $this->expectExceptionMessage('Generating the URI of the file "'.$file->getPath().'" failed.');
 
         // Act
-        $file->toUri();
+        $file->toDataUri();
     }
 
     public function testFilesWithDifferentHashesAreNotEqual(): void

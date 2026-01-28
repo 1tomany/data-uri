@@ -35,12 +35,10 @@ class DataUri implements DataUriInterface
      * @param non-negative-int $size
      */
     public function __construct(
-        // public readonly string $hash,
         public readonly string $path,
         public readonly string $name,
         public readonly int $size,
         public readonly Type $type,
-        // public readonly string $uri,
     ) {
     }
 
@@ -144,9 +142,14 @@ class DataUri implements DataUriInterface
      */
     public function getUri(): string
     {
-        if (null === $this->_uri) {
-            $this->_uri = FilenameHelper::changeExtension(implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameHelper::generate(12)]), $this->extension);
+        try {
+            if (null === $this->_uri) {
+                $this->_uri = FilenameHelper::changeExtension(implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameHelper::generate(12)]), $this->extension);
+            }
+        } catch (DataUriExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Generating the URI of the file "%s" failed.', $this->path), previous: $e);
         }
+
 
         return $this->_uri;
     }
@@ -218,7 +221,7 @@ class DataUri implements DataUriInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\DataUriInterface
      */
-    public function toUri(): string
+    public function toDataUri(): string
     {
         try {
             return sprintf('data:%s;base64,%s', $this->format, $this->toBase64());
