@@ -3,13 +3,12 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
+use OneToMany\DataUri\Helper\FilenameHelper;
 use OneToMany\DataUri\Record\DataUri;
-use Random\RandomError;
-use Random\RandomException;
-use Random\Randomizer;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
@@ -17,8 +16,6 @@ use Symfony\Component\Filesystem\Path;
 use function ctype_print;
 use function filesize;
 use function fopen;
-use function hash_file;
-use function implode;
 use function in_array;
 use function is_dir;
 use function is_file;
@@ -76,7 +73,7 @@ final class DataDecoder
         }
 
         // Generate a random file name
-        $tempName = $this->randomString(12);
+        $tempName = FilenameHelper::generate(12);
 
         // Resolve the display name
         $displayName = trim($name ?? '');
@@ -131,7 +128,6 @@ final class DataDecoder
                 throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempPath), previous: $e);
             }
         }
-
         // Attempt to determine the file type
         $type = Type::createFromPath($tempPath);
 
@@ -159,23 +155,12 @@ final class DataDecoder
         /** @var non-empty-string $displayName */
         $displayName = basename($displayName ?: $path);
 
-        if (!$hash = hash_file('sha256', $path)) {
-            throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $path));
-        }
-
-        // Validate minimum hash length
-        if (strlen($hash) < DataUriInterface::MINIMUM_HASH_LENGTH) {
-            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, DataUriInterface::MINIMUM_HASH_LENGTH));
-        }
-
-        // Generate the URI as a combination of the hash and random name
-        $uri = implode('/', [$hash[0].$hash[1], $hash[2].$hash[3], $tempName]);
-
+        // Ensure the filesize can be calculated
         if (false === $size = @filesize($path)) {
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
         }
 
-        return new DataUri($hash, $path, $displayName, $size, $type, $uri);
+        return new DataUri($path, $displayName, $size, $type);
     }
 
     public function decodeBase64(string $data, string $format, ?string $name = null): DataUriInterface
@@ -186,39 +171,12 @@ final class DataDecoder
     public function decodeText(string $text, ?string $name = null): DataUriInterface
     {
         try {
-            $type = Type::Txt;
-
-            // Generate a random name if needed
-            if (empty($name = trim($name ?? ''))) {
-                $name = $this->randomString(12);
-            }
-
-            // Append the .txt extension if needed
-            if (!Path::hasExtension($name, $type->getExtension(), true)) {
-                $name = sprintf('%s.%s', $name, $type->getExtension());
-            }
-        } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating a temporary name failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
+            $name = FilenameHelper::changeExtension(trim($name ?? '') ?: FilenameHelper::generate(12), Type::Txt->getExtension());
+        } catch (DataUriExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
         return $this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name);
-    }
-
-    /**
-     * @param positive-int $length
-     *
-     * @return non-empty-string
-     */
-    private function randomString(int $length): string
-    {
-        try {
-            /** @var non-empty-string $randomString */
-            $randomString = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
-        } catch (RandomException|RandomError $e) {
-            throw new RuntimeException('Generating a sufficiently random string failed.', previous: $e);
-        }
-
-        return $randomString;
     }
 
     /**

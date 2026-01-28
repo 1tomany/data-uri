@@ -38,7 +38,7 @@ interface DataUriInterface extends \Stringable
     /**
      * @var non-empty-string
      */
-    public string $uri { get; }
+    public string $key { get; }
 
     /**
      * @var ?non-empty-lowercase-string
@@ -52,6 +52,9 @@ interface DataUriInterface extends \Stringable
 
     /**
      * @return non-empty-lowercase-string
+     *
+     * @throws RuntimeException when generating the hash fails
+     * @throws RuntimeException when the hash length is insufficient
      */
     public function getHash(): string;
 
@@ -74,10 +77,10 @@ interface DataUriInterface extends \Stringable
 
     /**
      * @return non-empty-string
+     *
+     * @throws RuntimeException when generating the key fails
      */
-    public function getUri(): string;
-
-    // public function getDirectory(): string;
+    public function getKey(): string;
 
     /**
      * @return ?non-empty-lowercase-string
@@ -118,5 +121,5 @@ interface DataUriInterface extends \Stringable
      *
      * @throws RuntimeException when reading or encoding the file fails
      */
-    public function toUri(): string;
+    public function toDataUri(): string;
 }
