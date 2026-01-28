@@ -130,6 +130,7 @@ final class DataDecoder
         }
         // Attempt to determine the file type
         $type = Type::createFromPath($tempPath);
+
         if ($extension = $type->getExtension()) {
             try {
                 /** @var non-empty-string $tempName */

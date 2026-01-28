@@ -6,7 +6,7 @@ use OneToMany\DataUri\DataDecoder;
 
 $dataDecoder = new DataDecoder();
 
-// Decode an ASCII encoded data URI
+// Decode an ASCII encoded data URI and use "hello_world.txt" as the display name
 $file1 = $dataDecoder->decode('data:text/plain,Hello%2C%20world%21', 'hello_world.txt');
 print_r($file1);
 
@@ -22,7 +22,7 @@ print_r($file3);
 $file4 = $dataDecoder->decodeBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 'image/png', '1x1.png');
 print_r($file4);
 
-// Decode plaintext
+// Decode plaintext and use "hello_world.txt" as the display name
 $file5 = $dataDecoder->decodeText('Hello, world!', 'hello_world.txt');
 print_r($file5);
 
