@@ -7,8 +7,10 @@ use OneToMany\DataUri\Exception\RuntimeException;
 use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
+use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Path;
 
+use function assert;
 use function max;
 use function sprintf;
 use function strtolower;
@@ -55,15 +57,19 @@ final readonly class FilenameHelper
             return $filename;
         }
 
-        $extension = $forceLowercase ? strtolower($extension) : $extension;
+        try {
+            $extension = $forceLowercase ? strtolower($extension) : $extension;
 
-        if (Path::hasExtension($filename, $extension)) {
-            /** @var non-empty-string $filename */
-            $filename = Path::changeExtension($filename, $extension);
-        } else {
-            /** @var non-empty-string $filename */
-            $filename = sprintf('%s.%s', $filename, $extension);
+            if (Path::hasExtension($filename, $extension)) {
+                $filename = Path::changeExtension($filename, $extension);
+            } else {
+                $filename = sprintf('%s.%s', $filename, $extension);
+            }
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Changing the extension of "%s" to "%s" failed.', $filename, $extension), previous: $e);
         }
+
+        assert(!empty($filename));
 
         return $filename;
     }
