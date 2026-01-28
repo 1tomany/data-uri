@@ -60,7 +60,7 @@ final readonly class FilenameHelper
         try {
             $extension = $forceLowercase ? strtolower($extension) : $extension;
 
-            if (Path::hasExtension($filename, $extension)) {
+            if (Path::hasExtension($filename, $extension, true)) {
                 $filename = Path::changeExtension($filename, $extension);
             } else {
                 $filename = sprintf('%s.%s', $filename, $extension);
