@@ -150,7 +150,6 @@ class DataUri implements DataUriInterface
             throw new RuntimeException(sprintf('Generating the URI of the file "%s" failed.', $this->path), previous: $e);
         }
 
-
         return $this->_uri;
     }
 
