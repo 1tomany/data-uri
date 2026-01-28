@@ -18,6 +18,7 @@ $file = $dataDecoder->decode(__DIR__.'/fieldsheet.png');
 // Parse an image URL
 // $url = $dataDecoder->decode('https://assets.extract-cdn.com/data/ao-smith-label.jpg');
 
+var_dump($text->uri);
 print_r($text);
 print_r($data);
 print_r($file);

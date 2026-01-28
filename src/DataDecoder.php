@@ -17,7 +17,6 @@ use Symfony\Component\Filesystem\Path;
 use function ctype_print;
 use function filesize;
 use function fopen;
-use function hash_file;
 use function in_array;
 use function is_dir;
 use function is_file;
@@ -99,10 +98,8 @@ final class DataDecoder
 
         if ($dataIsFile) {
             try {
-                $start = microtime(true);
                 // Copy the data to the temporary file
                 $this->filesystem->copy($data, $tempPath, true);
-                var_dump(microtime(true) - $start);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
             }
@@ -158,14 +155,7 @@ final class DataDecoder
         /** @var non-empty-string $displayName */
         $displayName = basename($displayName ?: $path);
 
-        // if (!$hash = hash_file('sha256', $path)) {
-        //     throw new RuntimeException(sprintf('Calculating the hash of the file "%s" failed.', $path));
-        // }
-
-        // Validate minimum hash length
-
-        // Generate the URI as a combination of the hash and random name
-
+        // Ensure the filesize can be calculated
         if (false === $size = @filesize($path)) {
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
         }
