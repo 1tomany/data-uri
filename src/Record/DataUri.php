@@ -92,8 +92,6 @@ class DataUri implements DataUriInterface
      */
     public function getHash(): string
     {
-        $this->hash = $this->calculateHash();
-
         return $this->hash;
     }
 
