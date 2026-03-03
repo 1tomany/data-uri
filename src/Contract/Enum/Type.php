@@ -428,12 +428,12 @@ enum Type
     }
 
     /**
-         * @phpstan-assert-if-true self::Ogg $this
-         */
-        public function isOgg(): bool
-        {
-            return self::Ogg === $this;
-        }
+     * @phpstan-assert-if-true self::Ogg $this
+     */
+    public function isOgg(): bool
+    {
+        return self::Ogg === $this;
+    }
 
     /**
      * @phpstan-assert-if-true self::Pdf $this
