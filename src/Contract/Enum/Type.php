@@ -32,7 +32,7 @@ enum Type
     case Mov;
     case Mp3;
     case Mp4;
-    case Ogg;
+    case Oga;
     case Pdf;
     case Png;
     case Php;
@@ -74,7 +74,7 @@ enum Type
             'video/quicktime' => self::Mov,
             'audio/mpeg' => self::Mp3,
             'video/mp4' => self::Mp4,
-            'audio/ogg' => self::Ogg,
+            'audio/ogg' => self::Oga,
             'application/pdf' => self::Pdf,
             'text/x-php' => self::Php,
             'image/png' => self::Png,
@@ -148,7 +148,7 @@ enum Type
             self::Mov => 'video/quicktime',
             self::Mp3 => 'audio/mpeg',
             self::Mp4 => 'video/mp4',
-            self::Ogg => 'audio/ogg',
+            self::Oga => 'audio/ogg',
             self::Pdf => 'application/pdf',
             self::Php => 'text/x-php',
             self::Png => 'image/png',
@@ -166,7 +166,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Flac|self::M4a|self::Mp3|self::Ogg|self::Wav $this
+     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Flac|self::M4a|self::Mp3|self::Oga|self::Wav $this
      */
     public function isAudio(): bool
     {
@@ -176,13 +176,13 @@ enum Type
             self::Flac,
             self::M4a,
             self::Mp3,
-            self::Ogg,
+            self::Oga,
             self::Wav,
         ]);
     }
 
     /**
-     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Ogg|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xlsx|self::Zip $this
+     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Oga|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool
     {
@@ -204,7 +204,7 @@ enum Type
             self::Mov,
             self::Mp3,
             self::Mp4,
-            self::Ogg,
+            self::Oga,
             self::Pdf,
             self::Png,
             self::Tiff,
@@ -449,11 +449,11 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Ogg $this
+     * @phpstan-assert-if-true self::Oga $this
      */
-    public function isOgg(): bool
+    public function isOga(): bool
     {
-        return self::Ogg === $this;
+        return self::Oga === $this;
     }
 
     /**
