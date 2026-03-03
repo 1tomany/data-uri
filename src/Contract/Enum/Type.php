@@ -30,6 +30,7 @@ enum Type
     case Json;
     case Jsonl;
     case M4a;
+    case Markdown;
     case Mov;
     case Mp3;
     case Mp4;
@@ -73,6 +74,7 @@ enum Type
             'application/jsonl' => self::Jsonl,
             'audio/x-m4a' => self::M4a,
             'audio/mp4' => self::M4a,
+            'text/markdown' => self::Markdown,
             'video/quicktime' => self::Mov,
             'audio/mpeg' => self::Mp3,
             'video/mp4' => self::Mp4,
@@ -104,7 +106,10 @@ enum Type
      */
     public function getName(): string
     {
-        if ($this->isOther()) {
+        if (
+            $this->isMarkdown() ||
+            $this->isOther()
+        ) {
             return $this->name;
         }
 
@@ -116,6 +121,10 @@ enum Type
      */
     public function getExtension(): ?string
     {
+        if ($this->isMarkdown()) {
+            return 'md';
+        }
+
         if ($this->isOther()) {
             return null;
         }
@@ -148,6 +157,7 @@ enum Type
             self::Json => 'application/json',
             self::Jsonl => 'application/jsonl',
             self::M4a => 'audio/x-m4a',
+            self::Markdown => 'text/markdown',
             self::Mov => 'video/quicktime',
             self::Mp3 => 'audio/mpeg',
             self::Mp4 => 'video/mp4',
@@ -219,7 +229,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Php|self::Pdf|self::Txt|self::Xlsx|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xlsx|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -232,6 +242,7 @@ enum Type
             self::Js,
             self::Json,
             self::Jsonl,
+            self::Markdown,
             self::Pdf,
             self::Php,
             self::Txt,
@@ -260,7 +271,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Php|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
      */
     public function isText(): bool
     {
@@ -271,6 +282,7 @@ enum Type
             self::Js,
             self::Json,
             self::Jsonl,
+            self::Markdown,
             self::Php,
             self::Txt,
             self::Xml,
@@ -435,6 +447,14 @@ enum Type
     public function isM4a(): bool
     {
         return self::M4a === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Markdown $this
+     */
+    public function isMarkdown(): bool
+    {
+        return self::Markdown === $this;
     }
 
     /**

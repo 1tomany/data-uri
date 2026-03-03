@@ -51,6 +51,7 @@ final class TypeTest extends TestCase
             ['application/jsonl', Type::Jsonl],
             ['audio/x-m4a', Type::M4a],
             ['audio/mp4', Type::M4a],
+            ['text/markdown', Type::Markdown],
             ['video/quicktime', Type::Mov],
             ['audio/mpeg', Type::Mp3],
             ['video/mp4', Type::Mp4],
@@ -103,6 +104,7 @@ final class TypeTest extends TestCase
             [Type::Json, 'JSON'],
             [Type::Jsonl, 'JSONL'],
             [Type::M4a, 'M4A'],
+            [Type::Markdown, 'Markdown'],
             [Type::Mov, 'MOV'],
             [Type::Mp3, 'MP3'],
             [Type::Mp4, 'MP4'],
@@ -158,6 +160,7 @@ final class TypeTest extends TestCase
             [Type::Json, 'json'],
             [Type::Jsonl, 'jsonl'],
             [Type::M4a, 'm4a'],
+            [Type::Markdown, 'md'],
             [Type::Mov, 'mov'],
             [Type::Mp3, 'mp3'],
             [Type::Mp4, 'mp4'],
@@ -213,6 +216,7 @@ final class TypeTest extends TestCase
             [Type::Json, 'application/json'],
             [Type::Jsonl, 'application/jsonl'],
             [Type::M4a, 'audio/x-m4a'],
+            [Type::Markdown, 'text/markdown'],
             [Type::Mov, 'video/quicktime'],
             [Type::Mp3, 'audio/mpeg'],
             [Type::Mp4, 'video/mp4'],
@@ -265,6 +269,7 @@ final class TypeTest extends TestCase
             [Type::Json, false],
             [Type::Jsonl, false],
             [Type::M4a, true],
+            [Type::Markdown, false],
             [Type::Mov, false],
             [Type::Mp3, true],
             [Type::Mp4, false],
@@ -317,6 +322,7 @@ final class TypeTest extends TestCase
             [Type::Json, false],
             [Type::Jsonl, false],
             [Type::M4a, true],
+            [Type::Markdown, false],
             [Type::Mov, true],
             [Type::Mp3, true],
             [Type::Mp4, true],
@@ -369,6 +375,7 @@ final class TypeTest extends TestCase
             [Type::Json, true],
             [Type::Jsonl, true],
             [Type::M4a, false],
+            [Type::Markdown, true],
             [Type::Mov, false],
             [Type::Mp3, false],
             [Type::Mp4, false],
@@ -421,6 +428,7 @@ final class TypeTest extends TestCase
             [Type::Json, false],
             [Type::Jsonl, false],
             [Type::M4a, false],
+            [Type::Markdown, false],
             [Type::Mov, false],
             [Type::Mp3, false],
             [Type::Mp4, false],
@@ -473,6 +481,7 @@ final class TypeTest extends TestCase
             [Type::Json, true],
             [Type::Jsonl, true],
             [Type::M4a, false],
+            [Type::Markdown, true],
             [Type::Mov, false],
             [Type::Mp3, false],
             [Type::Mp4, false],
@@ -591,6 +600,11 @@ final class TypeTest extends TestCase
     public function testIsM4a(): void
     {
         $this->assertTrue(Type::M4a->isM4a()); // @phpstan-ignore-line
+    }
+
+    public function testIsMarkdown(): void
+    {
+        $this->assertTrue(Type::Markdown->isMarkdown()); // @phpstan-ignore-line
     }
 
     public function testIsMov(): void
