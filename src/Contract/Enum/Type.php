@@ -10,12 +10,15 @@ use function trim;
 
 enum Type
 {
+    case Aac;
+    case Aiff;
     case Bin;
     case Bmp;
     case Css;
     case Csv;
     case Doc;
     case Docx;
+    case Flac;
     case Gif;
     case Heic;
     case Heics;
@@ -23,18 +26,23 @@ enum Type
     case Heifs;
     case Html;
     case Jpeg;
+    case Js;
     case Json;
     case Jsonl;
     case M4a;
+    case Markdown;
     case Mov;
     case Mp3;
     case Mp4;
+    case Oga;
     case Pdf;
     case Png;
     case Php;
     case Tiff;
     case Txt;
+    case Wav;
     case Webp;
+    case Xls;
     case Xlsx;
     case Xml;
     case Zip;
@@ -45,12 +53,15 @@ enum Type
         $format = trim($format ?? '');
 
         $type = match (strtolower($format)) {
+            'audio/aac' => self::Aac,
+            'audio/aiff' => self::Aiff,
             'application/octet-stream' => self::Bin,
             'image/bmp' => self::Bmp,
             'text/css' => self::Css,
             'text/csv' => self::Csv,
             'application/msword' => self::Doc,
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
+            'audio/flac' => self::Flac,
             'image/gif' => self::Gif,
             'image/heic' => self::Heic,
             'image/heic-sequence' => self::Heics,
@@ -59,20 +70,31 @@ enum Type
             'text/html' => self::Html,
             'image/jpg' => self::Jpeg,
             'image/jpeg' => self::Jpeg,
+            'text/javascript' => self::Js,
             'application/json' => self::Json,
             'application/jsonl' => self::Jsonl,
             'audio/x-m4a' => self::M4a,
             'audio/mp4' => self::M4a,
+            'text/markdown' => self::Markdown,
             'video/quicktime' => self::Mov,
             'audio/mpeg' => self::Mp3,
             'video/mp4' => self::Mp4,
+            'audio/ogg' => self::Oga,
             'application/pdf' => self::Pdf,
             'text/x-php' => self::Php,
             'image/png' => self::Png,
             'image/tiff' => self::Tiff,
             'application/x-empty' => self::Txt,
             'text/plain' => self::Txt,
+            'audio/wav' => self::Wav,
             'image/webp' => self::Webp,
+            'application/msexcel' => self::Xls,
+            'application/vnd.ms-excel' => self::Xls,
+            'application/x-excel' => self::Xls,
+            'application/x-msexcel' => self::Xls,
+            'application/x-ms-excel' => self::Xls,
+            'application/xls' => self::Xls,
+            'application/x-xls' => self::Xls,
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
             'application/xml' => self::Xml,
             'application/zip' => self::Zip,
@@ -92,6 +114,10 @@ enum Type
      */
     public function getName(): string
     {
+        if ($this->isMarkdown()) {
+            return $this->name;
+        }
+
         if ($this->isOther()) {
             return $this->name;
         }
@@ -104,6 +130,10 @@ enum Type
      */
     public function getExtension(): ?string
     {
+        if ($this->isMarkdown()) {
+            return 'md';
+        }
+
         if ($this->isOther()) {
             return null;
         }
@@ -117,11 +147,14 @@ enum Type
     public function getFormat(): string
     {
         $format = match ($this) {
+            self::Aac => 'audio/aac',
+            self::Aiff => 'audio/aiff',
             self::Bmp => 'image/bmp',
             self::Css => 'text/css',
             self::Csv => 'text/csv',
             self::Doc => 'application/msword',
             self::Docx => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            self::Flac => 'audio/flac',
             self::Gif => 'image/gif',
             self::Heic => 'image/heic',
             self::Heics => 'image/heic-sequence',
@@ -129,18 +162,23 @@ enum Type
             self::Heifs => 'image/heif-sequence',
             self::Html => 'text/html',
             self::Jpeg => 'image/jpeg',
+            self::Js => 'text/javascript',
             self::Json => 'application/json',
             self::Jsonl => 'application/jsonl',
             self::M4a => 'audio/x-m4a',
+            self::Markdown => 'text/markdown',
             self::Mov => 'video/quicktime',
             self::Mp3 => 'audio/mpeg',
             self::Mp4 => 'video/mp4',
+            self::Oga => 'audio/ogg',
             self::Pdf => 'application/pdf',
             self::Php => 'text/x-php',
             self::Png => 'image/png',
             self::Txt => 'text/plain',
             self::Tiff => 'image/tiff',
+            self::Wav => 'audio/wav',
             self::Webp => 'image/webp',
+            self::Xls => 'application/vnd.ms-excel',
             self::Xlsx => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             self::Xml => 'application/xml',
             self::Zip => 'application/zip',
@@ -151,15 +189,34 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Bin|self::Bmp|self::Doc|self::Docx|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Pdf|self::Png|self::Tiff|self::Webp|self::Xlsx|self::Zip $this
+     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Flac|self::M4a|self::Mp3|self::Oga|self::Wav $this
+     */
+    public function isAudio(): bool
+    {
+        return in_array($this, [
+            self::Aac,
+            self::Aiff,
+            self::Flac,
+            self::M4a,
+            self::Mp3,
+            self::Oga,
+            self::Wav,
+        ]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Oga|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xls|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool
     {
         return in_array($this, [
+            self::Aac,
+            self::Aiff,
             self::Bin,
             self::Bmp,
             self::Doc,
             self::Docx,
+            self::Flac,
             self::Gif,
             self::Heic,
             self::Heics,
@@ -170,17 +227,20 @@ enum Type
             self::Mov,
             self::Mp3,
             self::Mp4,
+            self::Oga,
             self::Pdf,
             self::Png,
             self::Tiff,
+            self::Wav,
             self::Webp,
+            self::Xls,
             self::Xlsx,
             self::Zip,
         ]);
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Php|self::Pdf|self::Txt|self::Xlsx|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xls|self::Xlsx|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -190,11 +250,14 @@ enum Type
             self::Doc,
             self::Docx,
             self::Html,
+            self::Js,
             self::Json,
             self::Jsonl,
+            self::Markdown,
             self::Pdf,
             self::Php,
             self::Txt,
+            self::Xls,
             self::Xlsx,
             self::Xml,
         ]);
@@ -220,7 +283,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Php|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
      */
     public function isText(): bool
     {
@@ -228,12 +291,30 @@ enum Type
             self::Css,
             self::Csv,
             self::Html,
+            self::Js,
             self::Json,
             self::Jsonl,
+            self::Markdown,
             self::Php,
             self::Txt,
             self::Xml,
         ]);
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Aac $this
+     */
+    public function isAac(): bool
+    {
+        return self::Aac === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Aiff $this
+     */
+    public function isAiff(): bool
+    {
+        return self::Aiff === $this;
     }
 
     /**
@@ -282,6 +363,14 @@ enum Type
     public function isDocx(): bool
     {
         return self::Docx === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Flac $this
+     */
+    public function isFlac(): bool
+    {
+        return self::Flac === $this;
     }
 
     /**
@@ -341,6 +430,14 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Js $this
+     */
+    public function isJs(): bool
+    {
+        return self::Js === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Json $this
      */
     public function isJson(): bool
@@ -365,6 +462,14 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Markdown $this
+     */
+    public function isMarkdown(): bool
+    {
+        return self::Markdown === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Mov $this
      */
     public function isMov(): bool
@@ -386,6 +491,14 @@ enum Type
     public function isMp4(): bool
     {
         return self::Mp4 === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Oga $this
+     */
+    public function isOga(): bool
+    {
+        return self::Oga === $this;
     }
 
     /**
@@ -429,11 +542,27 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Wav $this
+     */
+    public function isWav(): bool
+    {
+        return self::Wav === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Webp $this
      */
     public function isWebp(): bool
     {
         return self::Webp === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Xls $this
+     */
+    public function isXls(): bool
+    {
+        return self::Xls === $this;
     }
 
     /**
