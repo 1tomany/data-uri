@@ -223,6 +223,7 @@ final class TypeTest extends TestCase
             [Type::Xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
             [Type::Xml, 'application/xml'],
             [Type::Zip, 'application/zip'],
+            [Type::Other, 'application/octet-stream'],
         ];
 
         return $provider;
