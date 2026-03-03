@@ -252,6 +252,22 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Aac $this
+     */
+    public function isAac(): bool
+    {
+        return self::Aac === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Aiff $this
+     */
+    public function isAiff(): bool
+    {
+        return self::Aiff === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Bin $this
      */
     public function isBin(): bool
@@ -297,6 +313,14 @@ enum Type
     public function isDocx(): bool
     {
         return self::Docx === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Flac $this
+     */
+    public function isFlac(): bool
+    {
+        return self::Flac === $this;
     }
 
     /**
@@ -404,6 +428,14 @@ enum Type
     }
 
     /**
+         * @phpstan-assert-if-true self::Ogg $this
+         */
+        public function isOgg(): bool
+        {
+            return self::Ogg === $this;
+        }
+
+    /**
      * @phpstan-assert-if-true self::Pdf $this
      */
     public function isPdf(): bool
@@ -441,6 +473,14 @@ enum Type
     public function isTxt(): bool
     {
         return self::Txt === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Wav $this
+     */
+    public function isWav(): bool
+    {
+        return self::Wav === $this;
     }
 
     /**
