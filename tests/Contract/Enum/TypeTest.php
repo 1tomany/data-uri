@@ -218,6 +218,11 @@ final class TypeTest extends TestCase
             [Type::Png, 'image/png'],
             [Type::Txt, 'text/plain'],
             [Type::Tiff, 'image/tiff'],
+            [Type::Wav, 'audio/wav'],
+            [Type::Webp, 'image/webp'],
+            [Type::Xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+            [Type::Xml, 'application/xml'],
+            [Type::Zip, 'application/zip'],
         ];
 
         return $provider;
