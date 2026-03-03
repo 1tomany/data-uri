@@ -10,12 +10,15 @@ use function trim;
 
 enum Type
 {
+    case Aac;
+    case Aiff;
     case Bin;
     case Bmp;
     case Css;
     case Csv;
     case Doc;
     case Docx;
+    case Flac;
     case Gif;
     case Heic;
     case Heics;
@@ -29,11 +32,13 @@ enum Type
     case Mov;
     case Mp3;
     case Mp4;
+    case Ogg;
     case Pdf;
     case Png;
     case Php;
     case Tiff;
     case Txt;
+    case Wav;
     case Webp;
     case Xlsx;
     case Xml;
@@ -45,12 +50,15 @@ enum Type
         $format = trim($format ?? '');
 
         $type = match (strtolower($format)) {
+            'audio/aac' => self::Aac,
+            'audio/aiff' => self::Aiff,
             'application/octet-stream' => self::Bin,
             'image/bmp' => self::Bmp,
             'text/css' => self::Css,
             'text/csv' => self::Csv,
             'application/msword' => self::Doc,
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
+            'audio/flac' => self::Flac,
             'image/gif' => self::Gif,
             'image/heic' => self::Heic,
             'image/heic-sequence' => self::Heics,
@@ -66,12 +74,14 @@ enum Type
             'video/quicktime' => self::Mov,
             'audio/mpeg' => self::Mp3,
             'video/mp4' => self::Mp4,
+            'audio/ogg' => self::Ogg,
             'application/pdf' => self::Pdf,
             'text/x-php' => self::Php,
             'image/png' => self::Png,
             'image/tiff' => self::Tiff,
             'application/x-empty' => self::Txt,
             'text/plain' => self::Txt,
+            'audio/wav' => self::Wav,
             'image/webp' => self::Webp,
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
             'application/xml' => self::Xml,
