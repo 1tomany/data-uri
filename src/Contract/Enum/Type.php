@@ -42,6 +42,7 @@ enum Type
     case Txt;
     case Wav;
     case Webp;
+    case Xls;
     case Xlsx;
     case Xml;
     case Zip;
@@ -87,6 +88,15 @@ enum Type
             'text/plain' => self::Txt,
             'audio/wav' => self::Wav,
             'image/webp' => self::Webp,
+
+            'application/msexcel' => self::Xls,
+            'application/vnd.ms-excel' => self::Xls,
+            'application/x-excel' => self::Xls,
+            'application/x-msexcel' => self::Xls,
+            'application/x-ms-excel' => self::Xls,
+            'application/xls' => self::Xls,
+            'application/x-xls' => self::Xls,
+
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
             'application/xml' => self::Xml,
             'application/zip' => self::Zip,
