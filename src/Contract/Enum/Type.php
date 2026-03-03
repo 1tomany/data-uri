@@ -106,10 +106,11 @@ enum Type
      */
     public function getName(): string
     {
-        if (
-            $this->isMarkdown() ||
-            $this->isOther()
-        ) {
+        if ($this->isMarkdown()) {
+            return $this->name;
+        }
+
+        if ($this->isOther()) {
             return $this->name;
         }
 
