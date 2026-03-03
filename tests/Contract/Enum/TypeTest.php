@@ -123,6 +123,7 @@ final class TypeTest extends TestCase
             [Type::Txt, 'TXT'],
             [Type::Wav, 'WAV'],
             [Type::Webp, 'WEBP'],
+            [Type::Xls, 'XLS'],
             [Type::Xlsx, 'XLSX'],
             [Type::Xml, 'XML'],
             [Type::Zip, 'ZIP'],
@@ -179,6 +180,7 @@ final class TypeTest extends TestCase
             [Type::Txt, 'txt'],
             [Type::Wav, 'wav'],
             [Type::Webp, 'webp'],
+            [Type::Xls, 'xls'],
             [Type::Xlsx, 'xlsx'],
             [Type::Xml, 'xml'],
             [Type::Zip, 'zip'],
@@ -235,6 +237,7 @@ final class TypeTest extends TestCase
             [Type::Tiff, 'image/tiff'],
             [Type::Wav, 'audio/wav'],
             [Type::Webp, 'image/webp'],
+            [Type::Xls, 'application/vnd.ms-excel'],
             [Type::Xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
             [Type::Xml, 'application/xml'],
             [Type::Zip, 'application/zip'],
@@ -288,6 +291,7 @@ final class TypeTest extends TestCase
             [Type::Txt, false],
             [Type::Wav, true],
             [Type::Webp, false],
+            [Type::Xls, false],
             [Type::Xlsx, false],
             [Type::Xml, false],
             [Type::Zip, false],
@@ -341,6 +345,7 @@ final class TypeTest extends TestCase
             [Type::Txt, false],
             [Type::Wav, true],
             [Type::Webp, true],
+            [Type::Xls, true],
             [Type::Xlsx, true],
             [Type::Xml, false],
             [Type::Zip, true],
@@ -394,6 +399,7 @@ final class TypeTest extends TestCase
             [Type::Txt, true],
             [Type::Wav, false],
             [Type::Webp, false],
+            [Type::Xls, true],
             [Type::Xlsx, true],
             [Type::Xml, true],
             [Type::Zip, false],
@@ -447,6 +453,7 @@ final class TypeTest extends TestCase
             [Type::Txt, false],
             [Type::Wav, false],
             [Type::Webp, true],
+            [Type::Xls, false],
             [Type::Xlsx, false],
             [Type::Xml, false],
             [Type::Zip, false],
@@ -500,6 +507,7 @@ final class TypeTest extends TestCase
             [Type::Txt, true],
             [Type::Wav, false],
             [Type::Webp, false],
+            [Type::Xls, false],
             [Type::Xlsx, false],
             [Type::Xml, true],
             [Type::Zip, false],
@@ -667,6 +675,11 @@ final class TypeTest extends TestCase
     public function testIsWebp(): void
     {
         $this->assertTrue(Type::Webp->isWebp()); // @phpstan-ignore-line
+    }
+
+    public function testIsXls(): void
+    {
+        $this->assertTrue(Type::Xls->isXls()); // @phpstan-ignore-line
     }
 
     public function testIsXlsx(): void
