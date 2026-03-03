@@ -26,6 +26,7 @@ enum Type
     case Heifs;
     case Html;
     case Jpeg;
+    case Js;
     case Json;
     case Jsonl;
     case M4a;
@@ -67,6 +68,7 @@ enum Type
             'text/html' => self::Html,
             'image/jpg' => self::Jpeg,
             'image/jpeg' => self::Jpeg,
+            'text/javascript' => self::Js,
             'application/json' => self::Json,
             'application/jsonl' => self::Jsonl,
             'audio/x-m4a' => self::M4a,
@@ -142,6 +144,7 @@ enum Type
             self::Heifs => 'image/heif-sequence',
             self::Html => 'text/html',
             self::Jpeg => 'image/jpeg',
+            self::Js => 'text/javascript',
             self::Json => 'application/json',
             self::Jsonl => 'application/jsonl',
             self::M4a => 'audio/x-m4a',
@@ -226,6 +229,7 @@ enum Type
             self::Doc,
             self::Docx,
             self::Html,
+            self::Js,
             self::Json,
             self::Jsonl,
             self::Pdf,
@@ -264,6 +268,7 @@ enum Type
             self::Css,
             self::Csv,
             self::Html,
+            self::Js,
             self::Json,
             self::Jsonl,
             self::Php,
@@ -398,6 +403,14 @@ enum Type
     public function isJpeg(): bool
     {
         return self::Jpeg === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Js $this
+     */
+    public function isJs(): bool
+    {
+        return self::Js === $this;
     }
 
     /**

@@ -46,6 +46,7 @@ final class TypeTest extends TestCase
             ['text/html', Type::Html],
             ['image/jpg', Type::Jpeg],
             ['image/jpeg', Type::Jpeg],
+            ['text/javascript', Type::Js],
             ['application/json', Type::Json],
             ['application/jsonl', Type::Jsonl],
             ['audio/x-m4a', Type::M4a],
@@ -98,6 +99,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, 'HEIFS'],
             [Type::Html, 'HTML'],
             [Type::Jpeg, 'JPEG'],
+            [Type::Js, 'JS'],
             [Type::Json, 'JSON'],
             [Type::Jsonl, 'JSONL'],
             [Type::M4a, 'M4A'],
@@ -152,6 +154,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, 'heifs'],
             [Type::Html, 'html'],
             [Type::Jpeg, 'jpeg'],
+            [Type::Js, 'js'],
             [Type::Json, 'json'],
             [Type::Jsonl, 'jsonl'],
             [Type::M4a, 'm4a'],
@@ -206,6 +209,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, 'image/heif-sequence'],
             [Type::Html, 'text/html'],
             [Type::Jpeg, 'image/jpeg'],
+            [Type::Js, 'text/javascript'],
             [Type::Json, 'application/json'],
             [Type::Jsonl, 'application/jsonl'],
             [Type::M4a, 'audio/x-m4a'],
@@ -257,6 +261,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, false],
             [Type::Html, false],
             [Type::Jpeg, false],
+            [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
             [Type::M4a, true],
@@ -308,6 +313,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, true],
             [Type::Html, false],
             [Type::Jpeg, true],
+            [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
             [Type::M4a, true],
@@ -356,6 +362,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, false],
             [Type::Html, true],
             [Type::Jpeg, false],
+            [Type::Js, true],
             [Type::Json, true],
             [Type::Jsonl, true],
             [Type::M4a, false],
@@ -402,6 +409,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, true],
             [Type::Html, false],
             [Type::Jpeg, true],
+            [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
             [Type::M4a, false],
@@ -448,6 +456,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, false],
             [Type::Html, true],
             [Type::Jpeg, false],
+            [Type::Js, true],
             [Type::Json, true],
             [Type::Jsonl, true],
             [Type::M4a, false],
@@ -467,6 +476,16 @@ final class TypeTest extends TestCase
         ];
 
         return $provider;
+    }
+
+    public function testIsAac(): void
+    {
+        $this->assertTrue(Type::Aac->isAac()); // @phpstan-ignore-line
+    }
+
+    public function testIsAiff(): void
+    {
+        $this->assertTrue(Type::Aiff->isAiff()); // @phpstan-ignore-line
     }
 
     public function testIsBin(): void
@@ -497,6 +516,11 @@ final class TypeTest extends TestCase
     public function testIsDocx(): void
     {
         $this->assertTrue(Type::Docx->isDocx()); // @phpstan-ignore-line
+    }
+
+    public function testIsFlac(): void
+    {
+        $this->assertTrue(Type::Flac->isFlac()); // @phpstan-ignore-line
     }
 
     public function testIsGif(): void
@@ -534,6 +558,11 @@ final class TypeTest extends TestCase
         $this->assertTrue(Type::Jpeg->isJpeg()); // @phpstan-ignore-line
     }
 
+    public function testIsJs(): void
+    {
+        $this->assertTrue(Type::Js->isJs()); // @phpstan-ignore-line
+    }
+
     public function testIsJson(): void
     {
         $this->assertTrue(Type::Json->isJson()); // @phpstan-ignore-line
@@ -564,6 +593,11 @@ final class TypeTest extends TestCase
         $this->assertTrue(Type::Mp4->isMp4()); // @phpstan-ignore-line
     }
 
+    public function testIsOga(): void
+    {
+        $this->assertTrue(Type::Oga->isOga()); // @phpstan-ignore-line
+    }
+
     public function testIsPdf(): void
     {
         $this->assertTrue(Type::Pdf->isPdf()); // @phpstan-ignore-line
@@ -587,6 +621,11 @@ final class TypeTest extends TestCase
     public function testIsTxt(): void
     {
         $this->assertTrue(Type::Txt->isTxt()); // @phpstan-ignore-line
+    }
+
+    public function testIsWav(): void
+    {
+        $this->assertTrue(Type::Wav->isWav()); // @phpstan-ignore-line
     }
 
     public function testIsWebp(): void
