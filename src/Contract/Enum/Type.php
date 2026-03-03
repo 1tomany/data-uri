@@ -161,6 +161,22 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Flac|self::M4a|self::Mp3|self::Ogg|self::Wav $this
+     */
+    public function isAudio(): bool
+    {
+        return in_array($this, [
+            self::Aac,
+            self::Aiff,
+            self::Flac,
+            self::M4a,
+            self::Mp3,
+            self::Ogg,
+            self::Wav,
+        ]);
+    }
+
+    /**
      * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Ogg|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool

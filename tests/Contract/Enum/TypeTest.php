@@ -175,6 +175,57 @@ final class TypeTest extends TestCase
         return $provider;
     }
 
+    #[DataProvider('providerTypeAndIsAudio')]
+    public function testIsAudio(Type $fileType, bool $isAudio): void
+    {
+        $this->assertSame($isAudio, $fileType->isAudio());
+    }
+
+    /**
+     * @return list<list<bool|Type>>
+     */
+    public static function providerTypeAndIsAudio(): array
+    {
+        $provider = [
+            [Type::Aac, true],
+            [Type::Aiff, true],
+            [Type::Bin, false],
+            [Type::Bmp, false],
+            [Type::Css, false],
+            [Type::Csv, false],
+            [Type::Doc, false],
+            [Type::Docx, false],
+            [Type::Flac, true],
+            [Type::Gif, false],
+            [Type::Heic, false],
+            [Type::Heics, false],
+            [Type::Heif, false],
+            [Type::Heifs, false],
+            [Type::Html, false],
+            [Type::Jpeg, false],
+            [Type::Json, false],
+            [Type::Jsonl, false],
+            [Type::M4a, true],
+            [Type::Mov, false],
+            [Type::Mp3, true],
+            [Type::Mp4, false],
+            [Type::Ogg, true],
+            [Type::Pdf, false],
+            [Type::Php, false],
+            [Type::Png, false],
+            [Type::Tiff, false],
+            [Type::Txt, false],
+            [Type::Wav, true],
+            [Type::Webp, false],
+            [Type::Xlsx, false],
+            [Type::Xml, false],
+            [Type::Zip, false],
+            [Type::Other, false],
+        ];
+
+        return $provider;
+    }
+
     #[DataProvider('providerTypeAndIsBinary')]
     public function testIsBinary(Type $fileType, bool $isBinary): void
     {
