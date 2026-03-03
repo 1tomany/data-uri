@@ -175,6 +175,27 @@ final class TypeTest extends TestCase
         return $provider;
     }
 
+    /**
+     * @param non-empty-lowercase-string $format
+     */
+    #[DataProvider('providerTypeAndFormat')]
+    public function testGettingFormat(Type $type, string $format): void
+    {
+        $this->assertEquals($format, $type->getFormat());
+    }
+
+    /**
+     * @return list<list<non-empty-lowercase-string|Type>>
+     */
+    public static function providerTypeAndFormat(): array
+    {
+        $provider = [
+            [Type::Aac, 'audio/aac'],
+        ];
+
+        return $provider;
+    }
+
     #[DataProvider('providerTypeAndIsAudio')]
     public function testIsAudio(Type $fileType, bool $isAudio): void
     {
