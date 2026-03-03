@@ -191,6 +191,33 @@ final class TypeTest extends TestCase
     {
         $provider = [
             [Type::Aac, 'audio/aac'],
+            [Type::Aiff, 'audio/aiff'],
+            [Type::Bmp, 'image/bmp'],
+            [Type::Css, 'text/css'],
+            [Type::Csv, 'text/csv'],
+            [Type::Doc, 'application/msword'],
+            [Type::Docx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            [Type::Docx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            [Type::Flac, 'audio/flac'],
+            [Type::Gif, 'image/gif'],
+            [Type::Heic, 'image/heic'],
+            [Type::Heics, 'image/heic-sequence'],
+            [Type::Heif, 'image/heif'],
+            [Type::Heifs, 'image/heif-sequence'],
+            [Type::Html, 'text/html'],
+            [Type::Jpeg, 'image/jpeg'],
+            [Type::Json, 'application/json'],
+            [Type::Jsonl, 'application/jsonl'],
+            [Type::M4a, 'audio/x-m4a'],
+            [Type::Mov, 'video/quicktime'],
+            [Type::Mp3, 'audio/mpeg'],
+            [Type::Mp4, 'video/mp4'],
+            [Type::Ogg, 'audio/ogg'],
+            [Type::Pdf, 'application/pdf'],
+            [Type::Php, 'text/x-php'],
+            [Type::Png, 'image/png'],
+            [Type::Txt, 'text/plain'],
+            [Type::Tiff, 'image/tiff'],
         ];
 
         return $provider;
