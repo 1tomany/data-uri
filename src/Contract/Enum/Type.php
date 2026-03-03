@@ -127,11 +127,14 @@ enum Type
     public function getFormat(): string
     {
         $format = match ($this) {
+            self::Aac => 'audio/aac',
+            self::Aiff => 'audio/aiff',
             self::Bmp => 'image/bmp',
             self::Css => 'text/css',
             self::Csv => 'text/csv',
             self::Doc => 'application/msword',
             self::Docx => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            self::Flac => 'audio/flac',
             self::Gif => 'image/gif',
             self::Heic => 'image/heic',
             self::Heics => 'image/heic-sequence',
@@ -145,11 +148,13 @@ enum Type
             self::Mov => 'video/quicktime',
             self::Mp3 => 'audio/mpeg',
             self::Mp4 => 'video/mp4',
+            self::Ogg => 'audio/ogg',
             self::Pdf => 'application/pdf',
             self::Php => 'text/x-php',
             self::Png => 'image/png',
             self::Txt => 'text/plain',
             self::Tiff => 'image/tiff',
+            self::Wav => 'audio/wav',
             self::Webp => 'image/webp',
             self::Xlsx => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             self::Xml => 'application/xml',
