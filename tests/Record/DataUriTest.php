@@ -167,7 +167,7 @@ final class DataUriTest extends TestCase
     private function decodeFile(string $path = 'pdf-small.pdf'): DataUri
     {
         /** @var DataUri&DataUriInterface $file */
-        $file = new DataDecoder()->decode(__DIR__.'/../data/'.$path);
+        $file = new DataDecoder()->decode(__DIR__.'/../.data/'.$path);
 
         return $file;
     }
