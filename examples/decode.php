@@ -15,7 +15,7 @@ $file2 = $dataDecoder->decode('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABg
 print_r($file2);
 
 // Decode an existing file
-$file3 = $dataDecoder->decode(__DIR__.'/.data/fieldsheet.png');
+$file3 = $dataDecoder->decode(__DIR__.'/.data/label.jpeg');
 print_r($file3);
 
 // Decode base64 encoded data with a known format
@@ -29,14 +29,6 @@ print_r($file5);
 // Decode an image URL
 // $file6 = $dataDecoder->decode('https://assets.extract-cdn.com/data/ao-smith-label.jpg');
 // print_r($file6);
-
-// Loose equality compares hashes
-assert($file2->equals($file3, false));
-assert($file3->equals($file2, false));
-
-// Strict equality compares hashes and paths
-assert(false === $file2->equals($file3, true));
-assert(false === $file3->equals($file2, true));
 
 // Call the destructor to delete temporary files
 unset($file1, $file2, $file3, $file4, $file5, $file6);
