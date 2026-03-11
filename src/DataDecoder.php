@@ -15,6 +15,7 @@ use Symfony\Component\Filesystem\Path;
 
 use function ctype_print;
 use function filesize;
+use function filter_var;
 use function fopen;
 use function in_array;
 use function is_dir;
@@ -32,7 +33,9 @@ use function strlen;
 use function sys_get_temp_dir;
 use function trim;
 
+use const FILTER_VALIDATE_URL;
 use const PHP_MAXPATHLEN;
+use const PHP_URL_PATH;
 
 final class DataDecoder
 {
@@ -84,8 +87,8 @@ final class DataDecoder
         }
 
         // Use the path component from the URL as the display name
-        if (!$dataIsFile && false !== \filter_var($data, \FILTER_VALIDATE_URL)) {
-            $displayName = trim((string) parse_url($data, \PHP_URL_PATH)) ?: '';
+        if (!$dataIsFile && false !== filter_var($data, FILTER_VALIDATE_URL)) {
+            $displayName = trim((string) parse_url($data, PHP_URL_PATH)) ?: '';
         }
 
         try {
