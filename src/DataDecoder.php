@@ -118,10 +118,8 @@ final class DataDecoder
                 throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
             }
         } else {
-            // Ensure HTTP URLs can be streamed
-            if ($dataIsUrl) {
-                $this->assertStreamsAreRegistered(['http', 'https']);
-            }
+            // Ensure data, file, http, and https streams are registered
+            $this->assertStreamsAreRegistered(['data', 'file', 'http', 'https']);
 
             // Read, decode, and stream the data
             if (!$stream = @fopen($data, 'rb')) {
@@ -198,7 +196,7 @@ final class DataDecoder
     private function assertStreamsAreRegistered(array $streams): void
     {
         if ([] !== $missingStreams = array_diff($streams, stream_get_wrappers())) {
-            throw new RuntimeException(sprintf('The streams are not registered in this environment: "%s".', implode('", "', $missingStreams)));
+            throw new RuntimeException(sprintf('The following streams are not registered in this environment: "%s".', implode('", "', $missingStreams)));
         }
     }
 }
