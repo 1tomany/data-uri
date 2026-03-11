@@ -79,12 +79,7 @@ final class DataDecoder
         $tempName = FilenameHelper::generate(12);
 
         // Resolve the display name
-        $displayName = trim($name ?? '');
-
-        // Use the file as the display name
-        if ($dataIsFile && !$displayName) {
-            $displayName = $data;
-        }
+        $displayName = $dataIsFile ? (trim($name ?? '') ?: $data) : trim($name ?? '');
 
         // Use the path component from the URL as the display name
         if (!$dataIsFile && false !== filter_var($data, FILTER_VALIDATE_URL)) {
