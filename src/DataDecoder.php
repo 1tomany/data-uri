@@ -84,8 +84,8 @@ final class DataDecoder
         }
 
         // Use the path component from the URL as the display name
-        if (!$dataIsFile && 0 === stripos($data, 'http')) {
-            $displayName = parse_url($data)['path'] ?? '';
+        if (!$dataIsFile && false !== \filter_var($data, \FILTER_VALIDATE_URL)) {
+            $displayName = ((string) parse_url($data, \PHP_URL_PATH)) ?: '';
         }
 
         try {
