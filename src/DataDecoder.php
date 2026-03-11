@@ -60,8 +60,24 @@ final class DataDecoder
             throw new InvalidArgumentException('The data cannot be empty.');
         }
 
-        // The data is a path to a file on the local filesystem
-        $dataIsFile = strlen($data) <= PHP_MAXPATHLEN && is_file($data);
+        $dataLength = strlen($data);
+
+        //
+        $dataIsUrl = $dataIsFile = false;
+
+        if ($dataLength <= PHP_MAXPATHLEN) {
+            if (is_file($data)) {
+                $dataIsFile = true;
+            } else {
+                $dataIsUrl = false !== filter_var($data, FILTER_VALIDATE_URL);
+            }
+        }
+
+        // // The data is a path to a file on the local filesystem
+        // $dataIsFile = $dataLength <= PHP_MAXPATHLEN && is_file($data);
+
+        // // The data is a remote URL
+        // $dataIsUrl = !$dataIsFile && $dataLength <= PHP_MAXPATHLEN && false !== filter_var($data, FILTER_VALIDATE_URL);
 
         if (!$dataIsFile && is_dir($data)) {
             throw new InvalidArgumentException('The data cannot be a directory.');
@@ -78,12 +94,24 @@ final class DataDecoder
         // Generate a random file name
         $tempName = FilenameHelper::generate(12);
 
-        // Resolve the display name
-        $displayName = $dataIsFile ? (trim($name ?? '') ?: $data) : trim($name ?? '');
 
-        // Use the path component from the URL as the display name
-        if (!$dataIsFile && false !== filter_var($data, FILTER_VALIDATE_URL)) {
-            $displayName = trim((string) parse_url($data, PHP_URL_PATH)) ?: '';
+        //
+        $displayName = trim($name ?? '');
+
+        // Use the filename for the name
+        if (!$displayName && $dataIsFile) {
+            $displayName = basename($data);
+        }
+
+        // Use the URL path for the name
+        if (!$displayName && $dataIsUrl) {
+            $urlBits = parse_url($data);
+
+            if (isset($urlBits['path'])) {
+                $displayName = $urlBits['path'];
+            }
+
+            $displayName = basename($displayName);
         }
 
         try {
