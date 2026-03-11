@@ -96,7 +96,14 @@ final class DataDecoderTest extends TestCase
         $this->assertEquals('Hello_World.txt', $file->name);
     }
 
-    public function testParsingFileWithoutNameUsesFileName(): void
+    public function testDecodingPathSetsSourceToPath(): void
+    {
+        $path = __DIR__.'/.data/pdf-small.pdf';
+
+        $this->assertEquals($path, new DataDecoder()->decode($path)->getSource());
+    }
+
+    public function testDecodingFileWithoutNameUsesFileName(): void
     {
         $name = sprintf('%s.txt', __FUNCTION__);
         $path = Path::join(sys_get_temp_dir(), $name);
