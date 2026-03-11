@@ -13,10 +13,12 @@ use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExcep
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
+use function array_diff;
 use function ctype_print;
 use function filesize;
+use function filter_var;
 use function fopen;
-use function in_array;
+use function implode;
 use function is_dir;
 use function is_file;
 use function is_readable;
@@ -27,11 +29,11 @@ use function rtrim;
 use function sprintf;
 use function stream_get_contents;
 use function stream_get_wrappers;
-use function stripos;
 use function strlen;
 use function sys_get_temp_dir;
 use function trim;
 
+use const FILTER_VALIDATE_URL;
 use const PHP_MAXPATHLEN;
 
 final class DataDecoder
@@ -57,8 +59,15 @@ final class DataDecoder
             throw new InvalidArgumentException('The data cannot be empty.');
         }
 
-        // The data is a path to a file on the local filesystem
-        $dataIsFile = strlen($data) <= PHP_MAXPATHLEN && is_file($data);
+        $dataIsUrl = $dataIsFile = false;
+
+        if (strlen($data) <= PHP_MAXPATHLEN) {
+            if (is_file($data)) {
+                $dataIsFile = true;
+            } else {
+                $dataIsUrl = false !== filter_var($data, FILTER_VALIDATE_URL);
+            }
+        }
 
         if (!$dataIsFile && is_dir($data)) {
             throw new InvalidArgumentException('The data cannot be a directory.');
@@ -75,17 +84,23 @@ final class DataDecoder
         // Generate a random file name
         $tempName = FilenameHelper::generate(12);
 
-        // Resolve the display name
+        // Determine the display name
         $displayName = trim($name ?? '');
 
-        // Use the file as the display name
-        if ($dataIsFile && !$displayName) {
-            $displayName = $data;
+        // Use the file path for the name
+        if (!$displayName && $dataIsFile) {
+            $displayName = basename($data);
         }
 
-        // Use the path component from the URL as the display name
-        if (!$dataIsFile && 0 === stripos($data, 'http')) {
-            $displayName = parse_url($data)['path'] ?? '';
+        // Use the URL path for the name
+        if (!$displayName && $dataIsUrl) {
+            $urlBits = parse_url($data);
+
+            if (isset($urlBits['path'])) {
+                $displayName = $urlBits['path'];
+            }
+
+            $displayName = basename($displayName);
         }
 
         try {
@@ -103,14 +118,8 @@ final class DataDecoder
                 throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
             }
         } else {
-            // Ensure HTTP URLs can be streamed
-            if (0 === stripos($data, 'http://')) {
-                $this->assertStreamIsRegistered('http');
-            }
-
-            if (0 === stripos($data, 'https://')) {
-                $this->assertStreamIsRegistered('https');
-            }
+            // Ensure data, file, http, and https streams are registered
+            $this->assertStreamsAreRegistered(['data', 'file', 'http', 'https']);
 
             // Read, decode, and stream the data
             if (!$stream = @fopen($data, 'rb')) {
@@ -160,7 +169,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
         }
 
-        return new DataUri($path, $displayName, $size, $type);
+        return new DataUri($path, $displayName, $size, $type, ($dataIsUrl || $dataIsFile) ? $data : null);
     }
 
     public function decodeBase64(string $data, string $format, ?string $name = null): DataUriInterface
@@ -180,14 +189,14 @@ final class DataDecoder
     }
 
     /**
-     * @param non-empty-lowercase-string $stream
+     * @param non-empty-list<non-empty-lowercase-string> $streams
      *
-     * @throws RuntimeException the `$stream` is not registered with PHP
+     * @throws RuntimeException when one or more streams are not registered with PHP
      */
-    private function assertStreamIsRegistered(string $stream): void
+    private function assertStreamsAreRegistered(array $streams): void
     {
-        if (!in_array($stream, stream_get_wrappers())) {
-            throw new RuntimeException(sprintf('The "%s" stream is not registered in this environment.', $stream));
+        if ([] !== $missingStreams = array_diff($streams, stream_get_wrappers())) {
+            throw new RuntimeException(sprintf('The following streams are not registered in this environment: "%s".', implode('", "', $missingStreams)));
         }
     }
 }

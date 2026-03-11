@@ -23,12 +23,14 @@ class DataUri implements DataUriInterface
      * @param non-empty-string $path
      * @param non-empty-string $name
      * @param non-negative-int $size
+     * @param ?non-empty-string $source
      */
     public function __construct(
         public readonly string $path,
         public readonly string $name,
         public readonly int $size,
         public readonly Type $type,
+        public readonly ?string $source = null,
     ) {
     }
 
@@ -149,6 +151,14 @@ class DataUri implements DataUriInterface
     public function getFormat(): string
     {
         return $this->type->getFormat();
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\DataUriInterface
+     */
+    public function getSource(): ?string
+    {
+        return $this->source;
     }
 
     /**
