@@ -35,7 +35,6 @@ use function trim;
 
 use const FILTER_VALIDATE_URL;
 use const PHP_MAXPATHLEN;
-use const PHP_URL_PATH;
 
 final class DataDecoder
 {
@@ -62,7 +61,6 @@ final class DataDecoder
 
         $dataLength = strlen($data);
 
-        //
         $dataIsUrl = $dataIsFile = false;
 
         if ($dataLength <= PHP_MAXPATHLEN) {
@@ -94,8 +92,6 @@ final class DataDecoder
         // Generate a random file name
         $tempName = FilenameHelper::generate(12);
 
-
-        //
         $displayName = trim($name ?? '');
 
         // Use the filename for the name
