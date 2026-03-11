@@ -37,7 +37,7 @@ final class DataDecoderTest extends TestCase
         new DataDecoder()->decode(' ');
     }
 
-    public function testDecodingDataRequiresDataToNotBeADirectory(): void
+    public function testDecodingDataRequiresDataToNotBeDirectory(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The data cannot be a directory.');
@@ -155,13 +155,14 @@ final class DataDecoderTest extends TestCase
      * @param non-empty-string $format
      */
     #[DataProvider('providerFileAndMetadata')]
-    public function testParsingFile(string $data, int $size, string $format): void
+    public function testDecodingFile(string $data, int $size, string $format): void
     {
         $file = new DataDecoder()->decode($data);
 
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
+        $this->assertEquals($data, $file->getSource());
     }
 
     /**
