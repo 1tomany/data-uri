@@ -92,9 +92,10 @@ final class DataDecoder
         // Generate a random file name
         $tempName = FilenameHelper::generate(12);
 
+        // Determine the display name
         $displayName = trim($name ?? '');
 
-        // Use the filename for the name
+        // Use the file path for the name
         if (!$displayName && $dataIsFile) {
             $displayName = basename($data);
         }
@@ -182,7 +183,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
         }
 
-        return new DataUri($path, $displayName, $size, $type);
+        return new DataUri($path, $displayName, $size, $type, ($dataIsUrl || $dataIsFile) ? $data : null);
     }
 
     public function decodeBase64(string $data, string $format, ?string $name = null): DataUriInterface
