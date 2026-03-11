@@ -130,6 +130,7 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
+        $this->assertNull($file->getSource());
     }
 
     /**
