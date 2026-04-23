@@ -42,8 +42,7 @@ final class DataDecoder
 
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
-    )
-    {
+    ) {
         $this->tempDir = sys_get_temp_dir();
 
         if (!is_writable($this->tempDir)) {
@@ -55,8 +54,7 @@ final class DataDecoder
         mixed $data,
         ?string $name = null,
         string|Type|null $type = null,
-    ): DataUriInterface
-    {
+    ): DataUriInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
         }
@@ -191,16 +189,14 @@ final class DataDecoder
         string $data,
         string $format,
         ?string $name = null,
-    ): DataUriInterface
-    {
+    ): DataUriInterface {
         return $this->decode(sprintf('data:%s;base64,%s', $format, $data), $name, $format);
     }
 
     public function decodeText(
         string $text,
         ?string $name = null,
-    ): DataUriInterface
-    {
+    ): DataUriInterface {
         try {
             $name = FilenameHelper::changeExtension(trim($name ?? '') ?: FilenameHelper::generate(12), Type::Txt->getExtension());
         } catch (DataUriExceptionInterface $e) {
