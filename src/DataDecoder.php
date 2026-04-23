@@ -89,7 +89,7 @@ final class DataDecoder
         $tempName = FilenameHelper::generate(12);
 
         // Determine the display name
-        $displayName = trim($name ?? '');
+        $displayName = trim((string) $name);
 
         // Use the file path for the name
         if (!$displayName && $dataIsFile) {
@@ -198,7 +198,7 @@ final class DataDecoder
         ?string $name = null,
     ): DataUriInterface {
         try {
-            $name = FilenameHelper::changeExtension(trim($name ?? '') ?: FilenameHelper::generate(12), Type::Txt->getExtension());
+            $name = FilenameHelper::changeExtension(trim((string) $name) ?: FilenameHelper::generate(12), Type::Txt->getExtension());
         } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }

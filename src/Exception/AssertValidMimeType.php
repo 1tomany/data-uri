@@ -23,7 +23,7 @@ final readonly class AssertValidMimeType
      */
     public static function assert(?string $format): string
     {
-        if (!$format = trim($format ?? '')) {
+        if (!$format = trim((string) $format)) {
             throw new InvalidArgumentException('The format cannot be empty.');
         }
 
