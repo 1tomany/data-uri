@@ -50,7 +50,7 @@ enum Type
 
     public static function create(?string $format): self
     {
-        $format = trim($format ?? '');
+        $format = trim((string) $format);
 
         $type = match (strtolower($format)) {
             'audio/aac' => self::Aac,

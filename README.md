@@ -30,6 +30,7 @@ The `DataDecoder::decode()` method has the following parameters:
 
 - `mixed $data` The data to decode
 - `?string $name` The display name for the temporary file. This is useful for handling file uploads where the original filename is preferred over the random name PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved. This is `null` by default.
+- `string|Type|null $type` The MIME type of the temporary file. If empty or `null` (the default value), the MIME type (or format) will be determined using the `mime_content_type()` function. This is handy when the file can be multiple types. For example, `mime_content_type()` may return `text/plain` for Markdown files, which is correct, however, you may wish to use the more specific MIME type `text/markdown`.
 
 #### Inside `DataDecoder::decode()`
 

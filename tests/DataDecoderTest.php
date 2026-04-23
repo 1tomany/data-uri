@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri\Tests;
 
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\DataDecoder;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -94,6 +95,13 @@ final class DataDecoderTest extends TestCase
         $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.txt');
 
         $this->assertEquals('Hello_World.txt', $file->name);
+    }
+
+    public function testDecodingDataCanSetType(): void
+    {
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.md', 'text/markdown');
+
+        $this->assertSame(Type::Markdown, $file->getType());
     }
 
     public function testDecodingPathSetsSourceToPath(): void

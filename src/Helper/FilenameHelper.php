@@ -51,7 +51,7 @@ final readonly class FilenameHelper
             throw new InvalidArgumentException('The filename cannot be empty.');
         }
 
-        $extension = trim($extension ?? '');
+        $extension = trim((string) $extension);
 
         if (!$extension) {
             return $filename;
