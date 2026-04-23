@@ -40,7 +40,9 @@ final class DataDecoder
 {
     private readonly string $tempDir;
 
-    public function __construct(private readonly Filesystem $filesystem = new Filesystem())
+    public function __construct(
+        private readonly Filesystem $filesystem = new Filesystem(),
+    )
     {
         $this->tempDir = sys_get_temp_dir();
 
@@ -49,7 +51,11 @@ final class DataDecoder
         }
     }
 
-    public function decode(mixed $data, ?string $name = null): DataUriInterface
+    public function decode(
+        mixed $data,
+        ?string $name = null,
+        string|Type|null $type = null,
+    ): DataUriInterface
     {
         if (!is_string($data) && !$data instanceof \Stringable) {
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
@@ -137,8 +143,17 @@ final class DataDecoder
                 throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempPath), previous: $e);
             }
         }
-        // Attempt to determine the file type
-        $type = Type::createFromPath($tempPath);
+
+        // Determine the file type
+        if ($type && is_string($type)) {
+            $type = Type::create($type);
+        }
+
+        if (!$type instanceof Type) {
+            $type = Type::createFromPath(...[
+                'path' => $tempPath,
+            ]);
+        }
 
         if ($extension = $type->getExtension()) {
             try {
@@ -172,12 +187,19 @@ final class DataDecoder
         return new DataUri($path, $displayName, $size, $type, ($dataIsUrl || $dataIsFile) ? $data : null);
     }
 
-    public function decodeBase64(string $data, string $format, ?string $name = null): DataUriInterface
+    public function decodeBase64(
+        string $data,
+        string $format,
+        ?string $name = null,
+    ): DataUriInterface
     {
-        return $this->decode(sprintf('data:%s;base64,%s', $format, $data), $name);
+        return $this->decode(sprintf('data:%s;base64,%s', $format, $data), $name, $format);
     }
 
-    public function decodeText(string $text, ?string $name = null): DataUriInterface
+    public function decodeText(
+        string $text,
+        ?string $name = null,
+    ): DataUriInterface
     {
         try {
             $name = FilenameHelper::changeExtension(trim($name ?? '') ?: FilenameHelper::generate(12), Type::Txt->getExtension());
