@@ -17,13 +17,13 @@
         "php": ">=8.4",
         "ext-ctype": "*",
         "ext-fileinfo": "*",
-        "symfony/filesystem": "^7.2|^8.0"
+        "symfony/filesystem": "^7.2|^8.0|^8.1"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.93",
         "mikey179/vfsstream": "^1.6",
-        "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^12.5"
+        "phpstan/phpstan": "^2.1.55",
+        "phpunit/phpunit": "^13.1.11"
     },
     "autoload": {
         "psr-4": {
@@ -41,7 +41,12 @@
     "scripts": {
         "fix": "./vendor/bin/php-cs-fixer fix",
         "stan": "./vendor/bin/phpstan",
-        "test": "./vendor/bin/phpunit"
+        "test": "./vendor/bin/phpunit",
+        "flat": [
+            "@fix",
+            "@stan",
+            "@test"
+        ]
     },
     "authors": [
         {
