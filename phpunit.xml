@@ -9,7 +9,7 @@
       <directory>./tests/</directory>
     </testsuite>
   </testsuites>
-  <source ignoreSuppressionOfDeprecations="true" ignoreIndirectDeprecations="true" restrictNotices="true" restrictWarnings="true">
+  <source ignoreSuppressionOfDeprecations="true">
     <include>
       <directory>./src/</directory>
     </include>
