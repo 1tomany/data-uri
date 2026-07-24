@@ -236,19 +236,19 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingTextDataGeneratesNameIfNameIsEmpty(): void
     {
-        $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', '')->getName());
+        $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', name: '')->getName());
     }
 
     public function testDecodingTextDataAppendsTxtExtensionIfNameProvidedWithoutOne(): void
     {
-        $file = new DataDecoder()->decodeText('Hello, world!', 'example.test');
+        $file = new DataDecoder()->decodeText('Hello, world!', name: 'example.test');
 
         $this->assertEquals('example.test.txt', $file->getName());
     }
 
     public function testDecodingTextData(): void
     {
-        $file = new DataDecoder()->decodeText('Hello, world!', 'hello_world.txt');
+        $file = new DataDecoder()->decodeText('Hello, world!', name: 'hello_world.txt');
 
         $this->assertFileExists($file->getPath());
         $this->assertEquals('Hello, world!', $file->read());

@@ -187,7 +187,7 @@ final class DataDecoder
 
     public function decodeBase64(
         string $data,
-        string|Type $format = Type::Txt,
+        string|Type $format,
         ?string $name = null,
     ): DataUriInterface {
         return $this->decode(sprintf('data:%s;base64,%s', $format instanceof Type ? $format->getFormat() : $format, $data), $name, $format);
@@ -195,9 +195,17 @@ final class DataDecoder
 
     public function decodeText(
         string $text,
-
+        string|Type $type = Type::Txt,
         ?string $name = null,
     ): DataUriInterface {
+        if (!$type instanceof Type) {
+            $type = Type::create($type);
+        }
+
+        if (!$type->isText()) {
+            throw new InvalidArgumentException(sprintf('The type "%s" is not text.', $type->getName()));
+        }
+
         try {
             $name = FilenameHelper::changeExtension(trim((string) $name) ?: FilenameHelper::generate(12), Type::Txt->getExtension());
         } catch (DataUriExceptionInterface $e) {
