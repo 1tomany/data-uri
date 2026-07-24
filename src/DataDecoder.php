@@ -187,14 +187,15 @@ final class DataDecoder
 
     public function decodeBase64(
         string $data,
-        string $format,
+        string|Type $format = Type::Txt,
         ?string $name = null,
     ): DataUriInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $format, $data), $name, $format);
+        return $this->decode(sprintf('data:%s;base64,%s', $format instanceof Type ? $format->getFormat() : $format, $data), $name, $format);
     }
 
     public function decodeText(
         string $text,
+
         ?string $name = null,
     ): DataUriInterface {
         try {
