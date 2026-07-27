@@ -216,7 +216,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
-        return $this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name);
+        return $this->decodeBase64(base64_encode($text), $type, $name);
     }
 
     /**
