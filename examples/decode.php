@@ -2,6 +2,7 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
+use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\DataDecoder;
 
 $dataDecoder = new DataDecoder();
@@ -23,12 +24,16 @@ $file4 = $dataDecoder->decodeBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcS
 print_r($file4);
 
 // Decode plaintext and use "hello_world.txt" as the display name
-$file5 = $dataDecoder->decodeText('Hello, world!', 'hello_world.txt');
+$file5 = $dataDecoder->decodeText('Hello, world!', name: 'hello_world.txt');
 print_r($file5);
 
+// Decode Markdown and use "hello_world.md" as the display name
+$file6 = $dataDecoder->decodeText('**Hello, world!**', Type::Markdown, 'hello_world.md');
+print_r($file6);
+
 // Decode an image URL
-// $file6 = $dataDecoder->decode('https://assets.extract-cdn.com/data/ao-smith-label.jpg');
-// print_r($file6);
+// $file7 = $dataDecoder->decode('https://assets.extract-cdn.com/data/ao-smith-label.jpg');
+// print_r($file7);
 
 // Call the destructor to delete temporary files
-unset($file1, $file2, $file3, $file4, $file5, $file6);
+unset($file1, $file2, $file3, $file4, $file5, $file6, $file7);

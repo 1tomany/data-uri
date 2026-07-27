@@ -14,6 +14,7 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
+use function array_rand;
 use function assert;
 use function random_bytes;
 use function sprintf;
@@ -25,7 +26,7 @@ final class DataDecoderTest extends TestCase
     public function testDecodingDataRequiresStringableData(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The data must be a non-NULL string or implement the "\Stringable" interface.');
+        $this->expectExceptionMessageIsOrContains('The data must be a non-NULL string or implement the "\Stringable" interface.');
 
         new DataDecoder()->decode(null);
     }
@@ -33,7 +34,7 @@ final class DataDecoderTest extends TestCase
     public function testDecodingDataRequiresNonEmptyData(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The data cannot be empty.');
+        $this->expectExceptionMessageIsOrContains('The data cannot be empty.');
 
         new DataDecoder()->decode(' ');
     }
@@ -41,7 +42,7 @@ final class DataDecoderTest extends TestCase
     public function testDecodingDataRequiresDataToNotBeDirectory(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The data cannot be a directory.');
+        $this->expectExceptionMessageIsOrContains('The data cannot be a directory.');
 
         new DataDecoder()->decode(__DIR__);
     }
@@ -49,7 +50,7 @@ final class DataDecoderTest extends TestCase
     public function testDecodingDataRequiresDataToNotContainNonPrintableBytes(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The data cannot contain non-printable, control, or NULL-terminated characters.');
+        $this->expectExceptionMessageIsOrContains('The data cannot contain non-printable, control, or NULL-terminated characters.');
 
         new DataDecoder()->decode(random_bytes(1024));
     }
@@ -66,7 +67,7 @@ final class DataDecoderTest extends TestCase
         $this->assertFileIsNotReadable($file->url());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The file "'.$file->url().'" is not readable.');
+        $this->expectExceptionMessageIsOrContains('The file "'.$file->url().'" is not readable.');
 
         new DataDecoder()->decode($file->url());
     }
@@ -74,7 +75,7 @@ final class DataDecoderTest extends TestCase
     public function testDecodingDataRequiresValidDataUri(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Decoding the data stream failed.');
+        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
 
         new DataDecoder()->decode('data:image/gif;base64,!R0lG**AQ/ABAIAAAAAAA++ACH5BAEAAAAALAA?AEAOw==');
     }
@@ -199,7 +200,7 @@ final class DataDecoderTest extends TestCase
         $format = 'invalid_mime_type';
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Decoding the data stream failed.');
+        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
 
         new DataDecoder()->decodeBase64('SGVsbG8sIHdvcmxkIQ==', $format);
     }
@@ -234,24 +235,61 @@ final class DataDecoderTest extends TestCase
         return $provider;
     }
 
+    public function testDecodingTextDataRequiresTextType(): void
+    {
+        $types = Type::cases();
+
+        while (true) {
+            $type = $types[array_rand($types, 1)];
+
+            if (!$type->isText()) {
+                break;
+            }
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('The type "'.$type->getName().'" is not text.');
+
+        new DataDecoder()->decodeText('Hello, world!', $type);
+    }
+
     public function testDecodingTextDataGeneratesNameIfNameIsEmpty(): void
     {
-        $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', '')->getName());
+        $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', name: '')->getName());
     }
 
     public function testDecodingTextDataAppendsTxtExtensionIfNameProvidedWithoutOne(): void
     {
-        $file = new DataDecoder()->decodeText('Hello, world!', 'example.test');
+        $file = new DataDecoder()->decodeText('Hello, world!', name: 'example.test');
 
         $this->assertEquals('example.test.txt', $file->getName());
     }
 
     public function testDecodingTextData(): void
     {
-        $file = new DataDecoder()->decodeText('Hello, world!', 'hello_world.txt');
+        $file = new DataDecoder()->decodeText('Hello, world!', name: 'HelloWorld.txt');
 
         $this->assertFileExists($file->getPath());
         $this->assertEquals('Hello, world!', $file->read());
-        $this->assertEquals('hello_world.txt', $file->getName());
+        $this->assertEquals('HelloWorld.txt', $file->getName());
+    }
+
+    public function testDecodingTextDataWithTypeOtherThanTxt(): void
+    {
+        $types = Type::cases();
+
+        while (true) {
+            $type = $types[array_rand($types, 1)];
+
+            if ($type->isText()) {
+                break;
+            }
+        }
+
+        $file = new DataDecoder()->decodeText('Hello, world!', $type, 'HelloWorld');
+
+        $this->assertFileExists($file->getPath());
+        $this->assertNotNull($type->getExtension());
+        $this->assertStringEndsWith($type->getExtension(), $file->getName());
     }
 }

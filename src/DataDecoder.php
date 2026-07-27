@@ -187,23 +187,36 @@ final class DataDecoder
 
     public function decodeBase64(
         string $data,
-        string $format,
+        string|Type $format,
         ?string $name = null,
     ): DataUriInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $format, $data), $name, $format);
+        return $this->decode(sprintf('data:%s;base64,%s', $format instanceof Type ? $format->getFormat() : $format, $data), $name, $format);
     }
 
     public function decodeText(
         string $text,
+        string|Type $type = Type::Txt,
         ?string $name = null,
     ): DataUriInterface {
+        if (!$type instanceof Type) {
+            $type = Type::create($type);
+        }
+
+        if (!$type->isText()) {
+            throw new InvalidArgumentException(sprintf('The type "%s" is not text.', $type->getName()));
+        }
+
+        if (null !== $name) {
+            $name = trim($name);
+        }
+
         try {
-            $name = FilenameHelper::changeExtension(trim((string) $name) ?: FilenameHelper::generate(12), Type::Txt->getExtension());
+            $name = FilenameHelper::changeExtension($name ?: FilenameHelper::generate(12), $type->getExtension());
         } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
 
-        return $this->decodeBase64(base64_encode($text), Type::Txt->getFormat(), $name);
+        return $this->decodeBase64(base64_encode($text), $type, $name);
     }
 
     /**
