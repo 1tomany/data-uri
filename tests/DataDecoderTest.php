@@ -14,6 +14,7 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
+use function array_rand;
 use function assert;
 use function random_bytes;
 use function sprintf;
@@ -199,7 +200,7 @@ final class DataDecoderTest extends TestCase
         $format = 'invalid_mime_type';
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Decoding the data stream failed.');
+        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
 
         new DataDecoder()->decodeBase64('SGVsbG8sIHdvcmxkIQ==', $format);
     }
@@ -232,6 +233,26 @@ final class DataDecoderTest extends TestCase
         ];
 
         return $provider;
+    }
+
+    public function testDecodingTextDataRequiresTextType(): void
+    {
+        $types = Type::cases();
+
+        while (true) {
+            $type = $types[array_rand($types, 1)];
+
+            if (!$type->isText()) {
+                break;
+            }
+        }
+
+        $this->assertFalse($type->isText());
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('The type "'.$type->getName().'" is not text.');
+
+        new DataDecoder()->decodeText('Hello, world!', $type);
     }
 
     public function testDecodingTextDataGeneratesNameIfNameIsEmpty(): void
