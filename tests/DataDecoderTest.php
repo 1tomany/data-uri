@@ -237,6 +237,9 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingTextDataRequiresTextType(): void
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('The type "'.$type->getName().'" is not text.');
+
         $types = Type::cases();
 
         while (true) {
@@ -248,10 +251,6 @@ final class DataDecoderTest extends TestCase
         }
 
         $this->assertFalse($type->isText());
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('The type "'.$type->getName().'" is not text.');
-
         new DataDecoder()->decodeText('Hello, world!', $type);
     }
 
