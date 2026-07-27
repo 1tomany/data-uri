@@ -289,6 +289,7 @@ final class DataDecoderTest extends TestCase
         $file = new DataDecoder()->decodeText('Hello, world!', $type, 'hello_world');
 
         $this->assertFileExists($file->getPath());
+        $this->assertNotNull($type->getExtension());
         $this->assertStringEndsWith($type->getExtension(), $file->getName());
     }
 }
