@@ -267,11 +267,11 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingTextData(): void
     {
-        $file = new DataDecoder()->decodeText('Hello, world!', name: 'hello_world.txt');
+        $file = new DataDecoder()->decodeText('Hello, world!', name: 'HelloWorld.txt');
 
         $this->assertFileExists($file->getPath());
         $this->assertEquals('Hello, world!', $file->read());
-        $this->assertEquals('hello_world.txt', $file->getName());
+        $this->assertEquals('HelloWorld.txt', $file->getName());
     }
 
     public function testDecodingTextDataWithTypeOtherThanTxt(): void
@@ -286,7 +286,7 @@ final class DataDecoderTest extends TestCase
             }
         }
 
-        $file = new DataDecoder()->decodeText('Hello, world!', $type, 'hello_world');
+        $file = new DataDecoder()->decodeText('Hello, world!', $type, 'HelloWorld');
 
         $this->assertFileExists($file->getPath());
         $this->assertNotNull($type->getExtension());
