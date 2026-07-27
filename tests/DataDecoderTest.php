@@ -273,4 +273,22 @@ final class DataDecoderTest extends TestCase
         $this->assertEquals('Hello, world!', $file->read());
         $this->assertEquals('hello_world.txt', $file->getName());
     }
+
+    public function testDecodingTextDataWithTypeOtherThanTxt(): void
+    {
+        $types = Type::cases();
+
+        while (true) {
+            $type = $types[array_rand($types, 1)];
+
+            if ($type->isText()) {
+                break;
+            }
+        }
+
+        $file = new DataDecoder()->decodeText('Hello, world!', $type, 'hello_world');
+
+        $this->assertFileExists($file->getPath());
+        $this->assertStringEndsWith($type->getExtension(), $file->getName());
+    }
 }
