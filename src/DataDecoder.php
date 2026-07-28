@@ -14,6 +14,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function array_diff;
+use function basename;
 use function ctype_print;
 use function filesize;
 use function filter_var;
@@ -25,6 +26,7 @@ use function is_readable;
 use function is_string;
 use function is_writable;
 use function parse_url;
+use function preg_replace;
 use function rtrim;
 use function sprintf;
 use function stream_get_contents;
@@ -85,41 +87,49 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // Generate a random file name
-        $tempName = FilenameHelper::generate(12);
-
-        // Determine the display name
-        $displayName = trim((string) $name);
-
-        // Use the file path for the name
-        if (!$displayName && $dataIsFile) {
-            $displayName = basename($data);
+        // Sanitize a user provieded name
+        if ($name = trim((string) $name)) {
+            // Replace multiple periods with a single period
+            // and remove any unsafe characters from the name
+            if ($name = preg_replace('/\.{2,}/', '.', $name)) {
+                $name = preg_replace('/[^.A-Za-z0-9_-]/', '', $name);
+            }
         }
 
-        // Use the URL path for the name
-        if (!$displayName && $dataIsUrl) {
+        // Use the path for the name
+        if (!$name && $dataIsFile) {
+            $name = basename($data);
+        }
+
+        // Use the URL for the name
+        if (!$name && $dataIsUrl) {
             $urlBits = parse_url($data);
 
-            if (isset($urlBits['path'])) {
-                $displayName = $urlBits['path'];
+            if (is_string($urlBits['path'] ?? null)) {
+                $name = basename($urlBits['path']);
             }
-
-            $displayName = basename($displayName);
         }
 
+        $hasNonRandomDisplayName = !empty($name);
+
         try {
-            /** @var non-empty-string $tempPath */
-            $tempPath = Path::join($this->tempDir, $tempName);
+            /** @var non-empty-string $temporaryPath */
+            $temporaryPath = Path::join($this->tempDir, '1tomany', FilenameHelper::generate(6), $name ?: FilenameHelper::generate(12));
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
+        }
+
+        // Ensure we have a non-empty name
+        if (!$name = basename($temporaryPath)) {
+            throw new RuntimeException('An empty display name was generated.');
         }
 
         if ($dataIsFile) {
             try {
                 // Copy the data to the temporary file
-                $this->filesystem->copy($data, $tempPath, true);
+                $this->filesystem->copy($data, $temporaryPath, true);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
+                throw new RuntimeException(sprintf('Copying the file "%s" to "%s" failed.', $data, $temporaryPath), previous: $e);
             }
         } else {
             // Ensure data, file, http, and https streams are registered
@@ -136,9 +146,9 @@ final class DataDecoder
 
             try {
                 // Write the streamed data to the temporary file
-                $this->filesystem->dumpFile($tempPath, $contents);
+                $this->filesystem->dumpFile($temporaryPath, $contents);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempPath), previous: $e);
+                throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $temporaryPath), previous: $e);
             }
         }
 
@@ -148,41 +158,32 @@ final class DataDecoder
         }
 
         if (!$type instanceof Type) {
-            $type = Type::createFromPath(...[
-                'path' => $tempPath,
-            ]);
+            $type = Type::createFromPath($temporaryPath);
         }
 
         if ($extension = $type->getExtension()) {
-            try {
-                /** @var non-empty-string $tempName */
-                $tempName = Path::changeExtension($tempName, $extension);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-            }
+            /** @var non-empty-string $name */
+            $name = FilenameHelper::changeExtension($name, $extension);
 
-            /** @var non-empty-string $path */
-            $path = Path::join(Path::getDirectory($tempPath), $tempName);
+            /** @var non-empty-string $filePath */
+            $filePath = Path::join(Path::getDirectory($temporaryPath), $name);
 
             try {
                 // Rename the temporary file with an extension
-                $this->filesystem->rename($tempPath, $path, true);
+                $this->filesystem->rename($temporaryPath, $filePath, true);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $tempPath, $path), previous: $e);
+                throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $temporaryPath, $filePath), previous: $e);
             }
         } else {
-            $path = $tempPath;
+            $filePath = $temporaryPath;
         }
-
-        /** @var non-empty-string $displayName */
-        $displayName = basename($displayName ?: $path);
 
         // Ensure the filesize can be calculated
-        if (false === $size = @filesize($path)) {
-            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
+        if (false === $size = @filesize($filePath)) {
+            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
         }
 
-        return new DataUri($path, $displayName, $size, $type, ($dataIsUrl || $dataIsFile) ? $data : null);
+        return new DataUri($filePath, $name, $size, $type, $hasNonRandomDisplayName ? $name : null); // ($dataIsUrl || $dataIsFile) ? $data : null);
     }
 
     public function decodeBase64(

@@ -59,7 +59,7 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Generating the hash of the file "'.$file->getPath().'" failed.');
+        $this->expectExceptionMessageIsOrContains('Generating the hash of the file "'.$file->getPath().'" failed.');
 
         // Act
         $file->getHash();
@@ -73,7 +73,7 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Generating the key for the file "'.$file->getPath().'" failed.');
+        $this->expectExceptionMessageIsOrContains('Generating the key for the file "'.$file->getName().'" failed.');
 
         // Act
         $file->getKey();
@@ -87,7 +87,7 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Reading the file "'.$file->getPath().'" failed.');
+        $this->expectExceptionMessageIsOrContains('Reading the file "'.$file->getPath().'" failed.');
 
         // Act
         $file->read();
@@ -101,7 +101,7 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Encoding the file "'.$file->getPath().'" failed.');
+        $this->expectExceptionMessageIsOrContains('Encoding the file "'.$file->getName().'" as a base64 string failed.');
 
         // Act
         $file->toBase64();
@@ -127,7 +127,7 @@ final class DataUriTest extends TestCase
 
         // Assert
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Encoding the file "'.$file->getPath().'" as a data URI failed.');
+        $this->expectExceptionMessageIsOrContains('Encoding the file "'.$file->getPath().'" as a data URI failed.');
 
         // Act
         $file->toDataUri();

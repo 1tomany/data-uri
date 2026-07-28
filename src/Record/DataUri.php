@@ -7,11 +7,17 @@ use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionI
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Helper\FilenameHelper;
+use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
+use function basename;
+use function dirname;
 use function file_exists;
 use function file_get_contents;
 use function hash_file;
 use function implode;
+use function rmdir;
 use function sprintf;
 use function strlen;
 use function substr;
@@ -36,9 +42,7 @@ class DataUri implements DataUriInterface
 
     public function __destruct()
     {
-        if (file_exists($this->path)) {
-            @unlink($this->path);
-        }
+        $this->cleanup();
     }
 
     /**
@@ -179,11 +183,13 @@ class DataUri implements DataUriInterface
 
     /**
      * @see OneToMany\DataUri\Contract\Record\DataUriInterface
+     *
+     * @throws RuntimeException when reading the file fails
      */
     public function read(): string
     {
         if (false === $contents = @file_get_contents($this->path)) {
-            throw new RuntimeException(sprintf('Reading the file "%s" failed.', $this->path));
+            throw new RuntimeException(sprintf('Reading the file "%s" failed.', $this->name));
         }
 
         return $contents;
@@ -191,25 +197,29 @@ class DataUri implements DataUriInterface
 
     /**
      * @see OneToMany\DataUri\Contract\Record\DataUriInterface
+     *
+     * @throws RuntimeException when encoding the file as a base64 string fails
      */
     public function toBase64(): string
     {
         try {
             return base64_encode($this->read());
         } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Encoding the file "%s" failed.', $this->path), previous: $e);
+            throw new RuntimeException(sprintf('Encoding the file "%s" as a base64 string failed.', $this->name), previous: $e);
         }
     }
 
     /**
      * @see OneToMany\DataUri\Contract\Record\DataUriInterface
+     *
+     * @throws RuntimeException when encoding the file as a data URI fails
      */
     public function toDataUri(): string
     {
         try {
             return sprintf('data:%s;base64,%s', $this->format, $this->toBase64());
         } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Encoding the file "%s" as a data URI failed.', $this->path), previous: $e);
+            throw new RuntimeException(sprintf('Encoding the file "%s" as a data URI failed.', $this->name), previous: $e);
         }
     }
 
@@ -220,6 +230,9 @@ class DataUri implements DataUriInterface
 
     /**
      * @return non-empty-lowercase-string
+     *
+     * @throws RuntimeException when generating the hash fails
+     * @throws RuntimeException when the hash is too short
      */
     private function generateHash(): string
     {
@@ -236,13 +249,41 @@ class DataUri implements DataUriInterface
 
     /**
      * @return non-empty-string
+     *
+     * @throws RuntimeException when generating a key fails
      */
     private function generateKey(): string
     {
         try {
-            return FilenameHelper::changeExtension(implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), FilenameHelper::generate(12)]), $this->extension);
+            $key = $this->name;
+
+            if (null !== $this->source) {
+                $prefix = FilenameHelper::generate(6);
+
+                if (!empty($dir = dirname($this->path))) {
+                    $prefix = basename($dir) ?: $prefix;
+                }
+
+                $key = implode('/', [$prefix, $this->name]);
+            }
+
+            return implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), $key]);
         } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->path), previous: $e);
+            throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->name), previous: $e);
+        }
+    }
+
+    private function cleanup(): void
+    {
+        $fs = new Filesystem();
+
+        try {
+            $parent = dirname($this->path);
+
+            if ($parent && $fs->exists($parent)) {
+                // $fs->remove([$this->path, $parent]);
+            }
+        } catch (FilesystemExceptionInterface) {
         }
     }
 }
