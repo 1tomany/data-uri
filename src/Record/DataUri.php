@@ -9,10 +9,8 @@ use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Helper\FilenameHelper;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
-use function basename;
-use function dirname;
+use function array_filter;
 use function file_exists;
 use function file_get_contents;
 use function hash_file;
@@ -253,22 +251,12 @@ class DataUri implements DataUriInterface
     private function generateKey(): string
     {
         try {
-            $key = $this->name;
-
-            if (null !== $this->source) {
-                $prefix = FilenameHelper::generate(6);
-
-                if (!empty($dir = dirname($this->path))) {
-                    $prefix = basename($dir) ?: $prefix;
-                }
-
-                $key = implode('/', [$prefix, $this->name]);
-            }
-
-            return implode('/', [substr($this->hash, 0, 2), substr($this->hash, 2, 2), $key]);
+            $prefix = null !== $this->source ? FilenameHelper::generate(6) : '';
         } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->name), previous: $e);
         }
+
+        return implode('/', array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), $prefix, $this->name]));
     }
 
     private function cleanup(): void
@@ -278,12 +266,6 @@ class DataUri implements DataUriInterface
         try {
             if ($fs->exists($this->path)) {
                 $fs->remove($this->path);
-            }
-
-            $parent = dirname($this->path);
-
-            if ($fs->exists($parent)) {
-                $fs->remove($parent);
             }
         } catch (FilesystemExceptionInterface) {
         }

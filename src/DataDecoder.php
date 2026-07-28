@@ -110,11 +110,13 @@ final class DataDecoder
             }
         }
 
-        $hasNonRandomDisplayName = !empty($name);
-
         try {
+            if ($hasRandomDisplayName = empty($name)) {
+                $name = FilenameHelper::generate(12);
+            }
+
             /** @var non-empty-string $temporaryPath */
-            $temporaryPath = Path::join($this->tempDir, '1tomany', FilenameHelper::generate(6), $name ?: FilenameHelper::generate(12));
+            $temporaryPath = Path::join($this->tempDir, '1tomany', $name);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
@@ -183,7 +185,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
         }
 
-        return new DataUri($filePath, $name, $size, $type, $hasNonRandomDisplayName ? $name : null);
+        return new DataUri($filePath, $name, $size, $type, $hasRandomDisplayName ? null : $name);
     }
 
     public function decodeBase64(
