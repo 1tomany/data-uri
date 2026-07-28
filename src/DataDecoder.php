@@ -183,7 +183,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
         }
 
-        return new DataUri($filePath, $name, $size, $type, $hasNonRandomDisplayName ? $name : null); // ($dataIsUrl || $dataIsFile) ? $data : null);
+        return new DataUri($filePath, $name, $size, $type, $hasNonRandomDisplayName ? $name : null);
     }
 
     public function decodeBase64(

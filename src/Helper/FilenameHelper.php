@@ -66,7 +66,7 @@ final readonly class FilenameHelper
                 $filename = sprintf('%s.%s', $filename, $extension);
             }
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Changing the extension of "%s" to "%s" failed.', $filename, $extension), previous: $e);
+            throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $filename, $extension), previous: $e);
         }
 
         assert(!empty($filename));
