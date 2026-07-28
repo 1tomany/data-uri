@@ -276,10 +276,14 @@ class DataUri implements DataUriInterface
         $fs = new Filesystem();
 
         try {
+            if ($fs->exists($this->path)) {
+                $fs->remove($this->path);
+            }
+
             $parent = dirname($this->path);
 
-            if ($parent && $fs->exists($this->path)) {
-                $fs->remove([$this->path, $parent]);
+            if ($fs->exists($parent)) {
+                $fs->remove($parent);
             }
         } catch (FilesystemExceptionInterface) {
         }
