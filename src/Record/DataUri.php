@@ -17,11 +17,9 @@ use function file_exists;
 use function file_get_contents;
 use function hash_file;
 use function implode;
-use function rmdir;
 use function sprintf;
 use function strlen;
 use function substr;
-use function unlink;
 
 class DataUri implements DataUriInterface
 {
