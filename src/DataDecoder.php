@@ -30,7 +30,6 @@ use function parse_url;
 use function preg_replace;
 use function rtrim;
 use function sprintf;
-use function str_ends_with;
 use function stream_get_contents;
 use function stream_get_wrappers;
 use function strlen;
@@ -179,42 +178,45 @@ final class DataDecoder
             }
         }
 
-        // Determine the file type
-        if ($type && is_string($type)) {
-            $type = Type::create($type);
-        }
-
-        if (!$type instanceof Type) {
-            $type = Type::createFromPath(...[
-                'path' => $temporaryPath,
-            ]);
-        }
-
-        $extension = $type->getExtension();
-
-        if (null !== $extension && !str_ends_with($name, $extension)) {
-            $filePath = Path::join(Path::getDirectory($temporaryPath), FilenameHelper::changeExtension($name, $extension));
-
-            try {
-                // Rename the temporary file with an extension
-                $this->filesystem->rename($temporaryPath, $filePath, true);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $temporaryPath, $filePath), previous: $e);
-            }
-
-            if (!$name = basename($filePath)) {
-                throw new RuntimeException(sprintf('An empty name was generated from the path "%s".', $filePath));
-            }
+        // Attempt to determine the file type
+        if (null !== $type && is_string($type)) {
+            $type = Type::createFromFormat($type);
         } else {
-            $filePath = $temporaryPath;
+            if (!$type instanceof Type) {
+                $type = Type::createFromPath(...[
+                    'path' => $temporaryPath,
+                ]);
+            }
         }
+
+        $dataUriType = $type;
+
+        $dataUriPath = FilenameHelper::changeExtension(
+            $temporaryPath, $dataUriType->getExtension(),
+        );
+
+        if ($dataUriPath !== $temporaryPath) {
+            try {
+                // Rename the temporary file with the correct extension
+                $this->filesystem->rename($temporaryPath, $dataUriPath, true);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $temporaryPath, $dataUriPath), previous: $e);
+            }
+        }
+
+        if (!$dataUriName = basename($dataUriPath)) {
+            throw new RuntimeException(sprintf('Generating a name from the file "%s" failed.', $dataUriPath));
+        }
+
+        // The root directory is needed if the name was not generated
+        $dataUriRoot = $hasGeneratedName ? null : dirname($dataUriPath);
 
         // Ensure the filesize can be calculated
-        if (false === $size = @filesize($filePath)) {
-            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
+        if (false === $dataUriSize = @filesize($dataUriPath)) {
+            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $dataUriPath));
         }
 
-        return new DataUri($filePath, $hasGeneratedName ? null : dirname($filePath), $name, $size, $type);
+        return new DataUri($dataUriPath, $dataUriRoot, $dataUriName, $dataUriSize, $dataUriType);
     }
 
     /**
@@ -240,7 +242,7 @@ final class DataDecoder
         ?string $name = null,
     ): DataUriInterface {
         if (!$type instanceof Type) {
-            $type = Type::create($type);
+            $type = Type::createFromFormat($type);
         }
 
         if (!$type->isText()) {

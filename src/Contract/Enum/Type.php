@@ -48,11 +48,21 @@ enum Type
     case Zip;
     case Other;
 
-    public static function create(?string $format): self
+    public static function createFromFormat(?string $format): self
     {
-        $format = trim((string) $format);
+        $default = self::Other;
 
-        $type = match (strtolower($format)) {
+        if (null !== $format) {
+            if ($format = trim($format)) {
+                $format = strtolower($format);
+            }
+        }
+
+        if (empty($format)) {
+            return $default;
+        }
+
+        $type = match ($format) {
             'audio/aac' => self::Aac,
             'audio/aiff' => self::Aiff,
             'application/octet-stream' => self::Bin,
@@ -101,12 +111,12 @@ enum Type
             default => null,
         };
 
-        return $type ?? self::Other;
+        return $type ?? $default;
     }
 
     public static function createFromPath(string $path): self
     {
-        return self::create(@mime_content_type($path) ?: null);
+        return self::createFromFormat(@mime_content_type($path) ?: null);
     }
 
     /**
