@@ -62,11 +62,19 @@ final class DataDecoder
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
-        $this->rootDirectory = sys_get_temp_dir();
-
-        if (!is_writable($this->rootDirectory)) {
-            throw new InvalidArgumentException(sprintf('The temp dir "%s" is not writable.', $this->rootDirectory));
+        if ('' === $rootDirectory = sys_get_temp_dir()) {
+            throw new RuntimeException('The root directory cannot be empty.');
         }
+
+        if (!is_writable($rootDirectory)) {
+            throw new InvalidArgumentException(sprintf('The root directory "%s" is not writable.', $rootDirectory));
+        }
+
+        if (!Path::isAbsolute($rootDirectory)) {
+            throw new InvalidArgumentException(sprintf('The root directory "%s" is not an absolute path.', $rootDirectory));
+        }
+
+        $this->rootDirectory = $rootDirectory;
     }
 
     public function decode(
