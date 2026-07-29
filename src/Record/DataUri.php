@@ -28,7 +28,7 @@ class DataUri implements DataUriInterface
      */
     public function __construct(
         public readonly string $path,
-        public readonly ?string $dir,
+        public readonly ?string $root,
         public readonly string $name,
         public readonly int $size,
         public readonly Type $type,
@@ -240,7 +240,7 @@ class DataUri implements DataUriInterface
     private function generateKey(): string
     {
         try {
-            $keyBits = array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), basename((string) $this->dir), $this->name]);
+            $keyBits = array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), basename((string) $this->root), $this->name]);
         } catch (DataUriExceptionInterface $e) {
         }
 
@@ -260,9 +260,9 @@ class DataUri implements DataUriInterface
                 $fs->remove($this->path);
             }
 
-            if (!empty($this->dir)) {
-                if ($fs->exists($this->dir)) {
-                    $fs->remove($this->dir);
+            if (!empty($this->root)) {
+                if ($fs->exists($this->root)) {
+                    $fs->remove($this->root);
                 }
             }
         } catch (FilesystemExceptionInterface) {
