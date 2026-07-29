@@ -48,11 +48,21 @@ enum Type
     case Zip;
     case Other;
 
-    public static function create(?string $format): self
+    public static function create(string|self|null $type): self
     {
-        $format = trim((string) $format);
+        $default = self::Other;
 
-        $type = match (strtolower($format)) {
+        if (null === $type) {
+            return $default;
+        }
+
+        $type = trim($type);
+
+        if ('' === $type) {
+            return $default;
+        }
+
+        return match (strtolower($type)) {
             'audio/aac' => self::Aac,
             'audio/aiff' => self::Aiff,
             'application/octet-stream' => self::Bin,
@@ -98,10 +108,8 @@ enum Type
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
             'application/xml' => self::Xml,
             'application/zip' => self::Zip,
-            default => null,
+            default => $default,
         };
-
-        return $type ?? self::Other;
     }
 
     public static function createFromPath(string $path): self

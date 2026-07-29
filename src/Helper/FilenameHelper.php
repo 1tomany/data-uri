@@ -22,6 +22,11 @@ use function trim;
 
 final readonly class FilenameHelper
 {
+    /**
+     * Maximum length a filename (including extension) can be.
+     *
+     * @var positive-int
+     */
     private const int MAXIMUM_FILENAME_LENGTH = 128;
 
     private function __construct()
@@ -83,12 +88,10 @@ final readonly class FilenameHelper
         }
 
         if (strlen($sanitized) > self::MAXIMUM_FILENAME_LENGTH) {
-            throw new InvalidArgumentException(sprintf('The sanitized filename "%s" is longer than the maximum length of %d %s.', $sanitized, self::MAXIMUM_FILENAME_LENGTH, 1 === self::MAXIMUM_FILENAME_LENGTH ? 'character' : 'characters'));
+            throw new InvalidArgumentException(sprintf('The sanitized filename "%s" is longer than the maximum length of %d characters.', $sanitized, self::MAXIMUM_FILENAME_LENGTH));
         }
 
-        \PHPStan\dumpType($filename);
-
-        return '' !== $filename ? $filename : null;
+        return $sanitized;
     }
 
     /**

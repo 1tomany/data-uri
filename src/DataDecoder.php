@@ -49,23 +49,23 @@ final class DataDecoder
      *
      * @var non-empty-string
      */
-    private readonly string $tempDirectory;
+    private readonly string $rootDirectory;
 
     /**
-     * Sub-directory within the temporary directory
-     * where all directories and files are stored.
+     * Sub-directory within the root directory where
+     * all temporary files and directories are found.
      *
      * @var non-empty-string
      */
-    private const string ROOT_DIRECTORY = '1tomany-data-uri';
+    private const string FILE_DIRECTORY = '1tomany-data-uri';
 
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
-        $this->tempDirectory = sys_get_temp_dir();
+        $this->rootDirectory = sys_get_temp_dir();
 
-        if (!is_writable($this->tempDirectory)) {
-            throw new InvalidArgumentException(sprintf('The temp dir "%s" is not writable.', $this->tempDirectory));
+        if (!is_writable($this->rootDirectory)) {
+            throw new InvalidArgumentException(sprintf('The temp dir "%s" is not writable.', $this->rootDirectory));
         }
     }
 
@@ -104,114 +104,114 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
+        $_path = $_root = '';
+
         // Generate a random file name
         // $tempName = FilenameHelper::generate(12);
 
-        // Determine the temporary file name
-        $tempFileName = trim((string) $name);
+        // Determine the display name
+        $_name = trim((string) $name);
 
-        // Use the file path for the name
-        if (!$tempFileName && $dataIsFile) {
-            $tempFileName = basename($data);
+        // If a name was not provided but a
+        // file path was, use the name found
+        // in the path as the display name
+        if ('' === $_name && $dataIsFile) {
+            $_name = basename($data);
         }
 
-        // Use the URL path for the name
-        if (!$tempFileName && $dataIsUrl) {
+        // If a name was not provided but a
+        // URL was, extract the path from the
+        // URL and use it for the display name
+        if ('' === $_name && $dataIsUrl) {
             $urlBits = parse_url($data);
 
             if (isset($urlBits['path'])) {
-                $tempFileName = $urlBits['path'];
+                $_name = $urlBits['path'];
             }
 
-            $tempFileName = basename($tempFileName);
+            $_name = basename($_name);
         }
 
-        $tempRoot = $this->createRootDirectory();
-
-        $tempPath = $path = null;
+        $_name = FilenameHelper::sanitize(...[
+            'filename' => trim($_name),
+        ]);
 
         try {
-            try {
-                /** @var non-empty-string $tempPath */
-                $tempPath = Path::join($tempRoot, self::ROOT_DIRECTORY, $tempName);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-            }
-
-            $path = $tempPath;
-
-            if ($dataIsFile) {
-                try {
-                    // Copy the data to the temporary file
-                    $this->filesystem->copy($data, $tempPath, true);
-                } catch (FilesystemExceptionInterface $e) {
-                    throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
-                }
+            if (null === $_name) {
+                // Generate a random display name
+                $_name = FilenameHelper::generate(12);
             } else {
-                // Ensure data, file, http, and https streams are registered
-                $this->assertStreamsAreRegistered(['data', 'file', 'http', 'https']);
-
-                // Read, decode, and stream the data
-                if (!$stream = @fopen($data, 'rb')) {
-                    throw new InvalidArgumentException('Decoding the data stream failed.');
-                }
-
-                if (false === $contents = stream_get_contents($stream)) {
-                    throw new RuntimeException('Reading the stream contents failed.');
-                }
-
-                try {
-                    // Write the streamed data to the temporary file
-                    $this->filesystem->dumpFile($tempPath, $contents);
-                } catch (FilesystemExceptionInterface $e) {
-                    throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempPath), previous: $e);
-                }
+                $_root = FilenameHelper::generate(6);
             }
-
-            // Determine the file type
-            if ($type && is_string($type)) {
-                $type = Type::create($type);
-            }
-
-            if (!$type instanceof Type) {
-                $type = Type::createFromPath(...[
-                    'path' => $tempPath,
-                ]);
-            }
-
-            if ($extension = $type->getExtension()) {
-                try {
-                    /** @var non-empty-string $tempName */
-                    $tempName = Path::changeExtension($tempName, $extension);
-                } catch (FilesystemExceptionInterface $e) {
-                    throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-                }
-
-                /** @var non-empty-string $path */
-                $path = Path::join($tempRoot, $tempName);
-
-                try {
-                    // Rename the temporary file with an extension
-                    $this->filesystem->rename($tempPath, $path, true);
-                } catch (FilesystemExceptionInterface $e) {
-                    throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $tempPath, $path), previous: $e);
-                }
-            }
-
-            /** @var non-empty-string $tempFileName */
-            $tempFileName = basename($tempFileName ?: $path);
-
-            // Ensure the filesize can be calculated
-            if (false === $size = @filesize($path)) {
-                throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
-            }
-
-            return new TemporaryFile($path, $tempRoot, $tempFileName, $size, $type);
-        } catch (\Throwable $e) {
-            $this->rollback($tempRoot, $tempPath, $path);
-
-            throw $e;
+        } catch (DataUriExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', ltrim($e->getMessage(), '.')), previous: $e);
         }
+
+        try {
+            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_root, $_name);
+        } catch (FilesystemExceptionInterface $e) {
+        }
+
+        if ('' === $_path || isset($e)) {
+            throw new RuntimeException('Generating the temporary path failed.', previous: $e ?? null);
+        }
+
+        if ($dataIsFile || $dataIsUrl) {
+            $this->assertStreamsAreRegistered(['http', 'https']);
+
+            try {
+                // Copy the input file to the temporary file
+                $this->filesystem->copy($data, $_path, true);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Copying the %s "%s" to "%s" failed.', $dataIsUrl ? 'URL' : 'file', $data, $_path), previous: $e);
+            }
+        } else {
+            $this->assertStreamsAreRegistered(['data', 'file']);
+
+            // Read, decode, and stream the data
+            if (!$stream = @fopen($data, 'rb')) {
+                throw new RuntimeException('Opening a stream to decode the data failed.');
+            }
+
+            if (false === $contents = stream_get_contents($stream)) {
+                throw new RuntimeException('Reading the data from the stream failed.');
+            }
+
+            try {
+                // Write the streamed data to the temporary file
+                $this->filesystem->dumpFile($_path, $contents);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $_path), previous: $e);
+            }
+        }
+
+        if (null !== $type) {
+            $_type = Type::create($type);
+        } else {
+            $_type = Type::createFromPath(...[
+                'path' => $_path,
+            ]);
+        }
+
+        if ($extension = $_type->getExtension()) {
+            // $_path = FilenameHelper::changeExtension(
+            //     $_path, $extension, lowercase: true,
+            // );
+
+            // try {
+            //     // Rename the temporary file with an extension
+            //     $this->filesystem->rename($tempPath, $path, true);
+            // } catch (FilesystemExceptionInterface $e) {
+            //     throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $tempPath, $path), previous: $e);
+            // }
+        }
+
+        // Ensure the filesize can be calculated
+        if (false === $_size = @filesize($_path)) {
+            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $_path));
+        }
+
+        return new TemporaryFile($_path, $_root, $_name, $_size, $_type);
     }
 
     public function decodeBase64(
@@ -265,7 +265,7 @@ final class DataDecoder
      */
     private function createRootDirectory(): string
     {
-        $rootDirectory = Path::join($this->tempDirectory, self::ROOT_DIRECTORY, FilenameHelper::generate(6));
+        $rootDirectory = Path::join($this->rootDirectory, self::FILE_DIRECTORY, FilenameHelper::generate(6));
 
         try {
             $this->filesystem->mkdir($rootDirectory, 0700);
@@ -280,7 +280,7 @@ final class DataDecoder
     {
         $ownedDirectory = Path::canonicalize($ownedDirectory);
 
-        if (Path::canonicalize($this->tempDirectory) !== dirname($ownedDirectory)) {
+        if (Path::canonicalize($this->rootDirectory) !== dirname($ownedDirectory)) {
             return;
         }
 
