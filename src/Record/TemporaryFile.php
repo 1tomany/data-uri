@@ -39,7 +39,7 @@ class TemporaryFile implements TemporaryFileInterface
     private ?string $root = null;
 
     /**
-     * @var non-empty-lowercase-string
+     * @var non-empty-string
      */
     private readonly string $name;
 
@@ -259,11 +259,6 @@ class TemporaryFile implements TemporaryFileInterface
         return null !== $this->root;
     }
 
-    private function isPropInitialized(string $property): bool
-    {
-        return new \ReflectionProperty($this, $property)->isInitialized($this);
-    }
-
     /**
      * @return non-empty-lowercase-string
      */
@@ -304,17 +299,15 @@ class TemporaryFile implements TemporaryFileInterface
             }
         }
 
-        try {
-            return FilenameHelper::changeExtension(implode('/', [$prefix1, $prefix2, FilenameHelper::generate(12)]), $this->getExtension());
-        } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->getPath()), previous: $e);
-        }
+        return implode('/', [...$keyBits, ...[$name]]);
     }
 
     /**
      * @param non-empty-string $path
      *
      * @throws InvalidArgumentException
+     *
+     * @return ?non-empty-string
      */
     private function validateRoot(string $path, ?string $root): ?string
     {
@@ -334,7 +327,7 @@ class TemporaryFile implements TemporaryFileInterface
             throw new InvalidArgumentException(sprintf('The root "%s" must be a direct child of the path "%s".', $root, $path));
         }
 
-        return $root;
+        return is_empty($root) ? null : $root;
     }
 
     private function cleanup(bool $throw): void
