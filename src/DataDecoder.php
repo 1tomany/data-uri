@@ -15,7 +15,6 @@ use Symfony\Component\Filesystem\Path;
 
 use function array_diff;
 use function assert;
-use function bin2hex;
 use function ctype_print;
 use function dirname;
 use function file_exists;
@@ -31,7 +30,6 @@ use function is_string;
 use function is_writable;
 use function OneToMany\IsEmpty\is_empty;
 use function parse_url;
-use function random_bytes;
 use function rmdir;
 use function rtrim;
 use function sprintf;
@@ -159,7 +157,7 @@ final class DataDecoder
         }
 
         try {
-            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, isset($_base) ? $_base : '', $_name);
+            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_base ?? '', $_name);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException('Generating the temporary path failed.', previous: $e);
         } finally {
