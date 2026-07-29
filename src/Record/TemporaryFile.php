@@ -7,7 +7,6 @@ use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionI
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
-use OneToMany\DataUri\Helper\FilenameHelper;
 use Symfony\Component\Filesystem\Path;
 
 use function assert;
@@ -305,9 +304,9 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @param non-empty-string $path
      *
-     * @throws InvalidArgumentException
-     *
      * @return ?non-empty-string
+     *
+     * @throws InvalidArgumentException
      */
     private function validateRoot(string $path, ?string $root): ?string
     {
