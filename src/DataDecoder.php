@@ -47,6 +47,8 @@ final class DataDecoder
 {
     private readonly string $tempDir;
 
+    private const string LIBRARY_DIRECTORY = '1tomany-data-uri';
+
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
@@ -120,7 +122,7 @@ final class DataDecoder
         try {
             try {
                 /** @var non-empty-string $tempPath */
-                $tempPath = Path::join($ownedDirectory, $tempName);
+                $tempPath = Path::join($ownedDirectory, self::LIBRARY_DIRECTORY, $tempName);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
             }

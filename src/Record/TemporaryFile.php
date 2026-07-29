@@ -103,7 +103,7 @@ class TemporaryFile implements TemporaryFileInterface
             'name' => $this->getName(),
         ]);
 
-
+        $this->isManaged = true;
     }
 
     public function __destruct()
@@ -347,6 +347,10 @@ class TemporaryFile implements TemporaryFileInterface
 
     private function cleanup(bool $throw): void
     {
+        if (!$this->isManaged()) {
+            return;
+        }
+
         if (file_exists($this->path) && !@unlink($this->path)) {
             $error = sprintf('Deleting the file "%s" failed.', $this->path);
         }

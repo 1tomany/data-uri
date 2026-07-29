@@ -9,6 +9,7 @@ use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Record\TemporaryFile;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function basename;
@@ -95,8 +96,6 @@ final class TemporaryFileTest extends TestCase
     {
         $file = $this->decodeFile();
 
-        print_r($file);
-
         $this->assertIsString($file->getRoot());
         $this->assertFileExists($file->getPath());
         $this->assertDirectoryExists($file->getRoot());
@@ -106,6 +105,20 @@ final class TemporaryFileTest extends TestCase
         $this->assertIsString($file->getRoot());
         $this->assertFileDoesNotExist($file->getPath());
         $this->assertDirectoryDoesNotExist($file->getRoot());
+    }
+
+    public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExist(): void
+    {
+        $file = $this->decodeFile();
+        $this->assertFileExists($file->getPath());
+
+        new Filesystem()->remove($file->getPath());
+        $this->assertFileDoesNotExist($file->getPath());
+
+        $file->__destruct();
+
+        $this->assertFileDoesNotExist($file->getPath());
+        $this->assertDirectoryDoesNotExist(dirname($file->getPath()));
     }
 
     /**
