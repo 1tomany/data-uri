@@ -112,8 +112,6 @@ interface TemporaryFileInterface extends \Stringable
      * If true, all files and directories managed by the object will
      * be deleted when the destructor is called. If false, the caller
      * is responsible for deleting any data referenced by this object.
-     *
-     * @phpstan-assert-if-true non-empty-string $this->getRoot()
      */
     public function isManaged(): bool;
 }

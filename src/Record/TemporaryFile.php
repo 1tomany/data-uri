@@ -35,7 +35,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @var ?non-empty-string
      */
-    private ?string $root = null;
+    private readonly ?string $root;
 
     /**
      * @var non-empty-string
@@ -47,6 +47,8 @@ class TemporaryFile implements TemporaryFileInterface
      */
     private readonly int $size;
 
+    private readonly Type $type;
+
     /**
      * @var non-empty-lowercase-string
      */
@@ -57,12 +59,14 @@ class TemporaryFile implements TemporaryFileInterface
      */
     private readonly string $key;
 
+    private bool $isManaged = false;
+
     public function __construct(
         string $path,
         ?string $root,
         string $name,
         int $size,
-        private readonly Type $type,
+        Type $type,
     ) {
         if (is_empty($path = trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
@@ -87,12 +91,19 @@ class TemporaryFile implements TemporaryFileInterface
         }
 
         $this->size = $size;
+        $this->type = $type;
 
         $this->hash = $this->generateHash(...[
-            'path' => $this->path,
+            'path' => $this->getPath(),
         ]);
 
-        $this->key = $this->generateKey($this->hash, $this->root, $this->name);
+        $this->key = $this->generateKey(...[
+            'hash' => $this->getHash(),
+            'root' => $this->getRoot(),
+            'name' => $this->getName(),
+        ]);
+
+
     }
 
     public function __destruct()
@@ -245,14 +256,17 @@ class TemporaryFile implements TemporaryFileInterface
      */
     public function detach(): string
     {
-        $this->root = null;
+        $this->isManaged = false;
 
         return $this->getPath();
     }
 
+    /**
+     * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
+     */
     public function isManaged(): bool
     {
-        return null !== $this->root;
+        return $this->isManaged;
     }
 
     /**
@@ -333,24 +347,20 @@ class TemporaryFile implements TemporaryFileInterface
 
     private function cleanup(bool $throw): void
     {
-        $exception = null;
-
         if (file_exists($this->path) && !@unlink($this->path)) {
-            $exception = new RuntimeException(sprintf('Deleting the file "%s" failed.', $this->path));
+            $error = sprintf('Deleting the file "%s" failed.', $this->path);
         }
 
-        if (null === $exception && null !== $this->root) {
+        if (!isset($error) && null !== $this->root) {
             if (file_exists($this->root) && !@rmdir($this->root)) {
-                $exception = new RuntimeException(sprintf('Removing the root directory "%s" failed.', $this->root));
+                $error = sprintf('Removing the root directory "%s" failed.', $this->root);
             }
         }
 
-        if (null === $exception) {
-            $this->detach();
-        } else {
-            if ($throw) {
-                throw $exception;
-            }
+        if (isset($error) && $throw) {
+            throw new RuntimeException($error);
         }
+
+        $this->detach();
     }
 }

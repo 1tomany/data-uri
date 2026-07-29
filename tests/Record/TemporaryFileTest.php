@@ -94,15 +94,18 @@ final class TemporaryFileTest extends TestCase
     public function testDestructorDeletesTemporaryFile(): void
     {
         $file = $this->decodeFile();
-        $root = $file->getRoot();
 
-        $this->assertFileExists($file->getPath());
+        print_r($file);
+
         $this->assertIsString($file->getRoot());
+        $this->assertFileExists($file->getPath());
         $this->assertDirectoryExists($file->getRoot());
 
         $file->__destruct();
+
+        $this->assertIsString($file->getRoot());
         $this->assertFileDoesNotExist($file->getPath());
-        $this->assertDirectoryDoesNotExist($root);
+        $this->assertDirectoryDoesNotExist($file->getRoot());
     }
 
     /**
