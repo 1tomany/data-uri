@@ -68,7 +68,7 @@ class TemporaryFile implements TemporaryFileInterface
         int $size,
         Type $type,
     ) {
-        if (is_empty($path = trim($path))) {
+        if ('' === Path::canonicalize(trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
 
@@ -330,14 +330,18 @@ class TemporaryFile implements TemporaryFileInterface
             return null;
         }
 
-        if (!is_empty($base = trim($base), false)) {
+        if ('' !== $base = trim($base)) {
             if (!Path::isAbsolute($base)) {
-                throw new InvalidArgumentException(sprintf('The base directory "%s" must be a non-empty absolute path.', $base));
+                throw new InvalidArgumentException(sprintf('The base directory "%s" must be an absolute path.', $base));
             }
 
             $base = Path::canonicalize($base);
 
-            if ($base !== Path::getDirectory(Path::canonicalize($path))) {
+            if ($base === $path) {
+                return null;
+            }
+
+            if ($base !== Path::getDirectory($path)) {
                 throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the base directory "%s".', $path, $base));
             }
         }

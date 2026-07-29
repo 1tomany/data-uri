@@ -158,15 +158,13 @@ final class DataDecoder
         try {
             $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_base, $_name);
         } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException('Generating the temporary path failed.', previous: $e);
         }
 
-        if ('' === $_path || isset($e)) {
-            throw new RuntimeException('Generating the temporary path failed.', previous: $e ?? null);
-        }
+        \assert('' !== $_path);
 
-        if ('' !== $_base) {
-            $_base = Path::getDirectory($_path);
-        }
+        // Generate the base directory
+        $_base = Path::getDirectory($_path);
 
         if ($dataIsFile || $dataIsUrl) {
             $this->assertStreamsAreRegistered(['http', 'https']);

@@ -40,29 +40,29 @@ final class TemporaryFileTest extends TestCase
         new TemporaryFile($path, null, 'png-small.png', 10289, Type::Png);
     }
 
-    public function testConstructorRequiresRootToBeAbsolutePath(): void
+    public function testConstructorRequiresBaseToBeAbsolutePath(): void
     {
-        $root = basename(__DIR__);
-        $this->assertFalse(Path::isAbsolute($root));
+        $base = basename(__DIR__);
+        $this->assertFalse(Path::isAbsolute($base));
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The root directory "'.$root.'" must be a non-empty absolute path.');
+        $this->expectExceptionMessageIs('The base directory "'.$base.'" must be an absolute path.');
 
-        new TemporaryFile(__DIR__.'/../.data/png-small.png', $root, 'png-small.png', 10289, Type::Png);
+        new TemporaryFile(__DIR__.'/../.data/png-small.png', $base, 'png-small.png', 10289, Type::Png);
     }
 
-    public function testConstructorRequiresPathToBeChildOfRoot(): void
+    public function testConstructorRequiresPathToBeChildOfBase(): void
     {
         $path = __DIR__.'/../.data/png-small.png';
         $this->assertTrue(Path::isAbsolute($path));
 
-        $root = sys_get_temp_dir();
-        $this->assertNotEquals(Path::getDirectory($path), $root);
+        $base = sys_get_temp_dir();
+        $this->assertNotEquals(Path::getDirectory($path), $base);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The path "'.$path.'" must be a direct child of the root "'.$root.'".');
+        $this->expectExceptionMessageIs('The path "'.$path.'" must be a direct child of the base directory "'.$base.'".');
 
-        new TemporaryFile($path, $root, 'png-small.png', 10289, Type::Png);
+        new TemporaryFile($path, $base, 'png-small.png', 10289, Type::Png);
     }
 
     public function testConstructorRequiresNonEmptyName(): void
@@ -95,8 +95,6 @@ final class TemporaryFileTest extends TestCase
     public function testDestructorDeletesTemporaryFile(): void
     {
         $file = $this->decodeFile();
-
-        print_r($file);
 
         $this->assertIsString($file->getBase());
         $this->assertFileExists($file->getPath());
