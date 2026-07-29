@@ -168,7 +168,7 @@ final class DataDecoder
             $this->assertStreamsAreRegistered(['http', 'https']);
 
             try {
-                // Copy the input file to the temporary file
+                // Copy the source data to the temporary file
                 $this->filesystem->copy($data, $_path, true);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Copying the %s "%s" to "%s" failed.', $dataIsUrl ? 'URL' : 'file', $data, $_path), previous: $e);
@@ -259,7 +259,7 @@ final class DataDecoder
     /**
      * @param non-empty-list<non-empty-lowercase-string> $streams
      *
-     * @throws RuntimeException when one or more streams are not registered with PHP
+     * @throws RuntimeException when one or more streams are not registered
      */
     private function assertStreamsAreRegistered(array $streams): void
     {
