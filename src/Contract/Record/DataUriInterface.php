@@ -36,11 +36,6 @@ interface DataUriInterface extends \Stringable
     public Type $type { get; }
 
     /**
-     * @var non-empty-string
-     */
-    public string $key { get; }
-
-    /**
      * @var ?non-empty-lowercase-string
      */
     public ?string $extension { get; }
@@ -49,6 +44,11 @@ interface DataUriInterface extends \Stringable
      * @var non-empty-lowercase-string
      */
     public string $format { get; }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $key { get; }
 
     /**
      * @return non-empty-lowercase-string
@@ -76,13 +76,6 @@ interface DataUriInterface extends \Stringable
     public function getType(): Type;
 
     /**
-     * @return non-empty-string
-     *
-     * @throws RuntimeException when generating the key fails
-     */
-    public function getKey(): string;
-
-    /**
      * @return ?non-empty-lowercase-string
      */
     public function getExtension(): ?string;
@@ -91,6 +84,13 @@ interface DataUriInterface extends \Stringable
      * @return non-empty-lowercase-string
      */
     public function getFormat(): string;
+
+    /**
+     * @return non-empty-string
+     *
+     * @throws RuntimeException when generating the key fails
+     */
+    public function getKey(): string;
 
     /**
      * Determines if two `DataUriInterface` instances are equal.

@@ -62,19 +62,6 @@ class DataUri implements DataUriInterface
     }
 
     /**
-     * @var non-empty-string
-     */
-    public string $key {
-        get {
-            if (!$this->isPropInitialized(__PROPERTY__)) {
-                $this->key = $this->generateKey();
-            }
-
-            return $this->key;
-        }
-    }
-
-    /**
      * @var ?non-empty-lowercase-string
      */
     public ?string $extension {
@@ -86,6 +73,19 @@ class DataUri implements DataUriInterface
      */
     public string $format {
         get => $this->getFormat();
+    }
+
+    /**
+     * @var non-empty-string
+     */
+    public string $key {
+        get {
+            if (!$this->isPropInitialized(__PROPERTY__)) {
+                $this->key = $this->generateKey();
+            }
+
+            return $this->key;
+        }
     }
 
     /**
@@ -131,14 +131,6 @@ class DataUri implements DataUriInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\DataUriInterface
      */
-    public function getKey(): string
-    {
-        return $this->key;
-    }
-
-    /**
-     * @see OneToMany\DataUri\Contract\Record\DataUriInterface
-     */
     public function getExtension(): ?string
     {
         return $this->type->getExtension();
@@ -150,6 +142,14 @@ class DataUri implements DataUriInterface
     public function getFormat(): string
     {
         return $this->type->getFormat();
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\DataUriInterface
+     */
+    public function getKey(): string
+    {
+        return $this->key;
     }
 
     /**
@@ -236,6 +236,8 @@ class DataUri implements DataUriInterface
 
     /**
      * @return non-empty-string
+     *
+     * @throws RuntimeException when generating the key fails
      */
     private function generateKey(): string
     {
