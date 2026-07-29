@@ -14,6 +14,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function array_diff;
+use function assert;
 use function ctype_print;
 use function dirname;
 use function file_exists;
@@ -161,7 +162,7 @@ final class DataDecoder
             throw new RuntimeException('Generating the temporary path failed.', previous: $e);
         }
 
-        \assert('' !== $_path);
+        assert('' !== $_path);
 
         // Generate the base directory
         $_base = Path::getDirectory($_path);
