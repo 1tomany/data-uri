@@ -96,6 +96,8 @@ final class TemporaryFileTest extends TestCase
     {
         $file = $this->decodeFile();
 
+        print_r($file);
+
         $this->assertIsString($file->getRoot());
         $this->assertFileExists($file->getPath());
         $this->assertDirectoryExists($file->getRoot());

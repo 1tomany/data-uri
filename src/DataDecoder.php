@@ -27,7 +27,6 @@ use function is_link;
 use function is_readable;
 use function is_string;
 use function is_writable;
-use function mkdir;
 use function OneToMany\IsEmpty\is_empty;
 use function parse_url;
 use function rmdir;
@@ -45,17 +44,28 @@ use const PHP_MAXPATHLEN;
 
 final class DataDecoder
 {
-    private readonly string $tempDir;
+    /**
+     * Directory where all temporary files are stored.
+     *
+     * @var non-empty-string
+     */
+    private readonly string $tempDirectory;
 
-    private const string LIBRARY_DIRECTORY = '1tomany-data-uri';
+    /**
+     * Sub-directory within the temporary directory
+     * where all directories and files are stored.
+     *
+     * @var non-empty-string
+     */
+    private const string ROOT_DIRECTORY = '1tomany-data-uri';
 
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
-        $this->tempDir = sys_get_temp_dir();
+        $this->tempDirectory = sys_get_temp_dir();
 
-        if (!is_writable($this->tempDir)) {
-            throw new InvalidArgumentException(sprintf('The temp dir "%s" is not writable.', $this->tempDir));
+        if (!is_writable($this->tempDirectory)) {
+            throw new InvalidArgumentException(sprintf('The temp dir "%s" is not writable.', $this->tempDirectory));
         }
     }
 
@@ -95,34 +105,35 @@ final class DataDecoder
         }
 
         // Generate a random file name
-        $tempName = FilenameHelper::generate(12);
+        // $tempName = FilenameHelper::generate(12);
 
-        // Determine the display name
-        $displayName = trim((string) $name);
+        // Determine the temporary file name
+        $tempFileName = trim((string) $name);
 
         // Use the file path for the name
-        if (!$displayName && $dataIsFile) {
-            $displayName = basename($data);
+        if (!$tempFileName && $dataIsFile) {
+            $tempFileName = basename($data);
         }
 
         // Use the URL path for the name
-        if (!$displayName && $dataIsUrl) {
+        if (!$tempFileName && $dataIsUrl) {
             $urlBits = parse_url($data);
 
             if (isset($urlBits['path'])) {
-                $displayName = $urlBits['path'];
+                $tempFileName = $urlBits['path'];
             }
 
-            $displayName = basename($displayName);
+            $tempFileName = basename($tempFileName);
         }
 
-        $ownedDirectory = $this->createOwnedDirectory();
+        $tempRoot = $this->createRootDirectory();
+
         $tempPath = $path = null;
 
         try {
             try {
                 /** @var non-empty-string $tempPath */
-                $tempPath = Path::join($ownedDirectory, self::LIBRARY_DIRECTORY, $tempName);
+                $tempPath = Path::join($tempRoot, self::ROOT_DIRECTORY, $tempName);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
             }
@@ -177,7 +188,7 @@ final class DataDecoder
                 }
 
                 /** @var non-empty-string $path */
-                $path = Path::join($ownedDirectory, $tempName);
+                $path = Path::join($tempRoot, $tempName);
 
                 try {
                     // Rename the temporary file with an extension
@@ -187,17 +198,17 @@ final class DataDecoder
                 }
             }
 
-            /** @var non-empty-string $displayName */
-            $displayName = basename($displayName ?: $path);
+            /** @var non-empty-string $tempFileName */
+            $tempFileName = basename($tempFileName ?: $path);
 
             // Ensure the filesize can be calculated
             if (false === $size = @filesize($path)) {
                 throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
             }
 
-            return new TemporaryFile($path, $ownedDirectory, $displayName, $size, $type);
+            return new TemporaryFile($path, $tempRoot, $tempFileName, $size, $type);
         } catch (\Throwable $e) {
-            $this->rollback($ownedDirectory, $tempPath, $path);
+            $this->rollback($tempRoot, $tempPath, $path);
 
             throw $e;
         }
@@ -252,24 +263,24 @@ final class DataDecoder
     /**
      * @return non-empty-string
      */
-    private function createOwnedDirectory(): string
+    private function createRootDirectory(): string
     {
-        for ($attempt = 0; $attempt < 10; ++$attempt) {
-            $ownedDirectory = Path::join($this->tempDir, FilenameHelper::generate(20));
+        $rootDirectory = Path::join($this->tempDirectory, self::ROOT_DIRECTORY, FilenameHelper::generate(6));
 
-            if (@mkdir($ownedDirectory, 0700)) {
-                return $ownedDirectory;
-            }
+        try {
+            $this->filesystem->mkdir($rootDirectory, 0700);
+        } catch (FilesystemExceptionInterface $e) {
+            throw new RuntimeException('Creating the root directory "%s" failed.', $rootDirectory, previous: $e);
         }
 
-        throw new RuntimeException('Creating a unique temporary directory failed.');
+        return $rootDirectory;
     }
 
     private function rollback(string $ownedDirectory, ?string ...$paths): void
     {
         $ownedDirectory = Path::canonicalize($ownedDirectory);
 
-        if (Path::canonicalize($this->tempDir) !== dirname($ownedDirectory)) {
+        if (Path::canonicalize($this->tempDirectory) !== dirname($ownedDirectory)) {
             return;
         }
 
