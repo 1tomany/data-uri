@@ -180,16 +180,16 @@ final class DataDecoder
 
         // Attempt to determine the file type
         if (null !== $type && is_string($type)) {
-            $type = Type::createFromFormat($type);
+            $dataUriType = Type::createFromFormat($type);
         } else {
-            if (!$type instanceof Type) {
-                $type = Type::createFromPath(...[
+            $dataUriType = $type;
+
+            if (!$dataUriType instanceof Type) {
+                $dataUriType = Type::createFromPath(...[
                     'path' => $temporaryPath,
                 ]);
             }
         }
-
-        $dataUriType = $type;
 
         $dataUriPath = FilenameHelper::changeExtension(
             $temporaryPath, $dataUriType->getExtension(),
