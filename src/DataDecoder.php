@@ -3,275 +3,110 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\Type;
-use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
-use OneToMany\DataUri\Contract\Record\DataUriInterface;
+use OneToMany\DataUri\Contract\MediaTypeResolverInterface;
+use OneToMany\DataUri\Contract\Source\SourceResolverInterface;
+use OneToMany\DataUri\Contract\TemporaryFileFactoryInterface;
+use OneToMany\DataUri\Contract\TemporaryFileInterface;
+use OneToMany\DataUri\Exception\FileTooLargeException;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
-use OneToMany\DataUri\Exception\RuntimeException;
-use OneToMany\DataUri\Helper\FilenameHelper;
-use OneToMany\DataUri\Record\DataUri;
-use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
+use OneToMany\DataUri\Source\SourceResolver;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
-use function array_diff;
-use function basename;
-use function ctype_print;
-use function dirname;
-use function filesize;
-use function filter_var;
-use function fopen;
-use function implode;
-use function is_dir;
-use function is_file;
-use function is_readable;
-use function is_string;
-use function is_writable;
-use function parse_url;
-use function preg_replace;
-use function rtrim;
+use function base64_decode;
+use function intdiv;
 use function sprintf;
-use function stream_get_contents;
-use function stream_get_wrappers;
 use function strlen;
-use function sys_get_temp_dir;
-use function trim;
 
-use const FILTER_VALIDATE_URL;
-use const PHP_MAXPATHLEN;
-
-final class DataDecoder
+final readonly class DataDecoder
 {
     /**
-     * Root directory where all temporary files are stored.
-     *
-     * @var non-empty-string
+     * @deprecated use TemporaryFileFactory::LIBRARY_DIRECTORY
      */
-    private readonly string $temporaryDirectory;
+    public const string LIBRARY_DIRECTORY = TemporaryFileFactory::LIBRARY_DIRECTORY;
 
-    /**
-     * Sub-directory within the temporary directory
-     * where all directories and files are stored.
-     *
-     * @var non-empty-string
-     */
-    public const string LIBRARY_DIRECTORY = '1tomany';
+    private SourceResolverInterface $sourceResolver;
 
-    /**
-     * @throws RuntimeException when the temporary directory is empty
-     * @throws InvalidArgumentException when the temporary directory is not writable
-     * @throws InvalidArgumentException when the temporary directory is not an absolute path
-     */
+    private TemporaryFileFactoryInterface $temporaryFileFactory;
+
     public function __construct(
-        private readonly Filesystem $filesystem = new Filesystem(),
+        Filesystem $filesystem = new Filesystem(),
+        ?string $temporaryDirectory = null,
+        int $maximumBytes = TemporaryFileFactory::DEFAULT_MAXIMUM_BYTES,
+        ?SourceResolverInterface $sourceResolver = null,
+        ?MediaTypeResolverInterface $mediaTypeResolver = null,
+        ?TemporaryFileFactoryInterface $temporaryFileFactory = null,
     ) {
-        if (!$temporaryDirectory = sys_get_temp_dir()) {
-            throw new RuntimeException('The temporary directory cannot be empty.');
-        }
-
-        if (!is_writable($temporaryDirectory)) {
-            throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not writable.', $temporaryDirectory));
-        }
-
-        if (!Path::isAbsolute($temporaryDirectory)) {
-            throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not an absolute path.', $temporaryDirectory));
-        }
-
-        $this->temporaryDirectory = $temporaryDirectory;
+        $this->sourceResolver = $sourceResolver ?? new SourceResolver();
+        $this->temporaryFileFactory = $temporaryFileFactory ?? new TemporaryFileFactory(
+            $filesystem,
+            $mediaTypeResolver ?? new MediaTypeResolver(),
+            $temporaryDirectory,
+            $maximumBytes,
+        );
     }
 
     public function decode(
-        mixed $data,
-        string|Type|null $type = null,
+        string|\Stringable $data,
+        string|Type|MediaType|null $type = null,
         ?string $name = null,
-    ): DataUriInterface {
-        if (!is_string($data) && !$data instanceof \Stringable) {
-            throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
-        }
-
-        if (empty($data = trim($data))) {
-            throw new InvalidArgumentException('The data cannot be empty.');
-        }
-
-        $dataIsUrl = $dataIsFile = false;
-
-        if (strlen($data) <= PHP_MAXPATHLEN) {
-            if (is_file($data)) {
-                $dataIsFile = true;
-            } else {
-                $dataIsUrl = false !== filter_var($data, FILTER_VALIDATE_URL);
-            }
-        }
-
-        if (!$dataIsFile && is_dir($data)) {
-            throw new InvalidArgumentException('The data cannot be a directory.');
-        }
-
-        if (!ctype_print($data)) {
-            throw new InvalidArgumentException('The data cannot contain non-printable, control, or NULL-terminated characters.');
-        }
-
-        if ($dataIsFile && !is_readable($data)) {
-            throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
-        }
-
-        // Determine a file name
-        $name = trim((string) $name);
-
-        // Use the path for the name
-        if (!$name && $dataIsFile) {
-            $name = basename($data);
-        }
-
-        // Use the URL for the name
-        if (!$name && $dataIsUrl) {
-            $urlBits = parse_url($data);
-
-            if (is_string($urlBits['path'] ?? null)) {
-                $name = basename($urlBits['path']);
-            }
-        }
-
-        // Replace multiple periods with a single period
-        // and remove any unsafe characters from the name
-        if ($name = preg_replace('/\.{2,}/', '.', $name)) {
-            $name = preg_replace('/[^.A-Za-z0-9_-]/', '', $name);
-        }
+    ): TemporaryFileInterface {
+        $source = $this->sourceResolver->resolve($data);
+        $openedSource = $source->open();
 
         try {
-            // Generate a random file name if a
-            // valid one could not be determined
-            if ($hasGeneratedName = empty($name)) {
-                $name = FilenameHelper::generate(12);
-            }
-
-            /** @var non-empty-string $temporaryPath */
-            $temporaryPath = Path::join($this->temporaryDirectory, self::LIBRARY_DIRECTORY, !$hasGeneratedName ? FilenameHelper::generate(6) : '', $name);
-        } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
+            return $this->temporaryFileFactory->createFromStream(
+                $openedSource->getStream(),
+                $type,
+                $name ?? $source->suggestedName,
+                $openedSource->declaredMediaType,
+            );
+        } finally {
+            $openedSource->close();
         }
-
-        if ($dataIsFile) {
-            try {
-                // Copy the data to the temporary file
-                $this->filesystem->copy($data, $temporaryPath, true);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Copying the file "%s" to "%s" failed.', $data, $temporaryPath), previous: $e);
-            }
-        } else {
-            // Ensure data, file, http, and https streams are registered
-            $this->assertStreamsAreRegistered(['data', 'file', 'http', 'https']);
-
-            // Read, decode, and stream the data
-            if (!$stream = @fopen($data, 'rb')) {
-                throw new InvalidArgumentException('Decoding the data stream failed.');
-            }
-
-            if (false === $contents = stream_get_contents($stream)) {
-                throw new RuntimeException('Reading the stream contents failed.');
-            }
-
-            try {
-                // Write the streamed data to the temporary file
-                $this->filesystem->dumpFile($temporaryPath, $contents);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $temporaryPath), previous: $e);
-            }
-        }
-
-        // Attempt to determine the file type
-        if (null !== $type && is_string($type)) {
-            $dataUriType = Type::createFromFormat($type);
-        } else {
-            $dataUriType = $type;
-
-            if (!$dataUriType instanceof Type) {
-                $dataUriType = Type::createFromPath(...[
-                    'path' => $temporaryPath,
-                ]);
-            }
-        }
-
-        // Append the extension from the file type
-        $dataUriPath = FilenameHelper::changeExtension(
-            $temporaryPath, $dataUriType->getExtension(),
-        );
-
-        if ($dataUriPath !== $temporaryPath) {
-            try {
-                // Rename the temporary file with the correct extension
-                $this->filesystem->rename($temporaryPath, $dataUriPath, true);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $temporaryPath, $dataUriPath), previous: $e);
-            }
-        }
-
-        if (!$dataUriName = basename($dataUriPath)) {
-            throw new RuntimeException(sprintf('Generating a name from the file "%s" failed.', $dataUriPath));
-        }
-
-        // The root directory is needed if the name was not generated
-        $dataUriRoot = $hasGeneratedName ? null : dirname($dataUriPath);
-
-        // Ensure the filesize can be calculated
-        if (false === $dataUriSize = @filesize($dataUriPath)) {
-            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $dataUriPath));
-        }
-
-        return new DataUri($dataUriPath, $dataUriRoot, $dataUriName, $dataUriSize, $dataUriType);
     }
 
-    /**
-     * @see OneToMany\DataUri\DataDecoder::decode()
-     */
     public function decodeBase64(
         string $data,
-        string|Type $type,
+        string|Type|MediaType $type,
         ?string $name = null,
-    ): DataUriInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $type, $name);
+    ): TemporaryFileInterface {
+        $mediaType = MediaType::create($type);
+        $maximumEncodedLength = 4 * intdiv($this->temporaryFileFactory->getMaximumBytes() + 2, 3);
+
+        if (strlen($data) > $maximumEncodedLength) {
+            throw new FileTooLargeException(sprintf('The decoded temporary file may exceed the maximum size of %d bytes.', $this->temporaryFileFactory->getMaximumBytes()));
+        }
+
+        if (false === $contents = base64_decode($data, true)) {
+            throw new InvalidArgumentException('The data is not valid Base64.');
+        }
+
+        return $this->temporaryFileFactory->createFromString($contents, $mediaType, $name);
     }
 
     /**
-     * @see OneToMany\DataUri\DataDecoder::decodeBase64()
-     *
-     * @throws InvalidArgumentException when the type is not text
-     * @throws RuntimeException when generating a temporary filename fails
+     * @param resource $stream
      */
+    public function decodeStream(
+        mixed $stream,
+        string|Type|MediaType|null $type = null,
+        ?string $name = null,
+        ?string $declaredType = null,
+    ): TemporaryFileInterface {
+        return $this->temporaryFileFactory->createFromStream($stream, $type, $name, $declaredType);
+    }
+
     public function decodeText(
         string $text,
-        string|Type $type = Type::Txt,
+        string|Type|MediaType $type = Type::Txt,
         ?string $name = null,
-    ): DataUriInterface {
-        if (!$type instanceof Type) {
-            $type = Type::createFromFormat($type);
+    ): TemporaryFileInterface {
+        $mediaType = MediaType::create($type);
+
+        if (!$mediaType->isText()) {
+            throw new InvalidArgumentException(sprintf('The media type "%s" is not text.', $mediaType->value));
         }
 
-        if (!$type->isText()) {
-            throw new InvalidArgumentException(sprintf('The type "%s" is not text.', $type->getName()));
-        }
-
-        if (null !== $name) {
-            $name = trim($name);
-        }
-
-        try {
-            $name = FilenameHelper::changeExtension($name ?: FilenameHelper::generate(12), $type->getExtension());
-        } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-        }
-
-        return $this->decodeBase64(base64_encode($text), $type, $name);
-    }
-
-    /**
-     * @param non-empty-list<non-empty-lowercase-string> $streams
-     *
-     * @throws RuntimeException when one or more streams are not registered with PHP
-     */
-    private function assertStreamsAreRegistered(array $streams): void
-    {
-        if ([] !== $missingStreams = array_diff($streams, stream_get_wrappers())) {
-            throw new RuntimeException(sprintf('The following streams are not registered in this environment: "%s".', implode('", "', $missingStreams)));
-        }
+        return $this->temporaryFileFactory->createFromString($text, $mediaType, $name);
     }
 }

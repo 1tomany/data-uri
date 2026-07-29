@@ -1,6 +1,6 @@
 {
     "name": "1tomany/data-uri",
-    "description": "A simple, low dependency library to parse and decode data URIs defined in RFC 2397",
+    "description": "Safely materialize data URIs, local files, URLs, Base64, and text as managed temporary files",
     "license": "MIT",
     "type": "library",
     "minimum-stability": "stable",
@@ -9,15 +9,17 @@
         "datauri",
         "data uri",
         "data-uri",
+        "temporary file",
+        "upload",
+        "base64",
         "2397",
         "rfc2397",
         "rfc 2397"
     ],
     "require": {
         "php": ">=8.4",
-        "ext-ctype": "*",
         "ext-fileinfo": "*",
-        "symfony/filesystem": "^7.2|^8.0|^8.1"
+        "symfony/filesystem": "^7.2|^8.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.93",
@@ -40,8 +42,14 @@
         }
     },
     "scripts": {
-        "fix": "php-cs-fixer fix",
-        "stan": "phpstan",
+        "check": [
+            "@cs",
+            "@stan",
+            "@test"
+        ],
+        "cs": "php-cs-fixer fix --dry-run --diff --sequential",
+        "fix": "php-cs-fixer fix --sequential",
+        "stan": "phpstan analyse --no-progress --debug",
         "test": "phpunit",
         "flat": [
             "@fix",

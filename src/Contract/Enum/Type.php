@@ -4,6 +4,7 @@ namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
 use function mime_content_type;
+use function strchr;
 use function strtolower;
 use function strtoupper;
 use function trim;
@@ -54,7 +55,7 @@ enum Type
 
         if (null !== $format) {
             if ($format = trim($format)) {
-                $format = strtolower($format);
+                $format = strtolower((string) (strchr($format, ';', true) ?: $format));
             }
         }
 
@@ -192,7 +193,7 @@ enum Type
             self::Xlsx => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             self::Xml => 'application/xml',
             self::Zip => 'application/zip',
-            default => 'application/octet-stream',
+            self::Bin, self::Other => 'application/octet-stream',
         };
 
         return $format;
@@ -211,7 +212,7 @@ enum Type
             self::Mp3,
             self::Oga,
             self::Wav,
-        ]);
+        ], true);
     }
 
     /**
@@ -246,11 +247,11 @@ enum Type
             self::Xls,
             self::Xlsx,
             self::Zip,
-        ]);
+        ], true);
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xls|self::Xlsx|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Js|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xls|self::Xlsx|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -270,7 +271,7 @@ enum Type
             self::Xls,
             self::Xlsx,
             self::Xml,
-        ]);
+        ], true);
     }
 
     /**
@@ -289,11 +290,11 @@ enum Type
             self::Png,
             self::Tiff,
             self::Webp,
-        ]);
+        ], true);
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Js|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
      */
     public function isText(): bool
     {
@@ -308,7 +309,7 @@ enum Type
             self::Php,
             self::Txt,
             self::Xml,
-        ]);
+        ], true);
     }
 
     /**

@@ -4,118 +4,130 @@ namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\DataDecoder;
+use OneToMany\DataUri\Exception\FileTooLargeException;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
-use OneToMany\DataUri\Exception\RuntimeException;
-use org\bovigo\vfs\vfsStream;
+use OneToMany\DataUri\MediaType;
+use OneToMany\DataUri\TemporaryFile;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
-
-use function array_rand;
-use function random_bytes;
-use function sprintf;
-use function sys_get_temp_dir;
 
 #[Group('UnitTests')]
 final class DataDecoderTest extends TestCase
 {
-    public function testDecodingDataRequiresStringableData(): void
+    public function testDecodeRequiresStringableData(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('The data must be a non-NULL string or implement the "\Stringable" interface.');
+        $this->expectException(\TypeError::class);
 
-        new DataDecoder()->decode(null);
+        new \ReflectionMethod(DataDecoder::class, 'decode')->invoke(new DataDecoder(), null);
     }
 
-    public function testDecodingDataRequiresNonEmptyData(): void
+    public function testDecodeRejectsEmptyData(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('The data cannot be empty.');
+        $this->expectExceptionMessage('The data cannot be empty.');
 
         new DataDecoder()->decode(' ');
     }
 
-    public function testDecodingDataRequiresDataToNotBeDirectory(): void
+    public function testDecodeRejectsDirectories(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('The data cannot be a directory.');
+        $this->expectExceptionMessage('The data cannot be a directory.');
 
         new DataDecoder()->decode(__DIR__);
     }
 
-    public function testDecodingDataRequiresDataToNotContainNonPrintableBytes(): void
+    public function testDecodeRejectsControlCharacters(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('The data cannot contain non-printable, control, or NULL-terminated characters.');
+        $this->expectExceptionMessage('The data cannot contain control or NULL characters.');
 
-        new DataDecoder()->decode(random_bytes(1024));
+        new DataDecoder()->decode("data:text/plain,hello\0world");
     }
 
-    public function testDecodingDataDataRequiresReadableFileToExist(): void
-    {
-        // Arrange: Create unreadable virtual file
-        $file = vfsStream::newFile('Invoice_1984.pdf');
-        $file->chmod(0400)->chown(vfsStream::OWNER_ROOT);
-
-        vfsStream::setup(structure: [$file]);
-
-        // Assert: Virtual file is not readable
-        $this->assertFileIsNotReadable($file->url());
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('The file "'.$file->url().'" is not readable.');
-
-        new DataDecoder()->decode($file->url());
-    }
-
-    public function testDecodingDataRequiresValidDataUri(): void
+    public function testDecodeRejectsMissingFiles(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
+        $this->expectExceptionMessage('does not exist or is not readable');
 
-        new DataDecoder()->decode('data:image/gif;base64,!R0lG**AQ/ABAIAAAAAAA++ACH5BAEAAAAALAA?AEAOw==');
+        new DataDecoder()->decode(__DIR__.'/missing.txt');
     }
 
-    public function testDecodingDataRequiresWritingDataToTemporaryFile(): void
+    public function testDecodeRejectsMalformedDataUris(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/^Copying (.+) to (.+) failed.$/');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('does not contain a data separator');
 
-        $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects($this->once())->method('copy')->willThrowException(new IOException('Error'));
-
-        new DataDecoder($filesystem)->decode(__DIR__.'/.data/pdf-small.pdf');
+        new DataDecoder()->decode('data:text/plain');
     }
 
-    public function testDecodingDataCanSetName(): void
+    public function testDecodeRejectsUnsupportedStreamSchemes(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', name: 'Hello_World.txt');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The stream scheme "ftp" is not supported.');
 
-        $this->assertEquals('Hello_World.txt', $file->name);
+        new DataDecoder()->decode('ftp://example.com/file.txt');
     }
 
-    public function testDecodingDataCanSetType(): void
+    public function testDecodeRejectsPrivateRemoteAddressesBeforeOpeningThem(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'text/markdown', 'Hello_World.md');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('private or reserved');
 
-        $this->assertSame(Type::Markdown, $file->getType());
+        new DataDecoder()->decode('http://127.0.0.1/file.txt');
     }
 
-    public function testDecodingFileWithoutNameUsesFileName(): void
+    public function testDecodeAcceptsStringableData(): void
     {
-        $name = sprintf('%s.txt', __FUNCTION__);
-        $path = Path::join(sys_get_temp_dir(), $name);
+        $data = new class implements \Stringable {
+            public function __toString(): string
+            {
+                return 'data:text/plain,Hello';
+            }
+        };
 
-        $fs = new Filesystem();
-        $fs->dumpFile($path, __FUNCTION__);
+        $file = new DataDecoder()->decode($data);
 
-        $file = new DataDecoder()->decode($path);
-        $this->assertEquals($name, $file->getName());
+        self::assertSame('Hello', $file->read());
+    }
 
-        $fs->remove($path);
+    public function testDecodeUsesAndSanitizesTheProvidedName(): void
+    {
+        $file = new DataDecoder()->decode('data:text/plain,Hello', name: '../Résumé 2026.txt');
+
+        self::assertSame('Résumé_2026.txt', $file->getName());
+        self::assertSame('../Résumé 2026.txt', $file->getOriginalName());
+    }
+
+    public function testDecodePreservesCustomParameterizedMediaTypes(): void
+    {
+        $file = new DataDecoder()->decode(
+            'data:text/plain,Hello',
+            'application/vnd.acme+json; charset=UTF-8',
+            'payload',
+        );
+
+        self::assertSame(Type::Other, $file->getType());
+        self::assertSame('application/vnd.acme+json;charset=UTF-8', $file->getFormat());
+        self::assertSame('payload', $file->getName());
+    }
+
+    public function testDecodeUsesTheDeclaredDataUriMediaTypeBeforeSniffing(): void
+    {
+        $file = new DataDecoder()->decode('data:text/markdown;charset=UTF-8,%23%20Hello');
+
+        self::assertSame(Type::Markdown, $file->getType());
+        self::assertSame('text/markdown;charset=UTF-8', $file->getFormat());
+        self::assertSame('# Hello', $file->read());
+    }
+
+    public function testDecodeUsesTheOriginalFileName(): void
+    {
+        $file = new DataDecoder()->decode(__DIR__.'/.data/text-small.txt');
+
+        self::assertSame('text-small.txt', $file->getName());
+        self::assertSame('text-small.txt', $file->getOriginalName());
     }
 
     /**
@@ -123,59 +135,51 @@ final class DataDecoderTest extends TestCase
      * @param non-negative-int $size
      * @param non-empty-string $format
      */
-    #[DataProvider('providerDataAndMetadata')]
-    public function testDecodingData(string $data, int $size, string $format): void
+    #[DataProvider('provideDataAndMetadata')]
+    public function testDecodeData(string $data, int $size, string $format): void
     {
         $file = new DataDecoder()->decode($data);
 
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals($size, $file->getSize());
-        $this->assertEquals($format, $file->getFormat());
+        self::assertInstanceOf(TemporaryFile::class, $file);
+        self::assertFileExists($file->getPath());
+        self::assertSame($size, $file->getSize());
+        self::assertSame($format, $file->getFormat());
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return list<array{non-empty-string, non-negative-int, non-empty-string}>
      */
-    public static function providerDataAndMetadata(): array
+    public static function provideDataAndMetadata(): array
     {
-        $provider = [
-            ['data:,Test', 4, Type::Txt->getFormat()],
-            ['data:text/plain,Test', 4, Type::Txt->getFormat()],
-            ['data:text/plain;charset=US-ASCII,Hello%20world', 11, Type::Txt->getFormat()],
-            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, Type::Txt->getFormat()],
-            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 13, Type::Txt->getFormat()],
-            ['data:application/json,%7B%22id%22%3A10%7D', 9, Type::Json->getFormat()],
-            ['data:application/json;base64,eyJpZCI6MTB9', 9, Type::Json->getFormat()],
-
-            // 1x1 Transparent GIF
-            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, Type::Gif->getFormat()],
-
-            // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
-            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 67, Type::Pdf->getFormat()],
+        return [
+            ['data:,Test', 4, 'text/plain'],
+            ['data:text/plain,Test', 4, 'text/plain'],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 11, 'text/plain;charset=US-ASCII'],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
+            ['data:application/json,%7B%22id%22%3A10%7D', 9, 'application/json'],
+            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
         ];
-
-        return $provider;
     }
 
     /**
-     * @param non-empty-string $data
+     * @param non-empty-string $path
      * @param non-negative-int $size
      * @param non-empty-string $format
      */
-    #[DataProvider('providerFileAndMetadata')]
-    public function testDecodingFile(string $data, int $size, string $format): void
+    #[DataProvider('provideFilesAndMetadata')]
+    public function testDecodeFiles(string $path, int $size, string $format): void
     {
-        $file = new DataDecoder()->decode($data);
+        $file = new DataDecoder()->decode($path);
 
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals($size, $file->getSize());
-        $this->assertEquals($format, $file->getFormat());
+        self::assertFileExists($file->getPath());
+        self::assertSame($size, $file->getSize());
+        self::assertSame($format, $file->getFormat());
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return list<array{non-empty-string, non-negative-int, non-empty-string}>
      */
-    public static function providerFileAndMetadata(): array
+    public static function provideFilesAndMetadata(): array
     {
         return [
             [__DIR__.'/.data/pdf-small.pdf', 36916, Type::Pdf->getFormat()],
@@ -185,101 +189,102 @@ final class DataDecoderTest extends TestCase
         ];
     }
 
-    public function testDecodingBase64DataRequiresValidFormat(): void
+    public function testDecodeEnforcesTheConfiguredMaximumSize(): void
     {
-        $format = 'invalid_mime_type';
+        $this->expectException(FileTooLargeException::class);
+        $this->expectExceptionMessage('maximum size of 4 bytes');
 
+        new DataDecoder(maximumBytes: 4)->decode('data:text/plain,Hello');
+    }
+
+    public function testDecodeStreamReadsFromTheCurrentPositionWithoutClosingTheInput(): void
+    {
+        $stream = fopen('php://temp', 'w+b');
+        self::assertIsResource($stream);
+        fwrite($stream, 'skipHello');
+        fseek($stream, 4);
+
+        try {
+            $file = new DataDecoder()->decodeStream($stream, Type::Txt, 'hello');
+
+            self::assertSame('Hello', $file->read());
+            self::assertSame('stream', get_resource_type($stream));
+        } finally {
+            fclose($stream);
+        }
+    }
+
+    public function testDecodeBase64RejectsInvalidMediaTypes(): void
+    {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
+        $this->expectExceptionMessage('The format "invalid_mime_type" is invalid.');
 
-        new DataDecoder()->decodeBase64('SGVsbG8sIHdvcmxkIQ==', $format);
+        new DataDecoder()->decodeBase64('SGVsbG8=', 'invalid_mime_type');
+    }
+
+    public function testDecodeBase64RejectsInvalidBase64(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The data is not valid Base64.');
+
+        new DataDecoder()->decodeBase64('not*base64', Type::Txt);
+    }
+
+    public function testDecodeBase64RejectsContentThatCannotFitBeforeDecodingIt(): void
+    {
+        $this->expectException(FileTooLargeException::class);
+        $this->expectExceptionMessage('may exceed the maximum size of 3 bytes');
+
+        new DataDecoder(maximumBytes: 3)->decodeBase64('SGVsbG8=', Type::Txt);
     }
 
     /**
      * @param non-empty-string $data
      * @param non-negative-int $size
-     * @param non-empty-string $format
      */
-    #[DataProvider('providerBase64DataAndMetadata')]
-    public function testDecodingBase64Data(string $data, int $size, string $format): void
+    #[DataProvider('provideBase64Data')]
+    public function testDecodeBase64(string $data, int $size, Type $type): void
     {
-        $file = new DataDecoder()->decodeBase64($data, $format);
+        $file = new DataDecoder()->decodeBase64($data, $type);
 
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals($size, $file->getSize());
-        $this->assertEquals($format, $file->getFormat());
+        self::assertSame($size, $file->getSize());
+        self::assertSame($type, $file->getType());
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return list<array{non-empty-string, non-negative-int, Type}>
      */
-    public static function providerBase64DataAndMetadata(): array
+    public static function provideBase64Data(): array
     {
-        $provider = [
-            ['eyJpZCI6MTB9', 9, Type::Json->getFormat()],
-            ['SGVsbG8sIHdvcmxkIQ==', 13, Type::Txt->getFormat()],
-            ['R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, Type::Gif->getFormat()],
-            ['iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 68, Type::Png->getFormat()],
+        return [
+            ['eyJpZCI6MTB9', 9, Type::Json],
+            ['SGVsbG8sIHdvcmxkIQ==', 13, Type::Txt],
+            ['R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, Type::Gif],
         ];
-
-        return $provider;
     }
 
-    public function testDecodingTextDataRequiresTextType(): void
+    public function testDecodeTextRejectsBinaryTypesDeterministically(): void
     {
-        $types = Type::cases();
-
-        while (true) {
-            $type = $types[array_rand($types, 1)];
-
-            if (!$type->isText()) {
-                break;
-            }
-        }
-
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('The type "'.$type->getName().'" is not text.');
+        $this->expectExceptionMessage('The media type "image/png" is not text.');
 
-        new DataDecoder()->decodeText('Hello, world!', $type);
+        new DataDecoder()->decodeText('Hello', Type::Png);
     }
 
-    public function testDecodingTextDataGeneratesNameIfNameIsEmpty(): void
+    public function testDecodeTextAcceptsCustomTextTypes(): void
     {
-        $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', name: '')->getName());
+        $type = MediaType::fromString('text/x-prompt; charset=UTF-8');
+        $file = new DataDecoder()->decodeText('Hello, LLM!', $type, 'prompt');
+
+        self::assertSame('Hello, LLM!', $file->read());
+        self::assertSame('text/x-prompt;charset=UTF-8', $file->getFormat());
+        self::assertSame('prompt', $file->getName());
     }
 
-    public function testDecodingTextDataAppendsTxtExtensionIfNameProvidedWithoutOne(): void
+    public function testDecodeTextAppendsTheKnownExtension(): void
     {
-        $file = new DataDecoder()->decodeText('Hello, world!', name: 'example.test');
+        $file = new DataDecoder()->decodeText('Hello', Type::Markdown, 'example.test');
 
-        $this->assertEquals('example.test.txt', $file->getName());
-    }
-
-    public function testDecodingTextData(): void
-    {
-        $file = new DataDecoder()->decodeText('Hello, world!', name: 'HelloWorld.txt');
-
-        $this->assertFileExists($file->getPath());
-        $this->assertEquals('Hello, world!', $file->read());
-        $this->assertEquals('HelloWorld.txt', $file->getName());
-    }
-
-    public function testDecodingTextDataWithTypeOtherThanTxt(): void
-    {
-        $types = Type::cases();
-
-        while (true) {
-            $type = $types[array_rand($types, 1)];
-
-            if ($type->isText()) {
-                break;
-            }
-        }
-
-        $file = new DataDecoder()->decodeText('Hello, world!', $type, 'HelloWorld');
-
-        $this->assertFileExists($file->getPath());
-        $this->assertNotNull($type->getExtension());
-        $this->assertStringEndsWith($type->getExtension(), $file->getName());
+        self::assertSame('example.test.md', $file->getName());
     }
 }

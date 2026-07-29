@@ -4,8 +4,10 @@
 require_once __DIR__.'/../vendor/autoload.php';
 
 use OneToMany\DataUri\Contract\Enum\Type;
-use OneToMany\DataUri\Contract\Record\DataUriInterface;
+use OneToMany\DataUri\Contract\TemporaryFileInterface;
 use OneToMany\DataUri\DataDecoder;
+use OneToMany\DataUri\MediaType;
+use OneToMany\DataUri\Storage\StorageKeyGenerator;
 use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\SingleCommandApplication;
@@ -18,18 +20,19 @@ $command = function (
     $io->title('data-uri Examples');
 
     $dataDecoder = new DataDecoder();
+    $storageKeyGenerator = new StorageKeyGenerator('uploads');
 
     $formatTableRow = function (
-        DataUriInterface $file,
-    ): array {
+        TemporaryFileInterface $file,
+    ) use ($storageKeyGenerator): array {
         return [
             $file->getPath(),
             $file->getName(),
+            $file->getOriginalName(),
             $file->getSize(),
             $file->getType()->getName(),
-            $file->getExtension(),
             $file->getFormat(),
-            $file->getKey(),
+            $storageKeyGenerator->generate($file),
         ];
     };
 
@@ -63,30 +66,36 @@ $command = function (
     $file7 = $dataDecoder->decodeText('**Hello, world!**', Type::Markdown, 'hello_world.md');
     $tableRows[] = $formatTableRow($file7);
 
+    // Preserve a custom, parameterized text media type
+    $file8 = $dataDecoder->decodeText('Summarize this', MediaType::fromString('text/x-prompt;charset=UTF-8'), 'prompt');
+    $tableRows[] = $formatTableRow($file8);
+
     // Decode from a URL
     if (true === $all) {
-        $file8 = $dataDecoder->decode('https://assets.extract-cdn.com/data/ao-smith-label.jpg');
-        $tableRows[] = $formatTableRow($file8);
+        $file9 = $dataDecoder->decode('https://assets.extract-cdn.com/data/ao-smith-label.jpg');
+        $tableRows[] = $formatTableRow($file9);
     }
 
     $io->table(
         [
             'Path',
             'Name',
+            'Original Name',
             'Size',
             'Type',
-            'Extension',
             'Format',
             'Key',
         ],
         $tableRows,
     );
 
-    // Call the destructor to delete temporary files
-    unset($file1, $file2, $file3, $file4, $file5, $file6, $file7);
+    // Deterministic cleanup is preferred; the destructor remains a fallback.
+    foreach ([$file1, $file2, $file3, $file4, $file5, $file6, $file7, $file8] as $file) {
+        $file->delete();
+    }
 
-    if (isset($file8)) {
-        unset($file8);
+    if (isset($file9)) {
+        $file9->delete();
     }
 
     return Command::SUCCESS;

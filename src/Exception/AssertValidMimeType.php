@@ -2,11 +2,11 @@
 
 namespace OneToMany\DataUri\Exception;
 
-use function preg_match;
-use function sprintf;
-use function strtolower;
-use function trim;
+use OneToMany\DataUri\Validator\MimeTypeValidator;
 
+/**
+ * @deprecated use OneToMany\DataUri\Validator\MimeTypeValidator
+ */
 final readonly class AssertValidMimeType
 {
     private function __construct()
@@ -23,14 +23,6 @@ final readonly class AssertValidMimeType
      */
     public static function assert(?string $format): string
     {
-        if (!$format = trim((string) $format)) {
-            throw new InvalidArgumentException('The format cannot be empty.');
-        }
-
-        if (!preg_match('/^\w+\/[-+.\w]+$/i', $format)) {
-            throw new InvalidArgumentException(sprintf('The format "%s" is invalid.', $format));
-        }
-
-        return strtolower($format);
+        return MimeTypeValidator::validate($format);
     }
 }
