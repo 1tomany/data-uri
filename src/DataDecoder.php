@@ -115,7 +115,7 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        $_base = '';
+        // $_base = null;
 
         // Generate a random file name
         // $tempName = FilenameHelper::generate(12);
@@ -147,21 +147,25 @@ final class DataDecoder
             'filename' => trim($_name),
         ]);
 
-        try {
-            if ('' === $_base && null !== $_name) {
-                $_base = bin2hex(random_bytes(3));
-            }
+        // Generate a base directory if a valid
+        // display name is used to avoid clashes
+        if (false === is_empty($_name, false)) {
+            $_base = FilenameHelper::generate(6);
+        }
 
-            // Generate a random display name
-            $_name ??= FilenameHelper::generate(12);
-        } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', ltrim($e->getMessage(), '.')), previous: $e);
+        // Generate a random display name
+        if (true === is_empty($_name, false)) {
+            $_name = FilenameHelper::generate(12);
         }
 
         try {
-            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_base, $_name);
+            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, isset($_base) ? $_base : '', $_name);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException('Generating the temporary path failed.', previous: $e);
+        } finally {
+            if (!isset($_base)) {
+                $_base = null;
+            }
         }
 
         assert('' !== $_path);
