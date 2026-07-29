@@ -83,7 +83,7 @@ $command = function (
     );
 
     // Call the destructor to delete temporary files
-    unset($tableRows, $file1, $file2, $file3, $file4, $file5, $file6, $file7);
+    unset($file1, $file2, $file3, $file4, $file5, $file6, $file7);
 
     if (isset($file8)) {
         unset($file8);
@@ -92,8 +92,4 @@ $command = function (
     return Command::SUCCESS;
 };
 
-new SingleCommandApplication()
-    ->setName('My Super Command') // Optional
-    ->setVersion('1.0.0') // Optional
-    ->setCode($command)
-    ->run();
+new SingleCommandApplication()->setName('data-uri Examples')->setCode($command)->run();
