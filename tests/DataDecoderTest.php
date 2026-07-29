@@ -104,13 +104,6 @@ final class DataDecoderTest extends TestCase
         $this->assertSame(Type::Markdown, $file->getType());
     }
 
-    public function testDecodingPathSetsSourceToFileName(): void
-    {
-        $path = __DIR__.'/.data/pdf-small.pdf';
-
-        $this->assertEquals('pdf-small.pdf', new DataDecoder()->decode($path)->getSource());
-    }
-
     public function testDecodingFileWithoutNameUsesFileName(): void
     {
         $name = sprintf('%s.txt', __FUNCTION__);
@@ -138,7 +131,6 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
-        $this->assertNull($file->getSource());
     }
 
     /**
@@ -178,7 +170,6 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
-        $this->assertNotNull($file->getSource());
     }
 
     /**

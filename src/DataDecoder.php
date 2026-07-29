@@ -16,6 +16,7 @@ use Symfony\Component\Filesystem\Path;
 use function array_diff;
 use function basename;
 use function ctype_print;
+use function dirname;
 use function filesize;
 use function filter_var;
 use function fopen;
@@ -116,14 +117,9 @@ final class DataDecoder
             }
 
             /** @var non-empty-string $temporaryPath */
-            $temporaryPath = Path::join($this->tempDir, '1tomany', $name);
+            $temporaryPath = Path::join($this->tempDir, '1tomany', !$hasRandomDisplayName ? FilenameHelper::generate(6) : '', $name);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-        }
-
-        // Ensure we have a non-empty name
-        if (!$name = basename($temporaryPath)) {
-            throw new RuntimeException('An empty display name was generated.');
         }
 
         if ($dataIsFile) {
@@ -185,7 +181,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
         }
 
-        return new DataUri($filePath, $name, $size, $type, $hasRandomDisplayName ? null : $name);
+        return new DataUri($filePath, $hasRandomDisplayName ? null : dirname($filePath), $name, $size, $type);
     }
 
     public function decodeBase64(

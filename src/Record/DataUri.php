@@ -6,11 +6,11 @@ use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\RuntimeException;
-use OneToMany\DataUri\Helper\FilenameHelper;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function array_filter;
+use function basename;
 use function file_exists;
 use function file_get_contents;
 use function hash_file;
@@ -25,14 +25,13 @@ class DataUri implements DataUriInterface
      * @param non-empty-string $path
      * @param non-empty-string $name
      * @param non-negative-int $size
-     * @param ?non-empty-string $source
      */
     public function __construct(
         public readonly string $path,
+        public readonly ?string $dir,
         public readonly string $name,
         public readonly int $size,
         public readonly Type $type,
-        public readonly ?string $source = null,
     ) {
     }
 
@@ -156,14 +155,6 @@ class DataUri implements DataUriInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\DataUriInterface
      */
-    public function getSource(): ?string
-    {
-        return $this->source;
-    }
-
-    /**
-     * @see OneToMany\DataUri\Contract\Record\DataUriInterface
-     */
     public function equals(DataUriInterface $file, bool $strict = false): bool
     {
         return $this->hash === $file->getHash() ? (!$strict ?: $this->path === $file->getPath()) : false;
@@ -245,16 +236,10 @@ class DataUri implements DataUriInterface
 
     /**
      * @return non-empty-string
-     *
-     * @throws RuntimeException when generating a key fails
      */
     private function generateKey(): string
     {
-        try {
-            $prefix = null !== $this->source ? FilenameHelper::generate(6) : '';
-        } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->name), previous: $e);
-        }
+        $prefix = !empty($this->dir) ? basename($this->dir) : '';
 
         return implode('/', array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), $prefix, $this->name]));
     }
@@ -266,6 +251,12 @@ class DataUri implements DataUriInterface
         try {
             if ($fs->exists($this->path)) {
                 $fs->remove($this->path);
+            }
+
+            if (!empty($this->dir)) {
+                if ($fs->exists($this->dir)) {
+                    $fs->remove($this->dir);
+                }
             }
         } catch (FilesystemExceptionInterface) {
         }

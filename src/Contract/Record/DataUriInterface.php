@@ -51,11 +51,6 @@ interface DataUriInterface extends \Stringable
     public string $format { get; }
 
     /**
-     * @var ?non-empty-string
-     */
-    public ?string $source { get; }
-
-    /**
      * @return non-empty-lowercase-string
      *
      * @throws RuntimeException when generating the hash fails
@@ -96,11 +91,6 @@ interface DataUriInterface extends \Stringable
      * @return non-empty-lowercase-string
      */
     public function getFormat(): string;
-
-    /**
-     * @return ?non-empty-string
-     */
-    public function getSource(): ?string;
 
     /**
      * Determines if two `DataUriInterface` instances are equal.
