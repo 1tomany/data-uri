@@ -35,7 +35,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @var ?non-empty-string
      */
-    private readonly ?string $root;
+    private readonly ?string $base;
 
     /**
      * @var non-empty-string
@@ -63,7 +63,7 @@ class TemporaryFile implements TemporaryFileInterface
 
     public function __construct(
         string $path,
-        ?string $root,
+        ?string $base,
         string $name,
         int $size,
         Type $type,
@@ -78,7 +78,7 @@ class TemporaryFile implements TemporaryFileInterface
             throw new InvalidArgumentException(sprintf('The path "%s" cannot be a directory or link.', $this->path));
         }
 
-        $this->root = $this->validateRoot($this->path, $root);
+        $this->base = $this->validateBase($this->path, $base);
 
         if (is_empty($name = trim($name))) {
             throw new InvalidArgumentException('The name cannot be empty.');
@@ -99,7 +99,7 @@ class TemporaryFile implements TemporaryFileInterface
 
         $this->key = $this->generateKey(...[
             'hash' => $this->getHash(),
-            'root' => $this->getRoot(),
+            'root' => $this->getBase(),
             'name' => $this->getName(),
         ]);
 
@@ -130,9 +130,9 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
-    public function getRoot(): ?string
+    public function getBase(): ?string
     {
-        return $this->root;
+        return $this->base;
     }
 
     /**
@@ -320,29 +320,29 @@ class TemporaryFile implements TemporaryFileInterface
      *
      * @return ?non-empty-string
      *
-     * @throws InvalidArgumentException when the root directory is empty
-     * @throws InvalidArgumentException when the root directory is not an absolute path
-     * @throws InvalidArgumentException when the path is not a direct child of the root
+     * @throws InvalidArgumentException when the base directory is empty
+     * @throws InvalidArgumentException when the base directory is not an absolute path
+     * @throws InvalidArgumentException when the path is not a direct child of the base
      */
-    private function validateRoot(string $path, ?string $root): ?string
+    private function validateBase(string $path, ?string $base): ?string
     {
-        if (null === $root) {
+        if (null === $base) {
             return null;
         }
 
-        if (!is_empty($root = trim($root), false)) {
-            if (!Path::isAbsolute($root)) {
-                throw new InvalidArgumentException(sprintf('The root directory "%s" must be a non-empty absolute path.', $root));
+        if (!is_empty($base = trim($base), false)) {
+            if (!Path::isAbsolute($base)) {
+                throw new InvalidArgumentException(sprintf('The base directory "%s" must be a non-empty absolute path.', $base));
             }
 
-            $root = Path::canonicalize($root);
+            $base = Path::canonicalize($base);
 
-            if ($root !== Path::getDirectory(Path::canonicalize($path))) {
-                throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the root "%s".', $path, $root));
+            if ($base !== Path::getDirectory(Path::canonicalize($path))) {
+                throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the base directory "%s".', $path, $base));
             }
         }
 
-        return is_empty($root, false) ? null : $root;
+        return '' === $base ? null : $base;
     }
 
     private function cleanup(bool $throw): void
@@ -355,9 +355,9 @@ class TemporaryFile implements TemporaryFileInterface
             $error = sprintf('Deleting the file "%s" failed.', $this->path);
         }
 
-        if (!isset($error) && null !== $this->root) {
-            if (file_exists($this->root) && !@rmdir($this->root)) {
-                $error = sprintf('Removing the root directory "%s" failed.', $this->root);
+        if (!isset($error) && null !== $this->base) {
+            if (file_exists($this->base) && !@rmdir($this->base)) {
+                $error = sprintf('Removing the root directory "%s" failed.', $this->base);
             }
         }
 

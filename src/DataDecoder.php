@@ -112,7 +112,7 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        $_path = $_root = '';
+        $_path = $_base = '';
 
         // Generate a random file name
         // $tempName = FilenameHelper::generate(12);
@@ -149,14 +149,14 @@ final class DataDecoder
                 // Generate a random display name
                 $_name = FilenameHelper::generate(12);
             } else {
-                $_root = FilenameHelper::generate(6);
+                $_base = FilenameHelper::generate(6);
             }
         } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', ltrim($e->getMessage(), '.')), previous: $e);
         }
 
         try {
-            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_root, $_name);
+            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_base, $_name);
         } catch (FilesystemExceptionInterface $e) {
         }
 
@@ -164,8 +164,8 @@ final class DataDecoder
             throw new RuntimeException('Generating the temporary path failed.', previous: $e ?? null);
         }
 
-        if ('' !== $_root) {
-            $_root = Path::getDirectory($_path);
+        if ('' !== $_base) {
+            $_base = Path::getDirectory($_path);
         }
 
         if ($dataIsFile || $dataIsUrl) {
@@ -223,7 +223,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $_path));
         }
 
-        return new TemporaryFile($_path, $_root, $_name, $_size, $_type);
+        return new TemporaryFile($_path, $_base, $_name, $_size, $_type);
     }
 
     public function decodeBase64(

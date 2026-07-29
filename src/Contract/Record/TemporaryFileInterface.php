@@ -22,7 +22,7 @@ interface TemporaryFileInterface extends \Stringable
     /**
      * @return ?non-empty-string
      */
-    public function getRoot(): ?string;
+    public function getBase(): ?string;
 
     /**
      * @return non-empty-string
