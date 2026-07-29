@@ -42,14 +42,15 @@ use const PHP_MAXPATHLEN;
 final class DataDecoder
 {
     /**
-     * Root temporary file directory.
+     * Root directory where all temporary files are stored.
      *
      * @var non-empty-string
      */
-    private readonly string $tempDir;
+    private readonly string $temporaryDirectory;
 
     /**
-     * Directory where all temporary files are stored.
+     * Sub-directory within the temporary directory
+     * where all directories and files are stored.
      *
      * @var non-empty-string
      */
@@ -58,19 +59,24 @@ final class DataDecoder
     /**
      * @throws RuntimeException when the temporary directory is empty
      * @throws InvalidArgumentException when the temporary directory is not writable
+     * @throws InvalidArgumentException when the temporary directory is not an absolute path
      */
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
-        if ('' === $tempDir = sys_get_temp_dir()) {
+        if (!$temporaryDirectory = sys_get_temp_dir()) {
             throw new RuntimeException('The temporary directory cannot be empty.');
         }
 
-        $this->tempDir = $tempDir;
-
-        if (!is_writable($this->tempDir)) {
-            throw new InvalidArgumentException(sprintf('The temp dir "%s" is not writable.', $this->tempDir));
+        if (!is_writable($temporaryDirectory)) {
+            throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not writable.', $temporaryDirectory));
         }
+
+        if (!$this->filesystem->isAbsolutePath($temporaryDirectory)) {
+            throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not an absolute path.', $temporaryDirectory));
+        }
+
+        $this->temporaryDirectory = $temporaryDirectory;
     }
 
     public function decode(
@@ -137,7 +143,7 @@ final class DataDecoder
             }
 
             /** @var non-empty-string $temporaryPath */
-            $temporaryPath = Path::join($this->tempDir, '1tomany', !$hasRandomDisplayName ? FilenameHelper::generate(6) : '', $name);
+            $temporaryPath = Path::join($this->temporaryDirectory, self::LIBRARY_DIRECTORY, !$hasRandomDisplayName ? FilenameHelper::generate(6) : '', $name);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
