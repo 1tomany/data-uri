@@ -81,8 +81,8 @@ final class DataDecoder
 
     public function decode(
         mixed $data,
-        ?string $name = null,
         string|Type|null $type = null,
+        ?string $name = null,
     ): DataUriInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
@@ -218,7 +218,7 @@ final class DataDecoder
         string|Type $type,
         ?string $name = null,
     ): DataUriInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $name, $type);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $type, $name);
     }
 
     /**

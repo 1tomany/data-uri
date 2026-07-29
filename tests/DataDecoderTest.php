@@ -92,14 +92,14 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingDataCanSetName(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.txt');
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', name: 'Hello_World.txt');
 
         $this->assertEquals('Hello_World.txt', $file->name);
     }
 
     public function testDecodingDataCanSetType(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.md', 'text/markdown');
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'text/markdown', 'Hello_World.md');
 
         $this->assertSame(Type::Markdown, $file->getType());
     }
@@ -139,19 +139,19 @@ final class DataDecoderTest extends TestCase
     public static function providerDataAndMetadata(): array
     {
         $provider = [
-            ['data:,Test', 4, 'text/plain'],
-            ['data:text/plain,Test', 4, 'text/plain'],
-            ['data:text/plain;charset=US-ASCII,Hello%20world', 11, 'text/plain'],
-            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
-            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
-            ['data:application/json,%7B%22id%22%3A10%7D', 9, 'application/json'],
-            ['data:application/json;base64,eyJpZCI6MTB9', 9, 'application/json'],
+            ['data:,Test', 4, Type::Txt->getFormat()],
+            ['data:text/plain,Test', 4, Type::Txt->getFormat()],
+            ['data:text/plain;charset=US-ASCII,Hello%20world', 11, Type::Txt->getFormat()],
+            ['data:;base64,SGVsbG8sIHdvcmxkIQ==', 13, Type::Txt->getFormat()],
+            ['data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==', 13, Type::Txt->getFormat()],
+            ['data:application/json,%7B%22id%22%3A10%7D', 9, Type::Json->getFormat()],
+            ['data:application/json;base64,eyJpZCI6MTB9', 9, Type::Json->getFormat()],
 
             // 1x1 Transparent GIF
-            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
+            ['data:image/gif;base64,R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, Type::Gif->getFormat()],
 
             // @see https://stackoverflow.com/questions/17279712/what-is-the-smallest-possible-valid-pdf#comment59467299_17280876
-            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 67, 'application/pdf'],
+            ['data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==', 67, Type::Pdf->getFormat()],
         ];
 
         return $provider;
@@ -178,10 +178,10 @@ final class DataDecoderTest extends TestCase
     public static function providerFileAndMetadata(): array
     {
         return [
-            [__DIR__.'/.data/pdf-small.pdf', 36916, 'application/pdf'],
-            [__DIR__.'/.data/png-small.png', 10289, 'image/png'],
-            [__DIR__.'/.data/text-small.txt', 86, 'text/plain'],
-            [__DIR__.'/.data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            [__DIR__.'/.data/pdf-small.pdf', 36916, Type::Pdf->getFormat()],
+            [__DIR__.'/.data/png-small.png', 10289, Type::Png->getFormat()],
+            [__DIR__.'/.data/text-small.txt', 86, Type::Txt->getFormat()],
+            [__DIR__.'/.data/word-small.docx', 6657, Type::Docx->getFormat()],
         ];
     }
 
@@ -216,10 +216,10 @@ final class DataDecoderTest extends TestCase
     public static function providerBase64DataAndMetadata(): array
     {
         $provider = [
-            ['eyJpZCI6MTB9', 9, 'application/json'],
-            ['SGVsbG8sIHdvcmxkIQ==', 13, 'text/plain'],
-            ['R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, 'image/gif'],
-            ['iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 68, 'image/png'],
+            ['eyJpZCI6MTB9', 9, Type::Json->getFormat()],
+            ['SGVsbG8sIHdvcmxkIQ==', 13, Type::Txt->getFormat()],
+            ['R0lGODdhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 43, Type::Gif->getFormat()],
+            ['iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 68, Type::Png->getFormat()],
         ];
 
         return $provider;
