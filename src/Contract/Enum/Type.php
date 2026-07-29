@@ -3,6 +3,7 @@
 namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
+use function is_object;
 use function mime_content_type;
 use function strtolower;
 use function strtoupper;
@@ -50,6 +51,10 @@ enum Type
 
     public static function create(string|self|null $type): self
     {
+        if (is_object($type)) {
+            return $type;
+        }
+
         $default = self::Other;
 
         if (null === $type) {

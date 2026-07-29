@@ -268,22 +268,6 @@ final class DataDecoder
         }
     }
 
-    /**
-     * @return non-empty-string
-     */
-    private function createRootDirectory(): string
-    {
-        $rootDirectory = Path::join($this->rootDirectory, self::FILE_DIRECTORY, FilenameHelper::generate(6));
-
-        try {
-            $this->filesystem->mkdir($rootDirectory, 0700);
-        } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException('Creating the root directory "%s" failed.', $rootDirectory, previous: $e);
-        }
-
-        return $rootDirectory;
-    }
-
     private function rollback(string $ownedDirectory, ?string ...$paths): void
     {
         $ownedDirectory = Path::canonicalize($ownedDirectory);
