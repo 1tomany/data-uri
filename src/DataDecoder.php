@@ -4,27 +4,33 @@ namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
-use OneToMany\DataUri\Contract\Record\DataUriInterface;
+use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Helper\FilenameHelper;
-use OneToMany\DataUri\Record\DataUri;
+use OneToMany\DataUri\Record\TemporaryFile;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function array_diff;
 use function ctype_print;
+use function dirname;
+use function file_exists;
 use function filesize;
 use function filter_var;
 use function fopen;
 use function implode;
 use function is_dir;
 use function is_file;
+use function is_link;
 use function is_readable;
 use function is_string;
 use function is_writable;
+use function mkdir;
+use function OneToMany\IsEmpty\is_empty;
 use function parse_url;
+use function rmdir;
 use function rtrim;
 use function sprintf;
 use function stream_get_contents;
@@ -32,6 +38,7 @@ use function stream_get_wrappers;
 use function strlen;
 use function sys_get_temp_dir;
 use function trim;
+use function unlink;
 
 use const FILTER_VALIDATE_URL;
 use const PHP_MAXPATHLEN;
@@ -54,12 +61,12 @@ final class DataDecoder
         mixed $data,
         ?string $name = null,
         string|Type|null $type = null,
-    ): DataUriInterface {
+    ): TemporaryFileInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
         }
 
-        if (empty($data = trim($data))) {
+        if (is_empty($data = trim($data), false)) {
             throw new InvalidArgumentException('The data cannot be empty.');
         }
 
@@ -107,89 +114,98 @@ final class DataDecoder
             $displayName = basename($displayName);
         }
 
+        $ownedDirectory = $this->createOwnedDirectory();
+        $tempPath = $path = null;
+
         try {
-            /** @var non-empty-string $tempPath */
-            $tempPath = Path::join($this->tempDir, $tempName);
-        } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-        }
-
-        if ($dataIsFile) {
             try {
-                // Copy the data to the temporary file
-                $this->filesystem->copy($data, $tempPath, true);
+                /** @var non-empty-string $tempPath */
+                $tempPath = Path::join($ownedDirectory, $tempName);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
-            }
-        } else {
-            // Ensure data, file, http, and https streams are registered
-            $this->assertStreamsAreRegistered(['data', 'file', 'http', 'https']);
-
-            // Read, decode, and stream the data
-            if (!$stream = @fopen($data, 'rb')) {
-                throw new InvalidArgumentException('Decoding the data stream failed.');
+                throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
             }
 
-            if (false === $contents = stream_get_contents($stream)) {
-                throw new RuntimeException('Reading the stream contents failed.');
-            }
-
-            try {
-                // Write the streamed data to the temporary file
-                $this->filesystem->dumpFile($tempPath, $contents);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempPath), previous: $e);
-            }
-        }
-
-        // Determine the file type
-        if ($type && is_string($type)) {
-            $type = Type::create($type);
-        }
-
-        if (!$type instanceof Type) {
-            $type = Type::createFromPath(...[
-                'path' => $tempPath,
-            ]);
-        }
-
-        if ($extension = $type->getExtension()) {
-            try {
-                /** @var non-empty-string $tempName */
-                $tempName = Path::changeExtension($tempName, $extension);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-            }
-
-            /** @var non-empty-string $path */
-            $path = Path::join(Path::getDirectory($tempPath), $tempName);
-
-            try {
-                // Rename the temporary file with an extension
-                $this->filesystem->rename($tempPath, $path, true);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $tempPath, $path), previous: $e);
-            }
-        } else {
             $path = $tempPath;
+
+            if ($dataIsFile) {
+                try {
+                    // Copy the data to the temporary file
+                    $this->filesystem->copy($data, $tempPath, true);
+                } catch (FilesystemExceptionInterface $e) {
+                    throw new RuntimeException(sprintf('Copying "%s" to "%s" failed.', $data, $tempPath), previous: $e);
+                }
+            } else {
+                // Ensure data, file, http, and https streams are registered
+                $this->assertStreamsAreRegistered(['data', 'file', 'http', 'https']);
+
+                // Read, decode, and stream the data
+                if (!$stream = @fopen($data, 'rb')) {
+                    throw new InvalidArgumentException('Decoding the data stream failed.');
+                }
+
+                if (false === $contents = stream_get_contents($stream)) {
+                    throw new RuntimeException('Reading the stream contents failed.');
+                }
+
+                try {
+                    // Write the streamed data to the temporary file
+                    $this->filesystem->dumpFile($tempPath, $contents);
+                } catch (FilesystemExceptionInterface $e) {
+                    throw new RuntimeException(sprintf('Writing the data to the file "%s" failed.', $tempPath), previous: $e);
+                }
+            }
+
+            // Determine the file type
+            if ($type && is_string($type)) {
+                $type = Type::create($type);
+            }
+
+            if (!$type instanceof Type) {
+                $type = Type::createFromPath(...[
+                    'path' => $tempPath,
+                ]);
+            }
+
+            if ($extension = $type->getExtension()) {
+                try {
+                    /** @var non-empty-string $tempName */
+                    $tempName = Path::changeExtension($tempName, $extension);
+                } catch (FilesystemExceptionInterface $e) {
+                    throw new RuntimeException(sprintf('Generating a temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
+                }
+
+                /** @var non-empty-string $path */
+                $path = Path::join($ownedDirectory, $tempName);
+
+                try {
+                    // Rename the temporary file with an extension
+                    $this->filesystem->rename($tempPath, $path, true);
+                } catch (FilesystemExceptionInterface $e) {
+                    throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $tempPath, $path), previous: $e);
+                }
+            }
+
+            /** @var non-empty-string $displayName */
+            $displayName = basename($displayName ?: $path);
+
+            // Ensure the filesize can be calculated
+            if (false === $size = @filesize($path)) {
+                throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
+            }
+
+            return new TemporaryFile($path, $ownedDirectory, $displayName, $size, $type);
+        } catch (\Throwable $e) {
+            $this->rollback($ownedDirectory, $tempPath, $path);
+
+            throw $e;
         }
-
-        /** @var non-empty-string $displayName */
-        $displayName = basename($displayName ?: $path);
-
-        // Ensure the filesize can be calculated
-        if (false === $size = @filesize($path)) {
-            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $path));
-        }
-
-        return new DataUri($path, $displayName, $size, $type, ($dataIsUrl || $dataIsFile) ? $data : null);
     }
 
     public function decodeBase64(
         string $data,
         string|Type $format,
         ?string $name = null,
-    ): DataUriInterface {
+    ): TemporaryFileInterface {
         return $this->decode(sprintf('data:%s;base64,%s', $format instanceof Type ? $format->getFormat() : $format, $data), $name, $format);
     }
 
@@ -197,7 +213,7 @@ final class DataDecoder
         string $text,
         string|Type $type = Type::Txt,
         ?string $name = null,
-    ): DataUriInterface {
+    ): TemporaryFileInterface {
         if (!$type instanceof Type) {
             $type = Type::create($type);
         }
@@ -229,5 +245,42 @@ final class DataDecoder
         if ([] !== $missingStreams = array_diff($streams, stream_get_wrappers())) {
             throw new RuntimeException(sprintf('The following streams are not registered in this environment: "%s".', implode('", "', $missingStreams)));
         }
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private function createOwnedDirectory(): string
+    {
+        for ($attempt = 0; $attempt < 10; ++$attempt) {
+            $ownedDirectory = Path::join($this->tempDir, FilenameHelper::generate(20));
+
+            if (@mkdir($ownedDirectory, 0700)) {
+                return $ownedDirectory;
+            }
+        }
+
+        throw new RuntimeException('Creating a unique temporary directory failed.');
+    }
+
+    private function rollback(string $ownedDirectory, ?string ...$paths): void
+    {
+        $ownedDirectory = Path::canonicalize($ownedDirectory);
+
+        if (Path::canonicalize($this->tempDir) !== dirname($ownedDirectory)) {
+            return;
+        }
+
+        foreach ($paths as $path) {
+            if (null === $path || $ownedDirectory !== dirname(Path::canonicalize($path))) {
+                continue;
+            }
+
+            if ((file_exists($path) || is_link($path)) && (!is_dir($path) || is_link($path))) {
+                @unlink($path);
+            }
+        }
+
+        @rmdir($ownedDirectory);
     }
 }

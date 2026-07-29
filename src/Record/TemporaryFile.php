@@ -95,9 +95,7 @@ class TemporaryFile implements TemporaryFileInterface
             'path' => $this->path,
         ]);
 
-        $this->key = $this->generateKey(
-            $this->hash, $this->root, $this->name,
-        );
+        $this->key = $this->generateKey($this->hash, $this->root, $this->name);
     }
 
     public function __destruct()
@@ -262,11 +260,14 @@ class TemporaryFile implements TemporaryFileInterface
 
     /**
      * @return non-empty-lowercase-string
+     *
+     * @throws RuntimeException when generating a hash of the file fails
+     * @throws RuntimeException when the length of the hash is too short
      */
     private function generateHash(string $path): string
     {
         if (!$hash = @hash_file('sha256', $path)) {
-            throw new RuntimeException(sprintf('Generating the hash of the file "%s" failed.', $path));
+            throw new RuntimeException(sprintf('Generating a hash of the file "%s" failed.', $path));
         }
 
         if (strlen($hash) < TemporaryFileInterface::MINIMUM_HASH_LENGTH) {
@@ -308,6 +309,7 @@ class TemporaryFile implements TemporaryFileInterface
      *
      * @return ?non-empty-string
      *
+     * @throws InvalidArgumentException when the root directory is empty
      * @throws InvalidArgumentException when the root directory is not an absolute path
      * @throws InvalidArgumentException when the path is not a direct child of the root
      */
@@ -317,19 +319,19 @@ class TemporaryFile implements TemporaryFileInterface
             return null;
         }
 
-        $root = trim($root);
+        if (!is_empty($root = trim($root), false)) {
+            if (!Path::isAbsolute($root)) {
+                throw new InvalidArgumentException(sprintf('The root directory "%s" must be a non-empty absolute path.', $root));
+            }
 
-        if (is_empty($root, false) || !Path::isAbsolute($root)) {
-            throw new InvalidArgumentException('The root directory must be a non-empty absolute path.');
+            $root = Path::canonicalize($root);
+
+            if ($root !== Path::getDirectory(Path::canonicalize($path))) {
+                throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the root "%s".', $path, $root));
+            }
         }
 
-        $root = Path::canonicalize($root);
-
-        if ($root !== Path::getDirectory(Path::canonicalize($path))) {
-            throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the root "%s".', $path, $root));
-        }
-
-        return is_empty($root) ? null : $root;
+        return is_empty($root, false) ? null : $root;
     }
 
     private function cleanup(bool $throw): void

@@ -15,7 +15,6 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function array_rand;
-use function assert;
 use function random_bytes;
 use function sprintf;
 use function sys_get_temp_dir;
@@ -105,13 +104,6 @@ final class DataDecoderTest extends TestCase
         $this->assertSame(Type::Markdown, $file->getType());
     }
 
-    public function testDecodingPathSetsSourceToPath(): void
-    {
-        $path = __DIR__.'/.data/pdf-small.pdf';
-
-        $this->assertEquals($path, new DataDecoder()->decode($path)->getSource());
-    }
-
     public function testDecodingFileWithoutNameUsesFileName(): void
     {
         $name = sprintf('%s.txt', __FUNCTION__);
@@ -139,7 +131,6 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
-        $this->assertNull($file->getSource());
     }
 
     /**
@@ -179,7 +170,6 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
-        $this->assertEquals($data, $file->getSource());
     }
 
     /**
