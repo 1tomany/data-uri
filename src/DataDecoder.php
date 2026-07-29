@@ -164,6 +164,10 @@ final class DataDecoder
             throw new RuntimeException('Generating the temporary path failed.', previous: $e ?? null);
         }
 
+        if ('' !== $_root) {
+            $_root = Path::getDirectory($_path);
+        }
+
         if ($dataIsFile || $dataIsUrl) {
             $this->assertStreamsAreRegistered(['http', 'https']);
 
