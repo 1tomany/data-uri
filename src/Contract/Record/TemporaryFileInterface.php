@@ -15,11 +15,6 @@ interface TemporaryFileInterface extends \Stringable
     public const int MINIMUM_HASH_LENGTH = 4;
 
     /**
-     * @return non-empty-lowercase-string
-     */
-    public function getHash(): string;
-
-    /**
      * @return non-empty-string
      */
     public function getPath(): string;
@@ -52,12 +47,20 @@ interface TemporaryFileInterface extends \Stringable
     public function getFormat(): string;
 
     /**
+     * @return non-empty-lowercase-string
+     */
+    public function getHash(): string;
+
+    /**
      * @return non-empty-string
      */
     public function getKey(): string;
 
     /**
      * Determines if two instances are equal.
+     *
+     * @param bool $strict If true, each object must represent the same file.
+     *                     If false, each object must have an identical hash.
      */
     public function equals(self $file, bool $strict = false): bool;
 
@@ -83,7 +86,7 @@ interface TemporaryFileInterface extends \Stringable
     /**
      * Returns the contents of file as a data URI as defined in RFC 2397.
      *
-     * @link https://www.rfc-editor.org/rfc/rfc2397.html
+     * @see https://www.rfc-editor.org/rfc/rfc2397.html
      *
      * @return non-empty-string
      *
@@ -106,7 +109,9 @@ interface TemporaryFileInterface extends \Stringable
     public function detach(): string;
 
     /**
-     * If true, all files and directories represented by the object will be automatically deleted when the destructor is called. If false, the caller is responsible for deleting any filesystem references.
+     * If true, all files and directories managed by the object will
+     * be deleted when the destructor is called. If false, the caller
+     * is responsible for deleting any data referenced by this object.
      */
     public function isManaged(): bool;
 }
