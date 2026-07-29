@@ -239,12 +239,9 @@ class DataUri implements DataUriInterface
      */
     private function generateKey(): string
     {
-        $prefix = !empty($this->dir) ? basename($this->dir) : '';
-
         try {
-            $keyBits = array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), $prefix, $this->name]);
+            $keyBits = array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), basename((string) $this->dir), $this->name]);
         } catch (DataUriExceptionInterface $e) {
-            // throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->name), previous: $e);
         }
 
         if ('' === $key = implode('/', $keyBits ?? [])) {
