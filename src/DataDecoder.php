@@ -41,12 +41,32 @@ use const PHP_MAXPATHLEN;
 
 final class DataDecoder
 {
+    /**
+     * Root temporary file directory.
+     *
+     * @var non-empty-string
+     */
     private readonly string $tempDir;
 
+    /**
+     * Directory where all temporary files are stored.
+     *
+     * @var non-empty-string
+     */
+    public const string LIBRARY_DIRECTORY = '1tomany';
+
+    /**
+     * @throws RuntimeException when the temporary directory is empty
+     * @throws InvalidArgumentException when the temporary directory is not writable
+     */
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
-        $this->tempDir = sys_get_temp_dir();
+        if ('' === $tempDir = sys_get_temp_dir()) {
+            throw new RuntimeException('The temporary directory cannot be empty.');
+        }
+
+        $this->tempDir = $tempDir;
 
         if (!is_writable($this->tempDir)) {
             throw new InvalidArgumentException(sprintf('The temp dir "%s" is not writable.', $this->tempDir));
@@ -88,14 +108,8 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // Sanitize a user provieded name
-        if ($name = trim((string) $name)) {
-            // Replace multiple periods with a single period
-            // and remove any unsafe characters from the name
-            if ($name = preg_replace('/\.{2,}/', '.', $name)) {
-                $name = preg_replace('/[^.A-Za-z0-9_-]/', '', $name);
-            }
-        }
+        // Determine a file name
+        $name = trim((string) $name);
 
         // Use the path for the name
         if (!$name && $dataIsFile) {
@@ -109,6 +123,12 @@ final class DataDecoder
             if (is_string($urlBits['path'] ?? null)) {
                 $name = basename($urlBits['path']);
             }
+        }
+
+        // Replace multiple periods with a single period
+        // and remove any unsafe characters from the name
+        if ($name = preg_replace('/\.{2,}/', '.', $name)) {
+            $name = preg_replace('/[^.A-Za-z0-9_-]/', '', $name);
         }
 
         try {
