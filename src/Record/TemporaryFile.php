@@ -68,7 +68,7 @@ class TemporaryFile implements TemporaryFileInterface
         int $size,
         Type $type,
     ) {
-        if ('' === Path::canonicalize(trim($path))) {
+        if ('' === $path = Path::canonicalize(trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
 
@@ -78,9 +78,11 @@ class TemporaryFile implements TemporaryFileInterface
             throw new InvalidArgumentException(sprintf('The path "%s" cannot be a directory or link.', $this->path));
         }
 
-        $this->base = $this->validateBase($this->path, $base);
+        $this->base = $this->validateBase(
+            $this->getPath(), base: $base,
+        );
 
-        if (is_empty($name = trim($name))) {
+        if ('' === $name = trim($name)) {
             throw new InvalidArgumentException('The name cannot be empty.');
         }
 
@@ -336,10 +338,6 @@ class TemporaryFile implements TemporaryFileInterface
             }
 
             $base = Path::canonicalize($base);
-
-            if ($base === $path) {
-                return null;
-            }
 
             if ($base !== Path::getDirectory($path)) {
                 throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the base directory "%s".', $path, $base));

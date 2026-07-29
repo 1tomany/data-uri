@@ -87,7 +87,7 @@ final class DataDecoder
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
         }
 
-        if (is_empty($data = trim($data), false)) {
+        if ('' === $data = trim($data)) {
             throw new InvalidArgumentException('The data cannot be empty.');
         }
 
@@ -113,7 +113,7 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        $_path = $_base = '';
+        $_base = '';
 
         // Generate a random file name
         // $tempName = FilenameHelper::generate(12);
@@ -146,12 +146,12 @@ final class DataDecoder
         ]);
 
         try {
-            if (null === $_name) {
-                // Generate a random display name
-                $_name = FilenameHelper::generate(12);
-            } else {
-                $_base = FilenameHelper::generate(6);
+            if ('' === $_base && null !== $_name) {
+                $_base = \bin2hex(\random_bytes(3));
             }
+
+            // Generate a random display name
+            $_name ??= FilenameHelper::generate(12);
         } catch (DataUriExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', ltrim($e->getMessage(), '.')), previous: $e);
         }
@@ -164,8 +164,10 @@ final class DataDecoder
 
         assert('' !== $_path);
 
-        // Generate the base directory
-        $_base = Path::getDirectory($_path);
+        // Generate an absolute base directory
+        if (false === is_empty($_base, false)) {
+            $_base = Path::getDirectory($_path);
+        }
 
         if ($dataIsFile || $dataIsUrl) {
             $this->assertStreamsAreRegistered(['http', 'https']);
