@@ -72,7 +72,7 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not writable.', $temporaryDirectory));
         }
 
-        if (!$this->filesystem->isAbsolutePath($temporaryDirectory)) {
+        if (!Path::isAbsolute($temporaryDirectory)) {
             throw new InvalidArgumentException(sprintf('The temporary directory "%s" is not an absolute path.', $temporaryDirectory));
         }
 
