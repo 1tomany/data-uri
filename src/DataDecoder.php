@@ -14,7 +14,6 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function array_diff;
-use function assert;
 use function ctype_print;
 use function dirname;
 use function file_exists;
@@ -22,6 +21,7 @@ use function filesize;
 use function filter_var;
 use function fopen;
 use function implode;
+use function is_array;
 use function is_dir;
 use function is_file;
 use function is_link;
@@ -113,51 +113,40 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
         }
 
-        // $_base = null;
-
-        // Generate a random file name
-        // $tempName = FilenameHelper::generate(12);
-
         // Determine the display name
-        $_name = trim((string) $name);
+        $displayName = trim((string) $name);
 
-        // If a name was not provided but a
-        // file path was, use the name found
-        // in the path as the display name
-        if ('' === $_name && $dataIsFile) {
-            $_name = basename($data);
+        // Basename of the file as the display name
+        if ('' === $displayName && $dataIsFile) {
+            $displayName = basename($data);
         }
 
-        // If a name was not provided but a
-        // URL was, extract the path from the
-        // URL and use it for the display name
-        if ('' === $_name && $dataIsUrl) {
-            $urlBits = parse_url($data);
-
-            if (isset($urlBits['path'])) {
-                $_name = $urlBits['path'];
+        // Basename of the URL as the display name
+        if ('' === $displayName && $dataIsUrl) {
+            if (is_array($urlBits = parse_url($data))) {
+                if (true === isset($urlBits['path'])) {
+                    $displayName = $urlBits['path'];
+                }
             }
-
-            $_name = basename($_name);
         }
 
-        $_name = FilenameHelper::sanitize(...[
-            'filename' => trim($_name),
+        $displayName = FilenameHelper::sanitize(...[
+            'filename' => trim($displayName),
         ]);
 
         // Generate a base directory if a valid
         // display name is used to avoid clashes
-        if (false === is_empty($_name, false)) {
+        if (false === is_empty($displayName, false)) {
             $_base = FilenameHelper::generate(6);
         }
 
         // Generate a random display name
-        if (true === is_empty($_name, false)) {
-            $_name = FilenameHelper::generate(12);
+        if (true === is_empty($displayName, false)) {
+            $displayName = FilenameHelper::generate(12);
         }
 
         try {
-            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_base ?? '', $_name);
+            $_path = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $_base ?? '', $displayName);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException('Generating the temporary path failed.', previous: $e);
         } finally {
@@ -166,7 +155,9 @@ final class DataDecoder
             }
         }
 
-        assert('' !== $_path);
+        if ('' === $_path) {
+            throw new RuntimeException('An empty file path was generated.');
+        }
 
         // Generate an absolute base directory
         if (false === is_empty($_base, false)) {
@@ -211,16 +202,18 @@ final class DataDecoder
         }
 
         if ($extension = $_type->getExtension()) {
-            // $_path = FilenameHelper::changeExtension(
-            //     $_path, $extension, lowercase: true,
-            // );
+            $dest = FilenameHelper::changeExtension(
+                $_path, $extension, lowercase: true,
+            );
 
-            // try {
-            //     // Rename the temporary file with an extension
-            //     $this->filesystem->rename($tempPath, $path, true);
-            // } catch (FilesystemExceptionInterface $e) {
-            //     throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $tempPath, $path), previous: $e);
-            // }
+            try {
+                // Rename the temporary file with an extension
+                $this->filesystem->rename($_path, $dest, true);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Renaming the file "%s" to "%s" failed.', $_path, $dest), previous: $e);
+            }
+
+            $_path = $dest;
         }
 
         // Ensure the filesize can be calculated
@@ -228,7 +221,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $_path));
         }
 
-        return new TemporaryFile($_path, $_base, $_name, $_size, $_type);
+        return new TemporaryFile($_path, $_base, $displayName, $_size, $_type);
     }
 
     public function decodeBase64(
