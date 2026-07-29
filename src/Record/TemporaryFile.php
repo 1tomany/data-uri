@@ -73,9 +73,11 @@ class TemporaryFile implements TemporaryFileInterface
 
         $this->path = $path;
 
-        $this->root = $this->validateRoot(
-            path: $this->path, root: $root,
-        );
+        if (is_dir($this->path) || is_link($this->path)) {
+            throw new InvalidArgumentException(sprintf('The path "%s" cannot be a directory or link.', $this->path));
+        }
+
+        $this->root = $this->validateRoot($this->path, $root);
 
         if (is_empty($name = trim($name))) {
             throw new InvalidArgumentException('The name cannot be empty.');
@@ -331,29 +333,25 @@ class TemporaryFile implements TemporaryFileInterface
 
     private function cleanup(bool $throw): void
     {
-        if (!$this->isManaged()) {
-            return;
-        }
+        $exception = null;
 
-        $failure = null;
-
-        if (file_exists($this->getPath()) || is_link($this->getPath())) {
-            if (is_dir($this->getPath()) && !is_link($this->getPath())) {
-                $failure = new RuntimeException(sprintf('Refusing to recursively delete the directory at temporary file path "%s".', $this->getPath()));
-            } elseif (!@unlink($this->getPath())) {
-                $failure = new RuntimeException(sprintf('Deleting the temporary file "%s" failed.', $this->getPath()));
+        if (file_exists($this->path)) {
+            if (!@unlink($this->path)) {
+                $exception = new RuntimeException(sprintf('Deleting the file "%s" failed.', $this->path));
             }
         }
 
-        if (null === $failure && null !== $this->getRoot() && is_dir($this->getRoot()) && !@rmdir($this->getRoot())) {
-            $failure = new RuntimeException(sprintf('Removing the temporary directory "%s" failed because it is not empty or is not removable.', $this->getRoot()));
+        if (null === $exception && null !== $this->root) {
+            if (file_exists($this->root) && !@rmdir($this->root)) {
+                $exception = new RuntimeException(sprintf('Removing the root directory "%s" failed.', $this->root));
+            }
         }
 
-        if (null === $failure) {
+        if (null === $exception) {
             $this->detach();
         } else {
             if ($throw) {
-                throw $failure;
+                throw $exception;
             }
         }
     }
