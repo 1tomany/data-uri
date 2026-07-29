@@ -43,7 +43,7 @@ This method is to be used when the data is known to be base64 encoded but NOT en
 The `DataDecoder::decodeBase64()` method has the following parameters:
 
 - `string $data` The base64 encoded string
-- `string $format` The format of the data represented as a MIME type
+- `string|\OneToMany\DataUri\Contract\Enum\Type $format` The format of the data represented as a MIME type
 - `?string $name` See `DataDecoder::decode()`
 
 ### `DataDecoder::decodeText()`
@@ -53,6 +53,7 @@ This method is to be used when the data is known to be plaintext.
 The `DataDecoder::decodeText()` method has the following arguments:
 
 - `string $text` The plaintext string
+- `string|\OneToMany\DataUri\Contract\Enum\Type $format` The text format with a default value of `Type::Txt`.
 - `?string $name` See `DataDecoder::decode()`. The extension `.txt` will be appended to the `$name` if the value provided does not already use it.
 
 ## Examples

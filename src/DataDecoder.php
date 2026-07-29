@@ -210,14 +210,23 @@ final class DataDecoder
         return new DataUri($filePath, $hasRandomDisplayName ? null : dirname($filePath), $name, $size, $type);
     }
 
+    /**
+     * @see OneToMany\DataUri\DataDecoder::decode()
+     */
     public function decodeBase64(
         string $data,
-        string|Type $format,
+        string|Type $type,
         ?string $name = null,
     ): DataUriInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $format instanceof Type ? $format->getFormat() : $format, $data), $name, $format);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $name, $type);
     }
 
+    /**
+     * @see OneToMany\DataUri\DataDecoder::decodeBase64()
+     *
+     * @throws InvalidArgumentException when the type is not text
+     * @throws RuntimeException when generating a temporary filename fails
+     */
     public function decodeText(
         string $text,
         string|Type $type = Type::Txt,
