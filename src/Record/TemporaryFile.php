@@ -308,7 +308,8 @@ class TemporaryFile implements TemporaryFileInterface
      *
      * @return ?non-empty-string
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException when the root directory is not an absolute path
+     * @throws InvalidArgumentException when the path is not a direct child of the root
      */
     private function validateRoot(string $path, ?string $root): ?string
     {
@@ -325,7 +326,7 @@ class TemporaryFile implements TemporaryFileInterface
         $root = Path::canonicalize($root);
 
         if ($root !== Path::getDirectory(Path::canonicalize($path))) {
-            throw new InvalidArgumentException(sprintf('The root "%s" must be a direct child of the path "%s".', $root, $path));
+            throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the root "%s".', $path, $root));
         }
 
         return is_empty($root) ? null : $root;
@@ -335,10 +336,8 @@ class TemporaryFile implements TemporaryFileInterface
     {
         $exception = null;
 
-        if (file_exists($this->path)) {
-            if (!@unlink($this->path)) {
-                $exception = new RuntimeException(sprintf('Deleting the file "%s" failed.', $this->path));
-            }
+        if (file_exists($this->path) && !@unlink($this->path)) {
+            $exception = new RuntimeException(sprintf('Deleting the file "%s" failed.', $this->path));
         }
 
         if (null === $exception && null !== $this->root) {
