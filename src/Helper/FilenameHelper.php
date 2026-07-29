@@ -86,6 +86,8 @@ final readonly class FilenameHelper
             throw new InvalidArgumentException(sprintf('The sanitized filename "%s" is longer than the maximum length of %d %s.', $sanitized, self::MAXIMUM_FILENAME_LENGTH, 1 === self::MAXIMUM_FILENAME_LENGTH ? 'character' : 'characters'));
         }
 
+        \PHPStan\dumpType($filename);
+
         return '' !== $filename ? $filename : null;
     }
 
