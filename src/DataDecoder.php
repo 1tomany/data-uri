@@ -193,16 +193,17 @@ final class DataDecoder
         $extension = $type->getExtension();
 
         if (null !== $extension && !str_ends_with($name, $extension)) {
-            $name = FilenameHelper::changeExtension($name, $extension);
-
-            /** @var non-empty-string $filePath */
-            $filePath = Path::join(Path::getDirectory($temporaryPath), $name);
+            $filePath = Path::join(Path::getDirectory($temporaryPath), FilenameHelper::changeExtension($name, $extension));
 
             try {
                 // Rename the temporary file with an extension
                 $this->filesystem->rename($temporaryPath, $filePath, true);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Renaming "%s" to "%s" failed.', $temporaryPath, $filePath), previous: $e);
+            }
+
+            if (!$name = basename($filePath)) {
+                throw new RuntimeException(sprintf('An empty name was generated from the path "%s".', $filePath));
             }
         } else {
             $filePath = $temporaryPath;
