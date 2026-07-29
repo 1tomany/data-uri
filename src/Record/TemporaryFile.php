@@ -57,9 +57,6 @@ class TemporaryFile implements TemporaryFileInterface
      */
     private readonly string $key;
 
-    /**
-     * @param non-empty-string $name
-     */
     public function __construct(
         string $path,
         ?string $root,
