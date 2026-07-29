@@ -30,6 +30,7 @@ use function parse_url;
 use function preg_replace;
 use function rtrim;
 use function sprintf;
+use function str_ends_with;
 use function stream_get_contents;
 use function stream_get_wrappers;
 use function strlen;
@@ -138,12 +139,14 @@ final class DataDecoder
         }
 
         try {
-            if ($hasRandomDisplayName = empty($name)) {
+            // Generate a random file name if a
+            // valid one could not be determined
+            if ($hasGeneratedName = empty($name)) {
                 $name = FilenameHelper::generate(12);
             }
 
             /** @var non-empty-string $temporaryPath */
-            $temporaryPath = Path::join($this->temporaryDirectory, self::LIBRARY_DIRECTORY, !$hasRandomDisplayName ? FilenameHelper::generate(6) : '', $name);
+            $temporaryPath = Path::join($this->temporaryDirectory, self::LIBRARY_DIRECTORY, !$hasGeneratedName ? FilenameHelper::generate(6) : '', $name);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException(sprintf('Generating the temporary path failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
         }
@@ -182,11 +185,14 @@ final class DataDecoder
         }
 
         if (!$type instanceof Type) {
-            $type = Type::createFromPath($temporaryPath);
+            $type = Type::createFromPath(...[
+                'path' => $temporaryPath,
+            ]);
         }
 
-        if ($extension = $type->getExtension()) {
-            /** @var non-empty-string $name */
+        $extension = $type->getExtension();
+
+        if (null !== $extension && !str_ends_with($name, $extension)) {
             $name = FilenameHelper::changeExtension($name, $extension);
 
             /** @var non-empty-string $filePath */
@@ -207,7 +213,7 @@ final class DataDecoder
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
         }
 
-        return new DataUri($filePath, $hasRandomDisplayName ? null : dirname($filePath), $name, $size, $type);
+        return new DataUri($filePath, $hasGeneratedName ? null : dirname($filePath), $name, $size, $type);
     }
 
     /**
