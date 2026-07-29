@@ -6,11 +6,11 @@ use OneToMany\DataUri\Contract\Enum\Type;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\DataUriInterface;
 use OneToMany\DataUri\Exception\RuntimeException;
+use OneToMany\DataUri\Helper\FilenameHelper;
 use Symfony\Component\Filesystem\Exception\ExceptionInterface as FilesystemExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function array_filter;
-use function basename;
 use function file_exists;
 use function file_get_contents;
 use function hash_file;
@@ -239,9 +239,15 @@ class DataUri implements DataUriInterface
      */
     private function generateKey(): string
     {
-        $prefix = !empty($this->dir) ? basename($this->dir) : '';
+        $prefix = !empty($this->dir) ? \basename($this->dir) : '';
 
-        return implode('/', array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), $prefix, $this->name]));
+        try {
+            $keyBits = array_filter([substr($this->hash, 0, 2), substr($this->hash, 2, 2), $prefix, $this->name]);
+        } catch (DataUriExceptionInterface $e) {
+            throw new RuntimeException(sprintf('Generating the key for the file "%s" failed.', $this->name), previous: $e);
+        }
+
+        return implode('/', $keyBits);
     }
 
     private function cleanup(): void
