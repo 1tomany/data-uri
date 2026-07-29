@@ -191,6 +191,7 @@ final class DataDecoder
             }
         }
 
+        // Append the extension from the file type
         $dataUriPath = FilenameHelper::changeExtension(
             $temporaryPath, $dataUriType->getExtension(),
         );
