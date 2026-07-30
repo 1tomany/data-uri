@@ -197,12 +197,14 @@ final class DataDecoder
         }
 
         if (null !== $extension = $fileType->getExtension()) {
-            if (!Path::hasExtension($tempPath, $extension, true)) {
-                if (Path::hasExtension($tempPath, 'jpg', true)) {
-                    $filePath = Path::changeExtension($tempPath, $extension);
-                }
+            $filePath = null;
 
-                $filePath = !isset($filePath) ? sprintf('%s.%s', $tempPath, $extension) : $filePath;
+            if ($fileType->isJpeg() && Path::hasExtension($tempPath, 'jpg', true)) {
+                $filePath = Path::changeExtension($tempPath, extension: $extension);
+            }
+
+            if (!Path::hasExtension($tempPath, $extension, true)) {
+                $filePath ??= sprintf('%s.%s', $tempPath, $extension);
 
                 try {
                     $this->filesystem->rename($tempPath, $filePath, true);
