@@ -197,16 +197,20 @@ final class DataDecoder
         }
 
         if (null !== $extension = $fileType->getExtension()) {
-            $filePath = Path::changeExtension($tempPath, $extension);
+            if ($extension !== Path::getExtension($tempPath, true)) {
+                $filePath = sprintf('%s.%s', \rtrim($tempPath, '.'), $extension);
 
-            try {
-                $this->filesystem->rename($tempPath, $filePath, true);
-            } catch (FilesystemExceptionInterface $e) {
-                $this->rollback($tempPath, $fileBase);
+                try {
+                    $this->filesystem->rename($tempPath, $filePath, true);
+                } catch (FilesystemExceptionInterface $e) {
+                    $this->rollback($tempPath, $fileBase);
 
-                throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $fileBase, $extension), previous: $e);
+                    throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $fileBase, $extension), previous: $e);
+                }
             }
-        } else {
+        }
+
+        if (!isset($filePath)) {
             $filePath = $tempPath;
         }
 
@@ -226,10 +230,10 @@ final class DataDecoder
 
     public function decodeBase64(
         string $data,
-        string|Type $format,
+        string|Type $type,
         ?string $name = null,
     ): TemporaryFileInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $format instanceof Type ? $format->getFormat() : $format, $data), $name, $format);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $name, $type);
     }
 
     public function decodeText(
@@ -245,15 +249,18 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The type "%s" is not text.', $type->getName()));
         }
 
-        if (null !== $name) {
-            $name = trim($name);
-        }
+        // if ('' === $name = trim((string) $name)) {
+        //     $name = FilenameHelper::generate(12)
+        // }
+        // if (null !== $name) {
+        //     $name = trim($name);
+        // }
 
-        try {
-            $name = FilenameHelper::changeExtension($name ?: FilenameHelper::generate(12), $type->getExtension());
-        } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-        }
+        // try {
+        //     $name = Path::changeExtension($name ?: FilenameHelper::generate(12), $type->getExtension());
+        // } catch (DataUriExceptionInterface $e) {
+        //     throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
+        // }
 
         return $this->decodeBase64(base64_encode($text), $type, $name);
     }

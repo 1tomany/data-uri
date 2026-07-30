@@ -112,19 +112,23 @@ final class TemporaryFileTest extends TestCase
         $this->assertDirectoryDoesNotExist($file->getBase());
     }
 
-    // public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExist(): void
-    // {
-    //     $file = $this->decodeFile();
-    //     $this->assertFileExists($file->getPath());
+    public function testDestructorDoesNotDeleteTemporaryFileWhenFileDoesNotExist(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
 
-    //     new Filesystem()->remove($file->getPath());
-    //     $this->assertFileDoesNotExist($file->getPath());
+        $this->assertIsString($file->getBase());
+        $this->assertFileExists($file->getPath());
+        $this->assertDirectoryExists($file->getBase());
 
-    //     $file->__destruct();
+        new Filesystem()->remove($file->getPath());
+        $this->assertFileDoesNotExist($file->getPath());
 
-    //     $this->assertFileDoesNotExist($file->getPath());
-    //     $this->assertDirectoryDoesNotExist(dirname($file->getPath()));
-    // }
+        $file->__destruct();
+
+        $this->assertIsString($file->getBase());
+        $this->assertFileDoesNotExist($file->getPath());
+        $this->assertDirectoryDoesNotExist($file->getBase());
+    }
 
     /**
      * @param non-empty-string $name
