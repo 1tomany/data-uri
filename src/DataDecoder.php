@@ -204,7 +204,7 @@ final class DataDecoder
                 } catch (FilesystemExceptionInterface $e) {
                     $this->rollback($tempPath, $fileBase);
 
-                    throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $fileBase, $extension), previous: $e);
+                    throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $fileName, $extension), previous: $e);
                 }
             }
         }
