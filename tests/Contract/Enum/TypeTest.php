@@ -19,7 +19,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|string|Type|null>>
+     * @return non-empty-list<array{string|null, Type}>
      */
     public static function providerMimeTypeAndType(): array
     {
@@ -91,6 +91,7 @@ final class TypeTest extends TestCase
     public static function providerPathWithLegacyExtensionAndType(): array
     {
         $provider = [
+            ['index.htm', Type::Htm],
             ['label.jpg', Type::Jpg],
         ];
 
@@ -123,6 +124,7 @@ final class TypeTest extends TestCase
             [Type::Heics, 'HEICS'],
             [Type::Heif, 'HEIF'],
             [Type::Heifs, 'HEIFS'],
+            [Type::Htm, 'HTM'],
             [Type::Html, 'HTML'],
             [Type::Jpeg, 'JPEG'],
             [Type::Jpg, 'JPG'],
@@ -162,7 +164,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return non-empty-list<array{Type|non-empty-lowercase-string}>
+     * @return non-empty-list<array{Type, non-empty-lowercase-string|null}>
      */
     public static function providerTypeAndExtension(): array
     {
@@ -181,6 +183,7 @@ final class TypeTest extends TestCase
             [Type::Heics, 'heics'],
             [Type::Heif, 'heif'],
             [Type::Heifs, 'heifs'],
+            [Type::Htm, 'htm'],
             [Type::Html, 'html'],
             [Type::Jpeg, 'jpeg'],
             [Type::Jpg, 'jpg'],
@@ -220,7 +223,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return non-empty-list<array{Type|non-empty-lowercase-string}>
+     * @return non-empty-list<array{Type, non-empty-lowercase-string}>
      */
     public static function providerTypeAndFormat(): array
     {
@@ -239,6 +242,7 @@ final class TypeTest extends TestCase
             [Type::Heics, 'image/heic-sequence'],
             [Type::Heif, 'image/heif'],
             [Type::Heifs, 'image/heif-sequence'],
+            [Type::Htm, 'text/html'],
             [Type::Html, 'text/html'],
             [Type::Jpeg, 'image/jpeg'],
             [Type::Jpg, 'image/jpeg'],
@@ -611,6 +615,11 @@ final class TypeTest extends TestCase
     public function testIsHeifs(): void
     {
         $this->assertTrue(Type::Heifs->isHeifs()); // @phpstan-ignore-line
+    }
+
+    public function testIsHtm(): void
+    {
+        $this->assertTrue(Type::Htm->isHtm()); // @phpstan-ignore-line
     }
 
     public function testIsHtml(): void

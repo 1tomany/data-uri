@@ -29,6 +29,7 @@ enum Type
     case Heics;
     case Heif;
     case Heifs;
+    case Htm;
     case Html;
     case Jpeg;
     case Jpg;
@@ -130,6 +131,10 @@ enum Type
         if (array_key_exists('extension', $info)) {
             $ext = strtolower($info['extension']);
 
+            if ('htm' === $ext) {
+                return self::Htm;
+            }
+
             if ('jpg' === $ext) {
                 return self::Jpg;
             }
@@ -195,6 +200,7 @@ enum Type
             self::Heics => 'image/heic-sequence',
             self::Heif => 'image/heif',
             self::Heifs => 'image/heif-sequence',
+            self::Htm => 'text/html',
             self::Html => 'text/html',
             self::Jpg => 'image/jpeg',
             self::Jpeg => 'image/jpeg',
@@ -277,7 +283,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xls|self::Xlsx|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Htm|self::Html|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xls|self::Xlsx|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -286,6 +292,7 @@ enum Type
             self::Csv,
             self::Doc,
             self::Docx,
+            self::Htm,
             self::Html,
             self::Js,
             self::Json,
@@ -321,7 +328,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Htm|self::Html|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
      */
     public function isText(): bool
     {
@@ -449,6 +456,14 @@ enum Type
     public function isHeifs(): bool
     {
         return self::Heifs === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Htm $this
+     */
+    public function isHtm(): bool
+    {
+        return self::Htm === $this;
     }
 
     /**
