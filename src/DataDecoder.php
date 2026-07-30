@@ -3,7 +3,6 @@
 namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\Type;
-use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
