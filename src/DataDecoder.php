@@ -18,6 +18,7 @@ use function assert;
 use function ctype_print;
 use function dirname;
 use function fclose;
+use function file_exists;
 use function filesize;
 use function filter_var;
 use function fopen;
@@ -198,6 +199,10 @@ final class DataDecoder
                 $this->filesystem->rename($tempPath, $filePath, true);
             } catch (FilesystemExceptionInterface $e) {
                 throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $fileBase, $extension), previous: $e);
+            } finally {
+                if (!file_exists($filePath)) {
+                    $this->rollback($tempPath);
+                }
             }
         } else {
             $filePath = $tempPath;
