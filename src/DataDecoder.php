@@ -136,10 +136,10 @@ final class DataDecoder
             'filename' => trim($fileName),
         ]);
 
-        // Generate a base directory if a file name was
-        // generated to avoid collisions with other files
+        // Generate a base directory if a file name
+        // was generated to avoid naming collisions
         if (false === is_empty($fileName, false)) {
-            $fileBase = FilenameHelper::generate(6);
+            $fileBase = FilenameHelper::generate(8);
         }
 
         // Generate a file name if one was not found
@@ -150,7 +150,7 @@ final class DataDecoder
         try {
             $tempPath = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $fileBase ?? '', $fileName);
         } catch (FilesystemExceptionInterface $e) {
-            throw new RuntimeException('Generating the temporary path failed.', previous: $e);
+            throw new RuntimeException('Generating the file path failed.', previous: $e);
         } finally {
             if (!isset($fileBase)) {
                 $fileBase = null;
