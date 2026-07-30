@@ -188,7 +188,7 @@ final class DataDecoder
         }
 
         if (is_string($type) || is_object($type)) {
-            $fileType = Type::create(type: $type);
+            $fileType = Type::createFromType($type);
         } else {
             $fileType = Type::createFromPath(...[
                 'path' => trim($tempPath),
@@ -196,14 +196,8 @@ final class DataDecoder
         }
 
         if (null !== $extension = $fileType->getExtension()) {
-            $filePath = null;
-
-            // if (Path::hasExtension($tempPath, $fileType->getShortExtension(), true)) {
-            //     $filePath = Path::changeExtension($tempPath, extension: $extension);
-            // }
-
             if (!Path::hasExtension($tempPath, $extension, true)) {
-                $filePath ??= sprintf('%s.%s', $tempPath, $extension);
+                $filePath = sprintf('%s.%s', $tempPath, $extension);
 
                 try {
                     $this->filesystem->rename($tempPath, $filePath, true);
@@ -247,7 +241,7 @@ final class DataDecoder
         ?string $name = null,
     ): TemporaryFileInterface {
         if (!$type instanceof Type) {
-            $type = Type::create($type);
+            $type = Type::createFromType($type);
         }
 
         if (!$type->isText()) {

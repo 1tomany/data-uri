@@ -15,7 +15,7 @@ final class TypeTest extends TestCase
     #[DataProvider('providerFormatAndType')]
     public function testCreatingFromFormat(?string $format, Type $type): void
     {
-        $this->assertSame($type, Type::create($format));
+        $this->assertSame($type, Type::createFromType($format));
     }
 
     /**

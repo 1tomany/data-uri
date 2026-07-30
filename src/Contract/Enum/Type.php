@@ -2,6 +2,7 @@
 
 namespace OneToMany\DataUri\Contract\Enum;
 
+use function array_key_exists;
 use function in_array;
 use function is_file;
 use function is_object;
@@ -11,8 +12,6 @@ use function pathinfo;
 use function strtolower;
 use function strtoupper;
 use function trim;
-
-use const PATHINFO_EXTENSION;
 
 enum Type
 {
@@ -55,7 +54,7 @@ enum Type
     case Zip;
     case Other;
 
-    public static function create(string|self|null $type): self
+    public static function createFromType(string|self|null $type): self
     {
         if (is_object($type)) {
             return $type;
@@ -67,81 +66,82 @@ enum Type
             return $default;
         }
 
-        $type = trim($type);
+        $type = strtolower($type);
 
-        if ('' === $type) {
-            return $default;
+        if ($type = trim($type)) {
+            return match ($type) {
+                'audio/aac' => self::Aac,
+                'audio/aiff' => self::Aiff,
+                'application/octet-stream' => self::Bin,
+                'image/bmp' => self::Bmp,
+                'text/css' => self::Css,
+                'text/csv' => self::Csv,
+                'application/msword' => self::Doc,
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
+                'audio/flac' => self::Flac,
+                'image/gif' => self::Gif,
+                'image/heic' => self::Heic,
+                'image/heic-sequence' => self::Heics,
+                'image/heif' => self::Heif,
+                'image/heif-sequence' => self::Heifs,
+                'text/html' => self::Html,
+                'image/jpg' => self::Jpg,
+                'image/jpeg' => self::Jpeg,
+                'text/javascript' => self::Js,
+                'application/json' => self::Json,
+                'application/jsonl' => self::Jsonl,
+                'audio/x-m4a' => self::M4a,
+                'audio/mp4' => self::M4a,
+                'text/markdown' => self::Markdown,
+                'video/quicktime' => self::Mov,
+                'audio/mpeg' => self::Mp3,
+                'video/mp4' => self::Mp4,
+                'audio/ogg' => self::Oga,
+                'application/pdf' => self::Pdf,
+                'text/x-php' => self::Php,
+                'image/png' => self::Png,
+                'image/tiff' => self::Tiff,
+                'application/x-empty' => self::Txt,
+                'text/plain' => self::Txt,
+                'audio/wav' => self::Wav,
+                'image/webp' => self::Webp,
+                'application/msexcel' => self::Xls,
+                'application/vnd.ms-excel' => self::Xls,
+                'application/x-excel' => self::Xls,
+                'application/x-msexcel' => self::Xls,
+                'application/x-ms-excel' => self::Xls,
+                'application/xls' => self::Xls,
+                'application/x-xls' => self::Xls,
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
+                'application/xml' => self::Xml,
+                'application/zip' => self::Zip,
+                default => $default,
+            };
         }
 
-        return match (strtolower($type)) {
-            'audio/aac' => self::Aac,
-            'audio/aiff' => self::Aiff,
-            'application/octet-stream' => self::Bin,
-            'image/bmp' => self::Bmp,
-            'text/css' => self::Css,
-            'text/csv' => self::Csv,
-            'application/msword' => self::Doc,
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
-            'audio/flac' => self::Flac,
-            'image/gif' => self::Gif,
-            'image/heic' => self::Heic,
-            'image/heic-sequence' => self::Heics,
-            'image/heif' => self::Heif,
-            'image/heif-sequence' => self::Heifs,
-            'text/html' => self::Html,
-            'image/jpg' => self::Jpg,
-            'image/jpeg' => self::Jpeg,
-            'text/javascript' => self::Js,
-            'application/json' => self::Json,
-            'application/jsonl' => self::Jsonl,
-            'audio/x-m4a' => self::M4a,
-            'audio/mp4' => self::M4a,
-            'text/markdown' => self::Markdown,
-            'video/quicktime' => self::Mov,
-            'audio/mpeg' => self::Mp3,
-            'video/mp4' => self::Mp4,
-            'audio/ogg' => self::Oga,
-            'application/pdf' => self::Pdf,
-            'text/x-php' => self::Php,
-            'image/png' => self::Png,
-            'image/tiff' => self::Tiff,
-            'application/x-empty' => self::Txt,
-            'text/plain' => self::Txt,
-            'audio/wav' => self::Wav,
-            'image/webp' => self::Webp,
-            'application/msexcel' => self::Xls,
-            'application/vnd.ms-excel' => self::Xls,
-            'application/x-excel' => self::Xls,
-            'application/x-msexcel' => self::Xls,
-            'application/x-ms-excel' => self::Xls,
-            'application/xls' => self::Xls,
-            'application/x-xls' => self::Xls,
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
-            'application/xml' => self::Xml,
-            'application/zip' => self::Zip,
-            default => $default,
-        };
+        return $default;
     }
 
     public static function createFromPath(string $path): self
     {
-        if (is_file($path) && is_readable($path)) {
-            $info = pathinfo($path);
+        $info = pathinfo($path);
 
-            if ($extension = $info['extension'] ?? null) {
-                $extension = strtolower($extension);
+        // Handle special cases for legacy extensions
+        if (array_key_exists('extension', $info)) {
+            $ext = strtolower($info['extension']);
 
-                if ('jpg' === $extension) {
-                    return self::Jpg;
-                }
-            }
-
-            if ($mimeType = @mime_content_type($path)) {
-                return self::create(type: $mimeType);
+            if ('jpg' === $ext) {
+                return self::Jpg;
             }
         }
 
-        return self::create(null);
+        if (is_file($path) && is_readable($path)) {
+            if ($mimeType = @mime_content_type($path)) {
+                return self::createFromType(type: $mimeType);
+            }
+        }
+
+        return self::createFromType(null);
     }
 
     /**
