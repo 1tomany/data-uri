@@ -77,8 +77,8 @@ final class DataDecoder
 
     public function decode(
         mixed $data,
-        ?string $name = null,
         string|Type|null $type = null,
+        string|null $name = null,
     ): TemporaryFileInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
             throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
@@ -230,15 +230,15 @@ final class DataDecoder
     public function decodeBase64(
         string $data,
         string|Type $type,
-        ?string $name = null,
+        string|null $name = null,
     ): TemporaryFileInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $name, $type);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $type, $name);
     }
 
     public function decodeText(
         string $text,
         string|Type $type = Type::Txt,
-        ?string $name = null,
+        string|null $name = null,
     ): TemporaryFileInterface {
         if (!$type instanceof Type) {
             $type = Type::createFromType($type);

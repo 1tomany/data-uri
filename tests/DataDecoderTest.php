@@ -62,12 +62,10 @@ final class DataDecoderTest extends TestCase
 
         vfsStream::setup(structure: [$file]);
 
-        // Assert: Virtual file is not readable
-        $this->assertFileIsNotReadable($file->url());
-
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIsOrContains('The file "'.$file->url().'" is not readable.');
 
+        $this->assertFileIsNotReadable($file->url());
         new DataDecoder()->decode($file->url());
     }
 
@@ -92,14 +90,14 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingDataCanSetName(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.txt');
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', name: 'Hello_World.txt');
 
         $this->assertEquals('Hello_World.txt', $file->getName());
     }
 
-    public function testDecodingDataCanSetType(): void
+    public function testDecodingDataCanOverrideSetType(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.md', 'text/markdown');
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'text/markdown', 'Hello_World.md');
 
         $this->assertSame(Type::Markdown, $file->getType());
     }
@@ -134,7 +132,7 @@ final class DataDecoderTest extends TestCase
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return non-empty-list<array{non-empty-string, non-negative-int, non-empty-lowercase-string}>
      */
     public static function providerDataAndMetadata(): array
     {
@@ -173,7 +171,7 @@ final class DataDecoderTest extends TestCase
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return non-empty-list<array{non-empty-string, non-negative-int, non-empty-lowercase-string}>
      */
     public static function providerFileAndMetadata(): array
     {
@@ -213,7 +211,7 @@ final class DataDecoderTest extends TestCase
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return non-empty-list<array{non-empty-string, non-negative-int, non-empty-lowercase-string}>
      */
     public static function providerBase64DataAndMetadata(): array
     {
@@ -272,6 +270,10 @@ final class DataDecoderTest extends TestCase
 
         while (true) {
             $type = $types[array_rand($types, 1)];
+
+            if ($type->isTxt()) {
+                continue;
+            }
 
             if ($type->isText()) {
                 break;
