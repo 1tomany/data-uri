@@ -60,6 +60,10 @@ class TemporaryFile implements TemporaryFileInterface
     private bool $isManaged = false;
 
     /**
+     * @see OneToMany\DataUri\Record\TemporaryFile::validateBase()
+     * @see OneToMany\DataUri\Record\TemporaryFile::generateHash()
+     * @see OneToMany\DataUri\Record\TemporaryFile::generateKey()
+     *
      * @throws InvalidArgumentException when the path is empty
      * @throws InvalidArgumentException when the path is a directory or a link
      * @throws InvalidArgumentException when the name is empty
