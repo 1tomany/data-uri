@@ -10,6 +10,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\SingleCommandApplication;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+use function array_push;
+
 $command = function (
     SymfonyStyle $io,
     #[Option('Show all examples')] bool $all = false,
@@ -47,26 +49,22 @@ $command = function (
         $tempFiles[] = $dataDecoder->decode('https://assets.extract-cdn.com/data/ao-smith-label.jpg');
     }
 
-    $tableRows = [];
-
-    // Format each file as a row
-    foreach ($tempFiles as $file) {
-        \array_push($tableRows, [
-            $file->getPath(),
-            $file->getName(),
-            $file->getSize(),
-            $file->getFormat(),
-            $file->getKey(),
+    // Format and delete each file
+    foreach ($tempFiles as $tempFile) {
+        array_push($tableRows, [
+            $tempFile->getPath(),
+            $tempFile->getName(),
+            $tempFile->getSize(),
+            $tempFile->getFormat(),
+            $tempFile->getKey(),
         ]);
+
+        $tempFile->delete();
     }
 
     $io->table(['Path', 'Name', 'Size', 'Format', 'Key'], [
         ...$tableRows,
     ]);
-
-    foreach ($tempFiles as $file) {
-        $file->delete();
-    }
 
     return Command::SUCCESS;
 };
