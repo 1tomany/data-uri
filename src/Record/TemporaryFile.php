@@ -77,7 +77,7 @@ class TemporaryFile implements TemporaryFileInterface
         int $size,
         Type $type,
     ) {
-        if (false === $path = realpath(trim($path))) {
+        if ('' === $path = Path::canonicalize(trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
 
