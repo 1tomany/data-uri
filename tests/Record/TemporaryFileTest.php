@@ -239,7 +239,7 @@ final class TemporaryFileTest extends TestCase
         $file->toDataUri();
     }
 
-    public function testDeleteIsDeterministicAndIdempotent(): void
+    public function testDeleteFileIsIdempotent(): void
     {
         $file = $this->decodeFile('php-logo.png');
 
