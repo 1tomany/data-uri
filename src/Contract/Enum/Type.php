@@ -122,10 +122,12 @@ enum Type
     public static function createFromPath(string $path): self
     {
         if (is_file($path) && is_readable($path)) {
-            $mimeType = @mime_content_type($path) ?: null;
+            if ($mimeType = @mime_content_type($path)) {
+                return self::create(type: $mimeType);
+            }
         }
 
-        return self::create($mimeType ?? null);
+        return self::create(null);
     }
 
     /**
