@@ -112,6 +112,9 @@ class TemporaryFile implements TemporaryFileInterface
         $this->isManaged = true;
     }
 
+    /**
+     * @see OneToMany\DataUri\Record\TemporaryFile::cleanup()
+     */
     public function __destruct()
     {
         $this->cleanup(false);
@@ -274,6 +277,7 @@ class TemporaryFile implements TemporaryFileInterface
 
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
+     * @see OneToMany\DataUri\Record\TemporaryFile::cleanup()
      */
     #[\Override]
     public function delete(): void
@@ -352,12 +356,12 @@ class TemporaryFile implements TemporaryFileInterface
 
     /**
      * @param non-empty-string $path
+     * @param ?non-empty-string $base
      *
      * @return ?non-empty-string
      *
-     * @throws InvalidArgumentException when the base directory is empty
      * @throws InvalidArgumentException when the base directory is not an absolute path
-     * @throws InvalidArgumentException when the path is not a direct child of the base
+     * @throws InvalidArgumentException when the path is not a direct child of the base directory
      */
     private function validateBase(string $path, ?string $base): ?string
     {
@@ -380,19 +384,23 @@ class TemporaryFile implements TemporaryFileInterface
         return '' === $base ? null : $base;
     }
 
+    /**
+     * @throws RuntimeException when $throw is true and deleting the file fails
+     * @throws RuntimeException when $throw is true and deleting the base directory
+     */
     private function cleanup(bool $throw): void
     {
         if (!$this->isManaged()) {
             return;
         }
 
-        if (file_exists($this->path) && !@unlink($this->path)) {
-            $error = sprintf('Deleting the file "%s" failed.', $this->path);
+        if (file_exists($this->getPath()) && !@unlink($this->getPath())) {
+            $error = sprintf('Deleting the file "%s" failed.', $this->getPath());
         }
 
-        if (!isset($error) && null !== $this->base) {
-            if (file_exists($this->base) && !@rmdir($this->base)) {
-                $error = sprintf('Removing the root directory "%s" failed.', $this->base);
+        if (!isset($error) && null !== $this->getBase()) {
+            if (is_dir($this->getBase()) && !@rmdir($this->getBase())) {
+                $error = sprintf('Removing the base directory "%s" failed.', $this->getBase());
             }
         }
 
