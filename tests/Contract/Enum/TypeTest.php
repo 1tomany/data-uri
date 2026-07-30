@@ -104,7 +104,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<non-empty-string|Type>>
+     * @return non-empty-list<array{Type, non-empty-string}>
      */
     public static function providerTypeAndName(): array
     {
@@ -162,7 +162,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<non-empty-lowercase-string|Type|null>>
+     * @return non-empty-list<array{Type|non-empty-lowercase-string}>
      */
     public static function providerTypeAndExtension(): array
     {
@@ -220,7 +220,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<non-empty-lowercase-string|Type>>
+     * @return non-empty-list<array{Type|non-empty-lowercase-string}>
      */
     public static function providerTypeAndFormat(): array
     {
@@ -275,7 +275,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsAudio(): array
     {
@@ -330,7 +330,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsBinary(): array
     {
@@ -385,7 +385,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsDocument(): array
     {
@@ -440,7 +440,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerFileAndIsImage(): array
     {
@@ -495,7 +495,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsText(): array
     {
