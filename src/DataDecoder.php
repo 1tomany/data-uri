@@ -207,10 +207,20 @@ final class DataDecoder
         }
 
         if ($extension = $temporaryType->getExtension()) {
+            $temporaryPath = Path::changeExtension(
+                $originPath, extension: $extension,
+            );
+
+            // if (Path::hasExtension($originPath, $extension, true)) {
+            //     $temporaryPath = Path::changeExtension($originPath, $extension);
+            // } else {
+            //     $filename = sprintf('%s.%s', $filename, $extension);
+            // }
+
             try {
-                $temporaryPath = FilenameHelper::changeExtension(
-                    $originPath, $extension, lowercase: true,
-                );
+                // $temporaryPath = FilenameHelper::changeExtension(
+                //     $originPath, $extension, lowercase: true,
+                // );
 
                 $this->filesystem->rename($originPath, $temporaryPath, true);
             } catch (FilesystemExceptionInterface $e) {
@@ -221,11 +231,11 @@ final class DataDecoder
         }
 
         // Attempt to calculate the filesize of the file
-        if (false === $temporarySize = @filesize($originPath)) {
+        if (false === $temporarySize = @filesize($temporaryPath)) {
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $temporaryPath));
         }
 
-        return new TemporaryFile($temporaryPath, $temporaryBase, $temporaryName, $temporarySize, $temporaryType);
+        return new TemporaryFile($temporaryPath, $temporaryBase, basename($temporaryPath), $temporarySize, $temporaryType);
     }
 
     public function decodeBase64(

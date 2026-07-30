@@ -155,6 +155,18 @@ enum Type
     }
 
     /**
+     * @return ?non-empty-lowercase-string
+     */
+    public function getFullExtension(): ?string
+    {
+        if ($extension = $this->getExtension()) {
+            return sprintf('.%s', $extension);
+        }
+
+        return null;
+    }
+
+    /**
      * @return non-empty-lowercase-string
      */
     public function getFormat(): string
