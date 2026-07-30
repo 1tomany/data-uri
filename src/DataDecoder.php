@@ -30,7 +30,6 @@ use function is_readable;
 use function is_string;
 use function is_writable;
 use function parse_url;
-use function rtrim;
 use function sprintf;
 use function stream_get_contents;
 use function stream_get_wrappers;
