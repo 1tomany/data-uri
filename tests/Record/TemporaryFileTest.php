@@ -57,7 +57,6 @@ final class TemporaryFileTest extends TestCase
 
         $this->assertIsString($path);
         $this->assertFileExists($path);
-        // $this->assertTrue(Path::isAbsolute($path));
 
         $root = dirname($path);
         $base = sys_get_temp_dir();
@@ -100,7 +99,7 @@ final class TemporaryFileTest extends TestCase
 
     public function testDestructorDeletesTemporaryFile(): void
     {
-        $file = $this->decodeFile();
+        $file = $this->decodeFile('php-logo.png');
 
         $this->assertIsString($file->getBase());
         $this->assertFileExists($file->getPath());
@@ -130,10 +129,10 @@ final class TemporaryFileTest extends TestCase
     /**
      * @param non-empty-string $name
      */
-    private function decodeFile(string $name = 'pdf-small.pdf'): TemporaryFile
+    private function decodeFile(string $name): TemporaryFile
     {
         /** @var TemporaryFile&TemporaryFileInterface $file */
-        $file = new DataDecoder()->decode(__DIR__.'/../.data/'.$name);
+        $file = new DataDecoder()->decode(__DIR__.'/../../config/files/'.$name);
 
         return $file;
     }
