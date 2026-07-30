@@ -22,10 +22,10 @@ use function filesize;
 use function filter_var;
 use function fopen;
 use function implode;
-use function is_array;
 use function is_dir;
 use function is_file;
 use function is_link;
+use function is_object;
 use function is_readable;
 use function is_string;
 use function is_writable;
@@ -200,7 +200,7 @@ final class DataDecoder
             }
         }
 
-        if (is_string($type) || \is_object($type)) {
+        if (is_string($type) || is_object($type)) {
             $fileType = Type::create(type: $type);
         } else {
             $fileType = Type::createFromPath(...[
