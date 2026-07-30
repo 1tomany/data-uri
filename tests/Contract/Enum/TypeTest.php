@@ -12,8 +12,8 @@ use PHPUnit\Framework\TestCase;
 #[Group('EnumTests')]
 final class TypeTest extends TestCase
 {
-    #[DataProvider('providerFormatAndType')]
-    public function testCreatingFromFormat(?string $format, Type $type): void
+    #[DataProvider('providerMimeTypeAndType')]
+    public function testCreatingFromType(?string $format, Type $type): void
     {
         $this->assertSame($type, Type::createFromType($format));
     }
@@ -21,7 +21,7 @@ final class TypeTest extends TestCase
     /**
      * @return list<list<bool|string|Type|null>>
      */
-    public static function providerFormatAndType(): array
+    public static function providerMimeTypeAndType(): array
     {
         $provider = [
             [null, Type::Other],
@@ -74,6 +74,24 @@ final class TypeTest extends TestCase
             ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', Type::Xlsx],
             ['application/xml', Type::Xml],
             ['application/zip', Type::Zip],
+        ];
+
+        return $provider;
+    }
+
+    #[DataProvider('providerPathWithLegacyExtensionAndType')]
+    public function testCreatingFromPathUsingLegacyExtension(string $path, Type $type): void
+    {
+        $this->assertSame($type, Type::createFromPath($path));
+    }
+
+    /**
+     * @return non-empty-list<array{non-empty-string, Type}>
+     */
+    public static function providerPathWithLegacyExtensionAndType(): array
+    {
+        $provider = [
+            ['label.jpg', Type::Jpg],
         ];
 
         return $provider;

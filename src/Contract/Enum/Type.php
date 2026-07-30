@@ -126,7 +126,7 @@ enum Type
     {
         $info = pathinfo($path);
 
-        // Handle special cases for legacy extensions
+        // Handle old extensions like .htm and .jpg
         if (array_key_exists('extension', $info)) {
             $ext = strtolower($info['extension']);
 
