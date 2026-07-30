@@ -57,12 +57,14 @@ interface TemporaryFileInterface extends \Stringable
     public function getKey(): string;
 
     /**
-     * Determines if two instances are equal.
-     *
-     * @param bool $strict If true, each object must represent the same file.
-     *                     If false, each object must have an identical hash.
+     * Determines if two instances have identical hashes.
      */
-    public function equals(self $file, bool $strict = false): bool;
+    public function isEqual(self $file): bool;
+
+    /**
+     * Determines if two instances refer to the same file.
+     */
+    public function isSame(self $file): bool;
 
     /**
      * Determines if the file the object represents exists.

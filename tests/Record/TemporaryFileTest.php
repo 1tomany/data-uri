@@ -130,6 +130,54 @@ final class TemporaryFileTest extends TestCase
         $this->assertDirectoryDoesNotExist($file->getBase());
     }
 
+    public function testToStringReturnsPath(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+
+        $this->assertEquals($file->getPath(), $file->__toString());
+    }
+
+    public function testIsNotEqualWhenFilesHaveDifferentHashes(): void
+    {
+        $file1 = $this->decodeFile('github-links.pdf');
+        $file2 = $this->decodeFile('github-links.docx');
+
+        $this->assertFalse($file1->isEqual($file2));
+        $this->assertFalse($file2->isEqual($file1));
+        $this->assertNotEquals($file1->getHash(), $file2->getHash());
+    }
+
+    public function testIsEqualWhenFilesHaveIdenticalHashes(): void
+    {
+        $file1 = $this->decodeFile('php-logo.png');
+        $file2 = $this->decodeFile('php-logo.png');
+
+        $this->assertTrue($file1->isEqual($file2));
+        $this->assertTrue($file2->isEqual($file1));
+        $this->assertSame($file1->getHash(), $file2->getHash());
+    }
+
+    public function testAreSameWhenFilesHaveIdenticalHashesAndPaths(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+
+        $this->assertTrue($file->isSame($file));
+    }
+
+    public function testReadingFileRequiresFileToExist(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+        $this->assertFileExists($file->getPath());
+
+        new Filesystem()->remove($file->getPath());
+        $this->assertFileDoesNotExist($file->getPath());
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIs('Reading the file "'.$file->getPath().'" failed.');
+
+        $file->read();
+    }
+
     /**
      * @param non-empty-string $name
      */

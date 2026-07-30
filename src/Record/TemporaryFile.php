@@ -7,6 +7,7 @@ use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionI
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
+use Override;
 use Symfony\Component\Filesystem\Path;
 
 use function assert;
@@ -195,9 +196,19 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
-    public function equals(TemporaryFileInterface $file, bool $strict = false): bool
+    #[\Override]
+    public function isEqual(TemporaryFileInterface $file): bool
     {
-        return $this->getHash() === $file->getHash() ? (!$strict ?: $this->getPath() === $file->getPath()) : false;
+        return $this->getHash() === $file->getHash();
+    }
+
+    /**
+     * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
+     */
+    #[\Override]
+    public function isSame(TemporaryFileInterface $file): bool
+    {
+        return $this->isEqual($file) && $this->getPath() === $file->getPath();
     }
 
     /**
