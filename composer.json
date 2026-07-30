@@ -23,7 +23,8 @@
         "friendsofphp/php-cs-fixer": "^3.93",
         "mikey179/vfsstream": "^1.6",
         "phpstan/phpstan": "^2.1.55",
-        "phpunit/phpunit": "^13.1.11"
+        "phpunit/phpunit": "^13.1.11",
+        "symfony/console": "^8.1"
     },
     "autoload": {
         "psr-4": {

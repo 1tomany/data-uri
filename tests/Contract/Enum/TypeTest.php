@@ -12,16 +12,16 @@ use PHPUnit\Framework\TestCase;
 #[Group('EnumTests')]
 final class TypeTest extends TestCase
 {
-    #[DataProvider('providerFormatAndType')]
-    public function testCreatingFromFormat(?string $format, Type $type): void
+    #[DataProvider('providerMimeTypeAndType')]
+    public function testCreatingFromType(?string $format, Type $type): void
     {
-        $this->assertSame($type, Type::create($format));
+        $this->assertSame($type, Type::createFromType($format));
     }
 
     /**
-     * @return list<list<bool|string|Type|null>>
+     * @return non-empty-list<array{string|null, Type}>
      */
-    public static function providerFormatAndType(): array
+    public static function providerMimeTypeAndType(): array
     {
         $provider = [
             [null, Type::Other],
@@ -44,7 +44,7 @@ final class TypeTest extends TestCase
             ['image/heif', Type::Heif],
             ['image/heif-sequence', Type::Heifs],
             ['text/html', Type::Html],
-            ['image/jpg', Type::Jpeg],
+            ['image/jpg', Type::Jpg],
             ['image/jpeg', Type::Jpeg],
             ['text/javascript', Type::Js],
             ['application/json', Type::Json],
@@ -79,6 +79,25 @@ final class TypeTest extends TestCase
         return $provider;
     }
 
+    #[DataProvider('providerPathWithLegacyExtensionAndType')]
+    public function testCreatingFromPathUsingLegacyExtension(string $path, Type $type): void
+    {
+        $this->assertSame($type, Type::createFromPath($path));
+    }
+
+    /**
+     * @return non-empty-list<array{non-empty-string, Type}>
+     */
+    public static function providerPathWithLegacyExtensionAndType(): array
+    {
+        $provider = [
+            ['index.htm', Type::Htm],
+            ['label.jpg', Type::Jpg],
+        ];
+
+        return $provider;
+    }
+
     #[DataProvider('providerTypeAndName')]
     public function testGettingName(Type $type, string $name): void
     {
@@ -86,7 +105,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<non-empty-string|Type>>
+     * @return non-empty-list<array{Type, non-empty-string}>
      */
     public static function providerTypeAndName(): array
     {
@@ -105,13 +124,15 @@ final class TypeTest extends TestCase
             [Type::Heics, 'HEICS'],
             [Type::Heif, 'HEIF'],
             [Type::Heifs, 'HEIFS'],
+            [Type::Htm, 'HTM'],
             [Type::Html, 'HTML'],
             [Type::Jpeg, 'JPEG'],
+            [Type::Jpg, 'JPG'],
             [Type::Js, 'JS'],
             [Type::Json, 'JSON'],
             [Type::Jsonl, 'JSONL'],
             [Type::M4a, 'M4A'],
-            [Type::Markdown, 'Markdown'],
+            [Type::Markdown, 'MD'],
             [Type::Mov, 'MOV'],
             [Type::Mp3, 'MP3'],
             [Type::Mp4, 'MP4'],
@@ -143,7 +164,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<non-empty-lowercase-string|Type|null>>
+     * @return non-empty-list<array{Type, non-empty-lowercase-string|null}>
      */
     public static function providerTypeAndExtension(): array
     {
@@ -162,8 +183,10 @@ final class TypeTest extends TestCase
             [Type::Heics, 'heics'],
             [Type::Heif, 'heif'],
             [Type::Heifs, 'heifs'],
+            [Type::Htm, 'htm'],
             [Type::Html, 'html'],
             [Type::Jpeg, 'jpeg'],
+            [Type::Jpg, 'jpg'],
             [Type::Js, 'js'],
             [Type::Json, 'json'],
             [Type::Jsonl, 'jsonl'],
@@ -200,7 +223,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<non-empty-lowercase-string|Type>>
+     * @return non-empty-list<array{Type, non-empty-lowercase-string}>
      */
     public static function providerTypeAndFormat(): array
     {
@@ -219,8 +242,10 @@ final class TypeTest extends TestCase
             [Type::Heics, 'image/heic-sequence'],
             [Type::Heif, 'image/heif'],
             [Type::Heifs, 'image/heif-sequence'],
+            [Type::Htm, 'text/html'],
             [Type::Html, 'text/html'],
             [Type::Jpeg, 'image/jpeg'],
+            [Type::Jpg, 'image/jpeg'],
             [Type::Js, 'text/javascript'],
             [Type::Json, 'application/json'],
             [Type::Jsonl, 'application/jsonl'],
@@ -254,7 +279,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsAudio(): array
     {
@@ -273,8 +298,10 @@ final class TypeTest extends TestCase
             [Type::Heics, false],
             [Type::Heif, false],
             [Type::Heifs, false],
+            [Type::Htm, false],
             [Type::Html, false],
             [Type::Jpeg, false],
+            [Type::Jpg, false],
             [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
@@ -308,7 +335,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsBinary(): array
     {
@@ -327,8 +354,10 @@ final class TypeTest extends TestCase
             [Type::Heics, true],
             [Type::Heif, true],
             [Type::Heifs, true],
+            [Type::Htm, false],
             [Type::Html, false],
             [Type::Jpeg, true],
+            [Type::Jpg, true],
             [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
@@ -362,7 +391,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsDocument(): array
     {
@@ -381,8 +410,10 @@ final class TypeTest extends TestCase
             [Type::Heics, false],
             [Type::Heif, false],
             [Type::Heifs, false],
+            [Type::Htm, true],
             [Type::Html, true],
             [Type::Jpeg, false],
+            [Type::Jpg, false],
             [Type::Js, true],
             [Type::Json, true],
             [Type::Jsonl, true],
@@ -416,7 +447,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerFileAndIsImage(): array
     {
@@ -435,8 +466,10 @@ final class TypeTest extends TestCase
             [Type::Heics, true],
             [Type::Heif, true],
             [Type::Heifs, true],
+            [Type::Htm, false],
             [Type::Html, false],
             [Type::Jpeg, true],
+            [Type::Jpg, true],
             [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
@@ -470,7 +503,7 @@ final class TypeTest extends TestCase
     }
 
     /**
-     * @return list<list<bool|Type>>
+     * @return non-empty-list<array{Type, bool}>
      */
     public static function providerTypeAndIsText(): array
     {
@@ -489,8 +522,10 @@ final class TypeTest extends TestCase
             [Type::Heics, false],
             [Type::Heif, false],
             [Type::Heifs, false],
+            [Type::Htm, true],
             [Type::Html, true],
             [Type::Jpeg, false],
+            [Type::Jpg, false],
             [Type::Js, true],
             [Type::Json, true],
             [Type::Jsonl, true],
@@ -587,6 +622,11 @@ final class TypeTest extends TestCase
         $this->assertTrue(Type::Heifs->isHeifs()); // @phpstan-ignore-line
     }
 
+    public function testIsHtm(): void
+    {
+        $this->assertTrue(Type::Htm->isHtm()); // @phpstan-ignore-line
+    }
+
     public function testIsHtml(): void
     {
         $this->assertTrue(Type::Html->isHtml()); // @phpstan-ignore-line
@@ -595,6 +635,11 @@ final class TypeTest extends TestCase
     public function testIsJpeg(): void
     {
         $this->assertTrue(Type::Jpeg->isJpeg()); // @phpstan-ignore-line
+    }
+
+    public function testIsJpg(): void
+    {
+        $this->assertTrue(Type::Jpg->isJpg()); // @phpstan-ignore-line
     }
 
     public function testIsJs(): void

@@ -16,21 +16,21 @@ The three methods exposed by this library are:
 - `OneToMany\DataUri\DataDecoder::decodeBase64()`
 - `OneToMany\DataUri\DataDecoder::decodeText()`
 
-Each method returns an object that implements the `OneToMany\DataUri\Contract\Record\DataUriInterface` interface. In this implementation, the value object will automatically delete the file it represents when it is destructed or garbage collected.
+Each method returns a `OneToMany\DataUri\Record\TemporaryFile` value object which implements the interface `OneToMany\DataUri\Contract\Record\TemporaryFileInterface`. By default, the `TemporaryFile` object will delete any filesystem resources it knows about when it is explicitly destructed or garbage collected.
 
 The `DataDecoder::decode()` method is the most versatile as it allows for a wide variety of inputs:
 
 - A data URI defined in [RFC2397](https://www.rfc-editor.org/rfc/rfc2397.html)
+- A file from an accessible filesystem
 - A public HTTP or HTTPS URL
-- A readable file
 
 ### `DataDecoder::decode()`
 
-The `DataDecoder::decode()` method has the following parameters:
+The `DataDecoder::decode()` method has the following arguments:
 
-- `mixed $data` The data to decode
-- `?string $name` The display name for the temporary file. This is useful for handling file uploads where the original filename is preferred over the random name PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved. This is `null` by default.
-- `string|Type|null $type` The MIME type of the temporary file. If empty or `null` (the default value), the MIME type (or format) will be determined using the `mime_content_type()` function. This is handy when the file can be multiple types. For example, `mime_content_type()` may return `text/plain` for Markdown files, which is correct, however, you may wish to use the more specific MIME type `text/markdown`.
+- `mixed $data` The data, file, or URL to decode.
+- `string|Type|null $type = null` The MIME type of the temporary file. If empty, the type will be determined using either the file's extension or the `mime_content_type()` function. You may want to explicitly provide this argument when the file can be multiple types. For example, `mime_content_type()` may return `text/plain` for Markdown files, which is correct, however, you may wish to use the more specific MIME type `text/markdown`.
+- `string|null $name = null` The name for the temporary file. This is useful for handling file uploads where the original filename is preferred over the random one PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved.
 
 #### Inside `DataDecoder::decode()`
 
@@ -42,9 +42,9 @@ This method is to be used when the data is known to be base64 encoded but NOT en
 
 The `DataDecoder::decodeBase64()` method has the following parameters:
 
-- `string $data` The base64 encoded string
-- `string $format` The format of the data represented as a MIME type
-- `?string $name` See `DataDecoder::decode()`
+- `string $data` The base64 encoded string.
+- `string|Type $type` The MIME type of the data.
+- `string|null $name = null` See `DataDecoder::decode()`.
 
 ### `DataDecoder::decodeText()`
 
@@ -52,12 +52,17 @@ This method is to be used when the data is known to be plaintext.
 
 The `DataDecoder::decodeText()` method has the following arguments:
 
-- `string $text` The plaintext string
-- `?string $name` See `DataDecoder::decode()`. The extension `.txt` will be appended to the `$name` if the value provided does not already use it.
+- `string $text` The plaintext string.
+- `string|Type $type = Type::Txt` The MIME type of the text.
+- `string|null $name = null` See `DataDecoder::decode()`.
 
 ## Examples
 
-See the [`decode.php`](https://github.com/1tomany/data-uri/blob/main/examples/decode.php) file for examples on how to use the `DataDecoder::decode()` method.
+Run and inspect the [`decode.php`](https://github.com/1tomany/data-uri/blob/master/examples/decode.php) file for examples on how to use the `DataDecoder::decode()` method.
+
+```sh
+php examples/decode.php [--all]
+```
 
 ## Credits
 

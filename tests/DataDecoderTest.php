@@ -15,7 +15,6 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function array_rand;
-use function assert;
 use function random_bytes;
 use function sprintf;
 use function sys_get_temp_dir;
@@ -63,19 +62,17 @@ final class DataDecoderTest extends TestCase
 
         vfsStream::setup(structure: [$file]);
 
-        // Assert: Virtual file is not readable
-        $this->assertFileIsNotReadable($file->url());
-
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIsOrContains('The file "'.$file->url().'" is not readable.');
 
+        $this->assertFileIsNotReadable($file->url());
         new DataDecoder()->decode($file->url());
     }
 
     public function testDecodingDataRequiresValidDataUri(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Opening a stream to decode the data failed.');
 
         new DataDecoder()->decode('data:image/gif;base64,!R0lG**AQ/ABAIAAAAAAA++ACH5BAEAAAAALAA?AEAOw==');
     }
@@ -88,28 +85,21 @@ final class DataDecoderTest extends TestCase
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects($this->once())->method('copy')->willThrowException(new IOException('Error'));
 
-        new DataDecoder($filesystem)->decode(__DIR__.'/.data/pdf-small.pdf');
+        new DataDecoder($filesystem)->decode(__DIR__.'/../config/files/github-links.pdf');
     }
 
     public function testDecodingDataCanSetName(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.txt');
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', name: 'Hello_World.txt');
 
-        $this->assertEquals('Hello_World.txt', $file->name);
+        $this->assertEquals('Hello_World.txt', $file->getName());
     }
 
-    public function testDecodingDataCanSetType(): void
+    public function testDecodingDataCanOverrideSetType(): void
     {
-        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.md', 'text/markdown');
+        $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'text/markdown', 'Hello_World.md');
 
         $this->assertSame(Type::Markdown, $file->getType());
-    }
-
-    public function testDecodingPathSetsSourceToPath(): void
-    {
-        $path = __DIR__.'/.data/pdf-small.pdf';
-
-        $this->assertEquals($path, new DataDecoder()->decode($path)->getSource());
     }
 
     public function testDecodingFileWithoutNameUsesFileName(): void
@@ -139,11 +129,10 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
-        $this->assertNull($file->getSource());
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return non-empty-list<array{non-empty-string, non-negative-int, non-empty-lowercase-string}>
      */
     public static function providerDataAndMetadata(): array
     {
@@ -179,28 +168,29 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertEquals($size, $file->getSize());
         $this->assertEquals($format, $file->getFormat());
-        $this->assertEquals($data, $file->getSource());
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return non-empty-list<array{non-empty-string, non-negative-int, non-empty-lowercase-string}>
      */
     public static function providerFileAndMetadata(): array
     {
-        return [
-            [__DIR__.'/.data/pdf-small.pdf', 36916, 'application/pdf'],
-            [__DIR__.'/.data/png-small.png', 10289, 'image/png'],
-            [__DIR__.'/.data/text-small.txt', 86, 'text/plain'],
-            [__DIR__.'/.data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        $provider = [
+            [__DIR__.'/../config/files/github-links.pdf', 36916, 'application/pdf'],
+            [__DIR__.'/../config/files/php-logo.png', 10289, 'image/png'],
+            [__DIR__.'/../config/files/sample-email.txt', 86, 'text/plain'],
+            [__DIR__.'/../config/files/github-links.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         ];
+
+        return $provider;
     }
 
     public function testDecodingBase64DataRequiresValidFormat(): void
     {
         $format = 'invalid_mime_type';
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Opening a stream to decode the data failed.');
 
         new DataDecoder()->decodeBase64('SGVsbG8sIHdvcmxkIQ==', $format);
     }
@@ -221,7 +211,7 @@ final class DataDecoderTest extends TestCase
     }
 
     /**
-     * @return list<list<non-negative-int|non-empty-string>>
+     * @return non-empty-list<array{non-empty-string, non-negative-int, non-empty-lowercase-string}>
      */
     public static function providerBase64DataAndMetadata(): array
     {
@@ -280,6 +270,10 @@ final class DataDecoderTest extends TestCase
 
         while (true) {
             $type = $types[array_rand($types, 1)];
+
+            if ($type->isTxt()) {
+                continue;
+            }
 
             if ($type->isText()) {
                 break;

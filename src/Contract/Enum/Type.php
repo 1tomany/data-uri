@@ -2,8 +2,13 @@
 
 namespace OneToMany\DataUri\Contract\Enum;
 
+use function array_key_exists;
 use function in_array;
+use function is_file;
+use function is_object;
+use function is_readable;
 use function mime_content_type;
+use function pathinfo;
 use function strtolower;
 use function strtoupper;
 use function trim;
@@ -24,8 +29,10 @@ enum Type
     case Heics;
     case Heif;
     case Heifs;
+    case Htm;
     case Html;
     case Jpeg;
+    case Jpg;
     case Js;
     case Json;
     case Jsonl;
@@ -48,65 +55,98 @@ enum Type
     case Zip;
     case Other;
 
-    public static function create(?string $format): self
+    public static function createFromType(string|self|null $type): self
     {
-        $format = trim((string) $format);
+        if (is_object($type)) {
+            return $type;
+        }
 
-        $type = match (strtolower($format)) {
-            'audio/aac' => self::Aac,
-            'audio/aiff' => self::Aiff,
-            'application/octet-stream' => self::Bin,
-            'image/bmp' => self::Bmp,
-            'text/css' => self::Css,
-            'text/csv' => self::Csv,
-            'application/msword' => self::Doc,
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
-            'audio/flac' => self::Flac,
-            'image/gif' => self::Gif,
-            'image/heic' => self::Heic,
-            'image/heic-sequence' => self::Heics,
-            'image/heif' => self::Heif,
-            'image/heif-sequence' => self::Heifs,
-            'text/html' => self::Html,
-            'image/jpg' => self::Jpeg,
-            'image/jpeg' => self::Jpeg,
-            'text/javascript' => self::Js,
-            'application/json' => self::Json,
-            'application/jsonl' => self::Jsonl,
-            'audio/x-m4a' => self::M4a,
-            'audio/mp4' => self::M4a,
-            'text/markdown' => self::Markdown,
-            'video/quicktime' => self::Mov,
-            'audio/mpeg' => self::Mp3,
-            'video/mp4' => self::Mp4,
-            'audio/ogg' => self::Oga,
-            'application/pdf' => self::Pdf,
-            'text/x-php' => self::Php,
-            'image/png' => self::Png,
-            'image/tiff' => self::Tiff,
-            'application/x-empty' => self::Txt,
-            'text/plain' => self::Txt,
-            'audio/wav' => self::Wav,
-            'image/webp' => self::Webp,
-            'application/msexcel' => self::Xls,
-            'application/vnd.ms-excel' => self::Xls,
-            'application/x-excel' => self::Xls,
-            'application/x-msexcel' => self::Xls,
-            'application/x-ms-excel' => self::Xls,
-            'application/xls' => self::Xls,
-            'application/x-xls' => self::Xls,
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
-            'application/xml' => self::Xml,
-            'application/zip' => self::Zip,
-            default => null,
-        };
+        $default = self::Other;
 
-        return $type ?? self::Other;
+        if (null === $type) {
+            return $default;
+        }
+
+        $type = strtolower($type);
+
+        if ($type = trim($type)) {
+            return match ($type) {
+                'audio/aac' => self::Aac,
+                'audio/aiff' => self::Aiff,
+                'application/octet-stream' => self::Bin,
+                'image/bmp' => self::Bmp,
+                'text/css' => self::Css,
+                'text/csv' => self::Csv,
+                'application/msword' => self::Doc,
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => self::Docx,
+                'audio/flac' => self::Flac,
+                'image/gif' => self::Gif,
+                'image/heic' => self::Heic,
+                'image/heic-sequence' => self::Heics,
+                'image/heif' => self::Heif,
+                'image/heif-sequence' => self::Heifs,
+                'text/html' => self::Html,
+                'image/jpg' => self::Jpg,
+                'image/jpeg' => self::Jpeg,
+                'text/javascript' => self::Js,
+                'application/json' => self::Json,
+                'application/jsonl' => self::Jsonl,
+                'audio/x-m4a' => self::M4a,
+                'audio/mp4' => self::M4a,
+                'text/markdown' => self::Markdown,
+                'video/quicktime' => self::Mov,
+                'audio/mpeg' => self::Mp3,
+                'video/mp4' => self::Mp4,
+                'audio/ogg' => self::Oga,
+                'application/pdf' => self::Pdf,
+                'text/x-php' => self::Php,
+                'image/png' => self::Png,
+                'image/tiff' => self::Tiff,
+                'application/x-empty' => self::Txt,
+                'text/plain' => self::Txt,
+                'audio/wav' => self::Wav,
+                'image/webp' => self::Webp,
+                'application/msexcel' => self::Xls,
+                'application/vnd.ms-excel' => self::Xls,
+                'application/x-excel' => self::Xls,
+                'application/x-msexcel' => self::Xls,
+                'application/x-ms-excel' => self::Xls,
+                'application/xls' => self::Xls,
+                'application/x-xls' => self::Xls,
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
+                'application/xml' => self::Xml,
+                'application/zip' => self::Zip,
+                default => $default,
+            };
+        }
+
+        return $default;
     }
 
     public static function createFromPath(string $path): self
     {
-        return self::create(@mime_content_type($path) ?: null);
+        $info = pathinfo($path);
+
+        // Handle old extensions like .htm and .jpg
+        if (array_key_exists('extension', $info)) {
+            $ext = strtolower($info['extension']);
+
+            if ('htm' === $ext) {
+                return self::Htm;
+            }
+
+            if ('jpg' === $ext) {
+                return self::Jpg;
+            }
+        }
+
+        if (is_file($path) && is_readable($path)) {
+            if ($mimeType = @mime_content_type($path)) {
+                return self::createFromType(type: $mimeType);
+            }
+        }
+
+        return self::createFromType(null);
     }
 
     /**
@@ -115,7 +155,7 @@ enum Type
     public function getName(): string
     {
         if ($this->isMarkdown()) {
-            return $this->name;
+            return 'MD';
         }
 
         if ($this->isOther()) {
@@ -160,7 +200,9 @@ enum Type
             self::Heics => 'image/heic-sequence',
             self::Heif => 'image/heif',
             self::Heifs => 'image/heif-sequence',
+            self::Htm => 'text/html',
             self::Html => 'text/html',
+            self::Jpg => 'image/jpeg',
             self::Jpeg => 'image/jpeg',
             self::Js => 'text/javascript',
             self::Json => 'application/json',
@@ -205,7 +247,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Oga|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xls|self::Xlsx|self::Zip $this
+     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Jpg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Oga|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xls|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool
     {
@@ -223,6 +265,7 @@ enum Type
             self::Heif,
             self::Heifs,
             self::Jpeg,
+            self::Jpg,
             self::M4a,
             self::Mov,
             self::Mp3,
@@ -240,7 +283,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Html|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xls|self::Xlsx|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Doc|self::Docx|self::Htm|self::Html|self::Json|self::Jsonl|self::Markdown|self::Pdf|self::Php|self::Txt|self::Xls|self::Xlsx|self::Xml $this
      */
     public function isDocument(): bool
     {
@@ -249,6 +292,7 @@ enum Type
             self::Csv,
             self::Doc,
             self::Docx,
+            self::Htm,
             self::Html,
             self::Js,
             self::Json,
@@ -264,7 +308,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Png|self::Tiff|self::Webp $this
+     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Jpg|self::Png|self::Tiff|self::Webp $this
      */
     public function isImage(): bool
     {
@@ -276,6 +320,7 @@ enum Type
             self::Heif,
             self::Heifs,
             self::Jpeg,
+            self::Jpg,
             self::Png,
             self::Tiff,
             self::Webp,
@@ -283,13 +328,14 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Css|self::Csv|self::Html|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
+     * @phpstan-assert-if-true self::Css|self::Csv|self::Htm|self::Html|self::Json|self::Jsonl|self::Markdown|self::Php|self::Txt|self::Xml $this
      */
     public function isText(): bool
     {
         return in_array($this, [
             self::Css,
             self::Csv,
+            self::Htm,
             self::Html,
             self::Js,
             self::Json,
@@ -414,6 +460,14 @@ enum Type
     }
 
     /**
+     * @phpstan-assert-if-true self::Htm $this
+     */
+    public function isHtm(): bool
+    {
+        return self::Htm === $this;
+    }
+
+    /**
      * @phpstan-assert-if-true self::Html $this
      */
     public function isHtml(): bool
@@ -427,6 +481,14 @@ enum Type
     public function isJpeg(): bool
     {
         return self::Jpeg === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Jpg $this
+     */
+    public function isJpg(): bool
+    {
+        return self::Jpg === $this;
     }
 
     /**
