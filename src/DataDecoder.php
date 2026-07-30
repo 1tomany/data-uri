@@ -146,7 +146,7 @@ final class DataDecoder
         }
 
         try {
-            $temporaryPath = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $temporaryBase ?? '', $temporaryName);
+            $originPath = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $temporaryBase ?? '', $temporaryName);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException('Generating the temporary path failed.', previous: $e);
         } finally {
@@ -155,14 +155,14 @@ final class DataDecoder
             }
         }
 
-        if ('' === $temporaryPath) {
+        if ('' === $originPath) {
             throw new RuntimeException('An empty file path was generated.');
         }
 
         // Ensure the base directory is an absolute path
         if (false === is_empty($temporaryBase, false)) {
             $temporaryBase = Path::getDirectory(...[
-                'path' => trim($temporaryPath),
+                'path' => trim($originPath),
             ]);
         }
 
@@ -171,9 +171,9 @@ final class DataDecoder
 
             try {
                 // Copy the source data to the temporary path
-                $this->filesystem->copy($data, $temporaryPath, true);
+                $this->filesystem->copy($data, $originPath, true);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Copying the %s "%s" to "%s" failed.', $dataIsUrl ? 'URL' : 'file', $data, $temporaryPath), previous: $e);
+                throw new RuntimeException(sprintf('Copying the %s "%s" to "%s" failed.', $dataIsUrl ? 'URL' : 'file', $data, $originPath), previous: $e);
             }
         } else {
             $this->assertStreamsAreRegistered(['data', 'file']);
@@ -190,9 +190,9 @@ final class DataDecoder
                 }
 
                 // Write the contents of the stream to a temporary file
-                $this->filesystem->dumpFile($temporaryPath, $contents);
+                $this->filesystem->dumpFile($originPath, $contents);
             } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Writing the contents of the stream to the file "%s" failed.', $temporaryPath), previous: $e);
+                throw new RuntimeException(sprintf('Writing the contents of the stream to the file "%s" failed.', $originPath), previous: $e);
             } finally {
                 @fclose($stream);
             }
@@ -202,31 +202,30 @@ final class DataDecoder
             $temporaryType = Type::create(type: $type);
         } else {
             $temporaryType = Type::createFromPath(...[
-                'path' => trim($temporaryPath),
+                'path' => trim($originPath),
             ]);
         }
 
         if ($extension = $temporaryType->getExtension()) {
-            $dest = FilenameHelper::changeExtension(
-                $temporaryPath, $extension, lowercase: true,
-            );
-
             try {
-                // Rename the temporary file with an extension
-                $this->filesystem->rename($temporaryPath, $dest, true);
-            } catch (FilesystemExceptionInterface $e) {
-                throw new RuntimeException(sprintf('Renaming the file "%s" to "%s" failed.', $temporaryPath, $dest), previous: $e);
-            }
+                $temporaryPath = FilenameHelper::changeExtension(
+                    $originPath, $extension, lowercase: true,
+                );
 
-            $temporaryPath = $dest;
+                $this->filesystem->rename($originPath, $temporaryPath, true);
+            } catch (FilesystemExceptionInterface $e) {
+                throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $temporaryBase, $extension), previous: $e);
+            }
+        } else {
+            $temporaryPath = $originPath;
         }
 
-        // Ensure the filesize can be calculated
-        if (false === $_size = @filesize($temporaryPath)) {
+        // Attempt to calculate the filesize of the file
+        if (false === $temporarySize = @filesize($originPath)) {
             throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $temporaryPath));
         }
 
-        return new TemporaryFile($temporaryPath, $temporaryBase, $temporaryName, $_size, $temporaryType);
+        return new TemporaryFile($temporaryPath, $temporaryBase, $temporaryName, $temporarySize, $temporaryType);
     }
 
     public function decodeBase64(
