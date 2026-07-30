@@ -16,7 +16,7 @@ $file2 = $dataDecoder->decode('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABg
 print_r($file2);
 
 // Decode an existing file
-$file3 = $dataDecoder->decode(__DIR__.'/files/label.jpeg');
+$file3 = $dataDecoder->decode(__DIR__.'/../config/files/ao-smith-label.jpeg');
 print_r($file3);
 
 // Decode base64 encoded data with a known format

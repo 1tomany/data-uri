@@ -94,7 +94,7 @@ final class DataDecoderTest extends TestCase
     {
         $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'Hello_World.txt');
 
-        $this->assertEquals('Hello_World.txt', $file->name);
+        $this->assertEquals('Hello_World.txt', $file->getName());
     }
 
     public function testDecodingDataCanSetType(): void
@@ -177,12 +177,14 @@ final class DataDecoderTest extends TestCase
      */
     public static function providerFileAndMetadata(): array
     {
-        return [
+        $provider = [
             [__DIR__.'/.data/pdf-small.pdf', 36916, 'application/pdf'],
-            [__DIR__.'/.data/png-small.png', 10289, 'image/png'],
+            [__DIR__.'/../config/files/php-logo.png', 10289, 'image/png'],
             [__DIR__.'/.data/text-small.txt', 86, 'text/plain'],
             [__DIR__.'/.data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         ];
+
+        return $provider;
     }
 
     public function testDecodingBase64DataRequiresValidFormat(): void
