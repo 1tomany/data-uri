@@ -248,19 +248,6 @@ final class DataDecoder
             throw new InvalidArgumentException(sprintf('The type "%s" is not text.', $type->getName()));
         }
 
-        // if ('' === $name = trim((string) $name)) {
-        //     $name = FilenameHelper::generate(12)
-        // }
-        // if (null !== $name) {
-        //     $name = trim($name);
-        // }
-
-        // try {
-        //     $name = Path::changeExtension($name ?: FilenameHelper::generate(12), $type->getExtension());
-        // } catch (DataUriExceptionInterface $e) {
-        //     throw new RuntimeException(sprintf('Generating a temporary filename failed: %s.', rtrim($e->getMessage(), '.')), previous: $e);
-        // }
-
         return $this->decodeBase64(base64_encode($text), $type, $name);
     }
 
