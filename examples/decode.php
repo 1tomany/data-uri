@@ -57,6 +57,7 @@ $command = function (
             $tempFile->getPath(),
             $tempFile->getName(),
             $tempFile->getSize(),
+            $tempFile->getType()->getName(),
             $tempFile->getFormat(),
             $tempFile->getKey(),
         ]);
@@ -64,7 +65,7 @@ $command = function (
         $tempFile->delete();
     }
 
-    $io->table(['Path', 'Name', 'Size', 'Format', 'Key'], [
+    $io->table(['Path', 'Name', 'Size', 'Type', 'Format', 'Key'], [
         ...$tableRows,
     ]);
 

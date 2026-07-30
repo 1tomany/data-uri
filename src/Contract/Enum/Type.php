@@ -7,9 +7,12 @@ use function is_file;
 use function is_object;
 use function is_readable;
 use function mime_content_type;
+use function pathinfo;
 use function strtolower;
 use function strtoupper;
 use function trim;
+
+use const PATHINFO_EXTENSION;
 
 enum Type
 {
@@ -123,6 +126,16 @@ enum Type
     public static function createFromPath(string $path): self
     {
         if (is_file($path) && is_readable($path)) {
+            $info = pathinfo($path);
+
+            if ($extension = $info['extension'] ?? null) {
+                $extension = strtolower($extension);
+
+                if ('jpg' === $extension) {
+                    return self::Jpg;
+                }
+            }
+
             if ($mimeType = @mime_content_type($path)) {
                 return self::create(type: $mimeType);
             }
