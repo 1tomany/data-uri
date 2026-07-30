@@ -18,13 +18,13 @@ use function assert;
 use function ctype_print;
 use function dirname;
 use function fclose;
-use function file_exists;
 use function filesize;
 use function filter_var;
 use function fopen;
 use function implode;
 use function is_dir;
 use function is_file;
+use function is_int;
 use function is_object;
 use function is_readable;
 use function is_string;
@@ -178,6 +178,10 @@ final class DataDecoder
                 // Write the contents of the stream to a temporary file
                 $this->filesystem->dumpFile($tempPath, $contents);
             } catch (FilesystemExceptionInterface $e) {
+                if ($this->filesystem->exists($tempPath)) {
+                    $this->rollback($tempPath, $fileBase);
+                }
+
                 throw new RuntimeException(sprintf('Writing the contents of the stream to the file "%s" failed.', $tempPath), previous: $e);
             } finally {
                 @fclose($stream);
@@ -198,19 +202,23 @@ final class DataDecoder
             try {
                 $this->filesystem->rename($tempPath, $filePath, true);
             } catch (FilesystemExceptionInterface $e) {
+                $this->rollback($tempPath, $fileBase);
+
                 throw new RuntimeException(sprintf('Changing the extension of the file "%s" to "%s" failed.', $fileBase, $extension), previous: $e);
-            } finally {
-                if (!file_exists($filePath)) {
-                    $this->rollback($tempPath);
-                }
             }
         } else {
             $filePath = $tempPath;
         }
 
-        // Attempt to calculate the filesize of the file
-        if (false === $fileSize = @filesize($filePath)) {
-            throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
+        try {
+            // Attempt to calculate the filesize of the file
+            if (false === $fileSize = @filesize($filePath)) {
+                throw new RuntimeException(sprintf('Reading the size of the file "%s" failed.', $filePath));
+            }
+        } finally {
+            if (!isset($fileSize) || !is_int($fileSize)) {
+                $this->rollback($filePath, $fileBase);
+            }
         }
 
         return new TemporaryFile($filePath, $fileBase, basename($filePath), $fileSize, $fileType);
@@ -262,9 +270,13 @@ final class DataDecoder
         }
     }
 
-    private function rollback(string ...$paths): void
+    private function rollback(?string ...$paths): void
     {
         foreach ($paths as $path) {
+            if (null === $path) {
+                continue;
+            }
+
             try {
                 $path = Path::canonicalize($path);
 
