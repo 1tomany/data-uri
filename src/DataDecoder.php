@@ -198,9 +198,9 @@ final class DataDecoder
         if (null !== $extension = $fileType->getExtension()) {
             $filePath = null;
 
-            if ($fileType->isJpeg() && Path::hasExtension($tempPath, 'jpg', true)) {
-                $filePath = Path::changeExtension($tempPath, extension: $extension);
-            }
+            // if (Path::hasExtension($tempPath, $fileType->getShortExtension(), true)) {
+            //     $filePath = Path::changeExtension($tempPath, extension: $extension);
+            // }
 
             if (!Path::hasExtension($tempPath, $extension, true)) {
                 $filePath ??= sprintf('%s.%s', $tempPath, $extension);

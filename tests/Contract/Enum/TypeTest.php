@@ -44,7 +44,7 @@ final class TypeTest extends TestCase
             ['image/heif', Type::Heif],
             ['image/heif-sequence', Type::Heifs],
             ['text/html', Type::Html],
-            ['image/jpg', Type::Jpeg],
+            ['image/jpg', Type::Jpg],
             ['image/jpeg', Type::Jpeg],
             ['text/javascript', Type::Js],
             ['application/json', Type::Json],
@@ -107,6 +107,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, 'HEIFS'],
             [Type::Html, 'HTML'],
             [Type::Jpeg, 'JPEG'],
+            [Type::Jpg, 'JPG'],
             [Type::Js, 'JS'],
             [Type::Json, 'JSON'],
             [Type::Jsonl, 'JSONL'],
@@ -164,6 +165,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, 'heifs'],
             [Type::Html, 'html'],
             [Type::Jpeg, 'jpeg'],
+            [Type::Jpg, 'jpg'],
             [Type::Js, 'js'],
             [Type::Json, 'json'],
             [Type::Jsonl, 'jsonl'],
@@ -221,6 +223,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, 'image/heif-sequence'],
             [Type::Html, 'text/html'],
             [Type::Jpeg, 'image/jpeg'],
+            [Type::Jpg, 'image/jpeg'],
             [Type::Js, 'text/javascript'],
             [Type::Json, 'application/json'],
             [Type::Jsonl, 'application/jsonl'],
@@ -275,6 +278,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, false],
             [Type::Html, false],
             [Type::Jpeg, false],
+            [Type::Jpg, false],
             [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
@@ -329,6 +333,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, true],
             [Type::Html, false],
             [Type::Jpeg, true],
+            [Type::Jpg, true],
             [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
@@ -383,6 +388,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, false],
             [Type::Html, true],
             [Type::Jpeg, false],
+            [Type::Jpg, false],
             [Type::Js, true],
             [Type::Json, true],
             [Type::Jsonl, true],
@@ -437,6 +443,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, true],
             [Type::Html, false],
             [Type::Jpeg, true],
+            [Type::Jpg, true],
             [Type::Js, false],
             [Type::Json, false],
             [Type::Jsonl, false],
@@ -491,6 +498,7 @@ final class TypeTest extends TestCase
             [Type::Heifs, false],
             [Type::Html, true],
             [Type::Jpeg, false],
+            [Type::Jpg, false],
             [Type::Js, true],
             [Type::Json, true],
             [Type::Jsonl, true],
@@ -595,6 +603,11 @@ final class TypeTest extends TestCase
     public function testIsJpeg(): void
     {
         $this->assertTrue(Type::Jpeg->isJpeg()); // @phpstan-ignore-line
+    }
+
+    public function testIsJpg(): void
+    {
+        $this->assertTrue(Type::Jpg->isJpg()); // @phpstan-ignore-line
     }
 
     public function testIsJs(): void

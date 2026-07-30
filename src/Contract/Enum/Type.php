@@ -29,6 +29,7 @@ enum Type
     case Heifs;
     case Html;
     case Jpeg;
+    case Jpg;
     case Js;
     case Json;
     case Jsonl;
@@ -85,7 +86,7 @@ enum Type
             'image/heif' => self::Heif,
             'image/heif-sequence' => self::Heifs,
             'text/html' => self::Html,
-            'image/jpg' => self::Jpeg,
+            'image/jpg' => self::Jpg,
             'image/jpeg' => self::Jpeg,
             'text/javascript' => self::Js,
             'application/json' => self::Json,
@@ -182,6 +183,7 @@ enum Type
             self::Heif => 'image/heif',
             self::Heifs => 'image/heif-sequence',
             self::Html => 'text/html',
+            self::Jpg => 'image/jpeg',
             self::Jpeg => 'image/jpeg',
             self::Js => 'text/javascript',
             self::Json => 'application/json',
@@ -226,7 +228,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Oga|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xls|self::Xlsx|self::Zip $this
+     * @phpstan-assert-if-true self::Aac|self::Aiff|self::Bin|self::Bmp|self::Doc|self::Docx|self::Flac|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Jpg|self::M4a|self::Mov|self::Mp3|self::Mp4|self::Oga|self::Pdf|self::Png|self::Tiff|self::Wav|self::Webp|self::Xls|self::Xlsx|self::Zip $this
      */
     public function isBinary(): bool
     {
@@ -244,6 +246,7 @@ enum Type
             self::Heif,
             self::Heifs,
             self::Jpeg,
+            self::Jpg,
             self::M4a,
             self::Mov,
             self::Mp3,
@@ -285,7 +288,7 @@ enum Type
     }
 
     /**
-     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Png|self::Tiff|self::Webp $this
+     * @phpstan-assert-if-true self::Bmp|self::Gif|self::Heic|self::Heics|self::Heif|self::Heifs|self::Jpeg|self::Jpg|self::Png|self::Tiff|self::Webp $this
      */
     public function isImage(): bool
     {
@@ -297,6 +300,7 @@ enum Type
             self::Heif,
             self::Heifs,
             self::Jpeg,
+            self::Jpg,
             self::Png,
             self::Tiff,
             self::Webp,
@@ -448,6 +452,14 @@ enum Type
     public function isJpeg(): bool
     {
         return self::Jpeg === $this;
+    }
+
+    /**
+     * @phpstan-assert-if-true self::Jpg $this
+     */
+    public function isJpg(): bool
+    {
+        return self::Jpg === $this;
     }
 
     /**
