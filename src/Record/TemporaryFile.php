@@ -285,11 +285,11 @@ class TemporaryFile implements TemporaryFileInterface
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
     #[\Override]
-    public function detach(): string
+    public function detach(): self
     {
         $this->isManaged = false;
 
-        return $this->getPath();
+        return $this;
     }
 
     /**

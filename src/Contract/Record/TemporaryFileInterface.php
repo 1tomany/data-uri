@@ -104,11 +104,9 @@ interface TemporaryFileInterface extends \Stringable
     public function delete(): void;
 
     /**
-     * Transfers cleanup responsibility to the caller and returns the path.
-     *
-     * @return non-empty-string
+     * Transfers cleanup responsibility to the caller.
      */
-    public function detach(): string;
+    public function detach(): self;
 
     /**
      * If true, all files and directories managed by the object will
