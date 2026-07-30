@@ -17,7 +17,6 @@ use function implode;
 use function is_dir;
 use function is_link;
 use function is_string;
-use function OneToMany\IsEmpty\is_empty;
 use function rmdir;
 use function sprintf;
 use function strlen;
@@ -309,7 +308,7 @@ class TemporaryFile implements TemporaryFileInterface
         if (is_string($root)) {
             $root = basename($root);
 
-            if (!is_empty($root)) {
+            if ('' !== $root) {
                 $keyBits[] = $root;
             }
         }
