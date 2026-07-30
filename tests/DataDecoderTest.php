@@ -73,8 +73,8 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingDataRequiresValidDataUri(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Opening a stream to decode the data failed.');
 
         new DataDecoder()->decode('data:image/gif;base64,!R0lG**AQ/ABAIAAAAAAA++ACH5BAEAAAAALAA?AEAOw==');
     }
@@ -87,7 +87,7 @@ final class DataDecoderTest extends TestCase
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects($this->once())->method('copy')->willThrowException(new IOException('Error'));
 
-        new DataDecoder($filesystem)->decode(__DIR__.'/.data/pdf-small.pdf');
+        new DataDecoder($filesystem)->decode(__DIR__.'/../config/files/github-links.pdf');
     }
 
     public function testDecodingDataCanSetName(): void
@@ -178,10 +178,10 @@ final class DataDecoderTest extends TestCase
     public static function providerFileAndMetadata(): array
     {
         $provider = [
-            [__DIR__.'/.data/pdf-small.pdf', 36916, 'application/pdf'],
+            [__DIR__.'/../config/files/github-links.pdf', 36916, 'application/pdf'],
             [__DIR__.'/../config/files/php-logo.png', 10289, 'image/png'],
-            [__DIR__.'/.data/text-small.txt', 86, 'text/plain'],
-            [__DIR__.'/.data/word-small.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            [__DIR__.'/../config/files/sample-email.txt', 86, 'text/plain'],
+            [__DIR__.'/../config/files/github-links.docx', 6657, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         ];
 
         return $provider;
@@ -191,8 +191,8 @@ final class DataDecoderTest extends TestCase
     {
         $format = 'invalid_mime_type';
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Decoding the data stream failed.');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Opening a stream to decode the data failed.');
 
         new DataDecoder()->decodeBase64('SGVsbG8sIHdvcmxkIQ==', $format);
     }
