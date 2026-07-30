@@ -16,7 +16,6 @@ use function hash_file;
 use function implode;
 use function is_dir;
 use function is_link;
-use function realpath;
 use function rmdir;
 use function sprintf;
 use function strlen;
