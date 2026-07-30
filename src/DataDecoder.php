@@ -34,6 +34,7 @@ use function sprintf;
 use function stream_get_contents;
 use function stream_get_wrappers;
 use function strlen;
+use function substr;
 use function sys_get_temp_dir;
 use function trim;
 
@@ -196,6 +197,10 @@ final class DataDecoder
         }
 
         if (null !== $extension = $fileType->getExtension()) {
+            if (Path::hasExtension($tempPath, 'jpg', true)) {
+                $tempPath = substr($tempPath, 0, -4);
+            }
+
             if (!Path::hasExtension($tempPath, $extension, true)) {
                 $filePath = sprintf('%s.%s', $tempPath, $extension);
 
