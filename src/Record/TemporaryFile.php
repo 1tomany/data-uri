@@ -57,8 +57,6 @@ class TemporaryFile implements TemporaryFileInterface
      */
     private readonly string $key;
 
-    private bool $isManaged = false;
-
     /**
      * @see OneToMany\DataUri\Record\TemporaryFile::validateBase()
      * @see OneToMany\DataUri\Record\TemporaryFile::generateHash()
@@ -75,6 +73,7 @@ class TemporaryFile implements TemporaryFileInterface
         string $name,
         int $size,
         Type $type,
+        private bool $isManaged = true,
     ) {
         if ('' === $path = Path::canonicalize(trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
@@ -110,8 +109,6 @@ class TemporaryFile implements TemporaryFileInterface
             'base' => $this->getBase(),
             'name' => $this->getName(),
         ]);
-
-        $this->isManaged = true;
     }
 
     /**

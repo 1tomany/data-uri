@@ -239,6 +239,24 @@ final class TemporaryFileTest extends TestCase
         $file->toDataUri();
     }
 
+    public function testDeleteIsDeterministicAndIdempotent(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+
+        $this->assertTrue($file->isManaged());
+        $this->assertIsString($file->getBase());
+        $this->assertFileExists($file->getPath());
+        $this->assertDirectoryExists($file->getBase());
+
+        $file->delete();
+        $file->delete();
+
+        $this->assertFalse($file->isManaged());
+        $this->assertIsString($file->getBase());
+        $this->assertFileDoesNotExist($file->getPath());
+        $this->assertDirectoryDoesNotExist($file->getBase());
+    }
+
     public function testDetachTransfersCleanupResponsibility(): void
     {
         $file = $this->decodeFile('php-logo.png');
