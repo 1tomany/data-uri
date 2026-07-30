@@ -58,7 +58,11 @@ The `DataDecoder::decodeText()` method has the following arguments:
 
 ## Examples
 
-See the [`decode.php`](https://github.com/1tomany/data-uri/blob/main/examples/decode.php) file for examples on how to use the `DataDecoder::decode()` method.
+Run and inspect the [`decode.php`](https://github.com/1tomany/data-uri/blob/master/examples/decode.php) file for examples on how to use the `DataDecoder::decode()` method.
+
+```sh
+php examples/decode.php [--all]
+```
 
 ## Credits
 
