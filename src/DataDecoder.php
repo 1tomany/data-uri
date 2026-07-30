@@ -149,7 +149,7 @@ final class DataDecoder
 
         // Generate the base directory
         if (true === isset($fileBase)) {
-            $fileBase = dirname($fileBase);
+            $fileBase = dirname($tempPath);
         }
 
         if ($dataIsFile || $dataIsUrl) {
