@@ -101,6 +101,7 @@ final class TemporaryFileTest extends TestCase
     public function testConstructorGeneratesKeyWithoutBaseWhenBaseIsEmpty(): void
     {
         $file = new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', 10289, Type::Png);
+        $file->detach();
 
         $this->assertNull($file->getBase());
         $this->assertNotEmpty($file->getKey());
