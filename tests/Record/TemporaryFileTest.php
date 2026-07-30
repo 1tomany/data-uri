@@ -239,6 +239,30 @@ final class TemporaryFileTest extends TestCase
         $file->toDataUri();
     }
 
+    public function testDetachTransfersCleanupResponsibility(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+
+        $this->assertTrue($file->isManaged());
+        $this->assertFileExists($file->getPath());
+
+        $file->detach();
+
+        $this->assertFalse($file->isManaged());
+        $this->assertFileExists($file->getPath());
+
+        $file->delete();
+
+        $this->assertFalse($file->isManaged());
+        $this->assertFileExists($file->getPath());
+
+        new Filesystem()->remove($file->getPath());
+
+        if (null !== $base = $file->getBase()) {
+            new Filesystem()->remove([$base]);
+        }
+    }
+
     /**
      * @param non-empty-string $name
      */
