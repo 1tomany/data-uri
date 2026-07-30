@@ -108,7 +108,6 @@ final class TemporaryFileTest extends TestCase
 
     public function testConstructorGeneratesKeyWithBaseWhenBaseIsNotNull(): void
     {
-
     }
 
     public function testDestructorDeletesTemporaryFile(): void
