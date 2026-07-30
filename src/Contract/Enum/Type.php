@@ -335,6 +335,7 @@ enum Type
         return in_array($this, [
             self::Css,
             self::Csv,
+            self::Htm,
             self::Html,
             self::Js,
             self::Json,
