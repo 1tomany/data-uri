@@ -102,12 +102,19 @@ final class TemporaryFileTest extends TestCase
     {
         $file = new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', 10289, Type::Png)->detach();
 
-        $this->assertNull($file->getBase());
-        $this->assertNotEmpty($file->getKey());
+        $this->assertEquals('c6/dd/php-logo.png', $file->getKey());
     }
 
-    public function testConstructorGeneratesKeyWithBaseWhenBaseIsNotNull(): void
+    public function testConstructorGeneratesKeyWithBaseWhenBaseIsNotEmpty(): void
     {
+        $file = $this->decodeFile('php-logo.png');
+        $this->assertFileExists($file->getPath());
+
+        $this->assertIsString($file->getBase());
+        $this->assertDirectoryExists($file->getBase());
+
+        $base = basename($file->getBase());
+        $this->assertStringContainsString($base, $file->getKey());
     }
 
     public function testDestructorDeletesTemporaryFile(): void
