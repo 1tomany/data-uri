@@ -16,6 +16,7 @@ use function hash_file;
 use function implode;
 use function is_dir;
 use function is_link;
+use function realpath;
 use function rmdir;
 use function sprintf;
 use function strlen;
@@ -76,7 +77,7 @@ class TemporaryFile implements TemporaryFileInterface
         int $size,
         Type $type,
     ) {
-        if ('' === $path = Path::canonicalize(trim($path))) {
+        if (false === $path = realpath(trim($path))) {
             throw new InvalidArgumentException('The path cannot be empty.');
         }
 
