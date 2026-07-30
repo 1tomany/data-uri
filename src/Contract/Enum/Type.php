@@ -3,7 +3,9 @@
 namespace OneToMany\DataUri\Contract\Enum;
 
 use function in_array;
+use function is_file;
 use function is_object;
+use function is_readable;
 use function mime_content_type;
 use function strtolower;
 use function strtoupper;
@@ -119,7 +121,11 @@ enum Type
 
     public static function createFromPath(string $path): self
     {
-        return self::create(@mime_content_type($path) ?: null);
+        if (is_file($path) && is_readable($path)) {
+            $mimeType = @mime_content_type($path) ?: null;
+        }
+
+        return self::create($mimeType ?? null);
     }
 
     /**
@@ -152,18 +158,6 @@ enum Type
         }
 
         return strtolower($this->name);
-    }
-
-    /**
-     * @return ?non-empty-lowercase-string
-     */
-    public function getFullExtension(): ?string
-    {
-        if ($extension = $this->getExtension()) {
-            return sprintf('.%s', $extension);
-        }
-
-        return null;
     }
 
     /**

@@ -14,6 +14,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 use function array_diff;
+use function assert;
 use function ctype_print;
 use function dirname;
 use function fclose;
@@ -136,30 +137,19 @@ final class DataDecoder
             'filename' => trim($fileName),
         ]);
 
-        // Generate a base directory if a file name
-        // was generated to avoid naming collisions
-        if (false === is_empty($fileName, false)) {
-            $fileBase = FilenameHelper::generate(8);
-        }
+        // Generate a base directory if a name was found to avoid collisions
+        $fileBase = null !== $fileName ? FilenameHelper::generate(8) : null;
 
         // Generate a file name if one was not found
-        if (true === is_empty($fileName, false)) {
-            $fileName = FilenameHelper::generate(12);
-        }
+        $fileName ??= FilenameHelper::generate(12);
 
         try {
-            $tempPath = Path::join($this->rootDirectory, self::FILE_DIRECTORY, $fileBase ?? '', $fileName);
+            $tempPath = Path::join($this->rootDirectory, self::FILE_DIRECTORY, (string) $fileBase, $fileName);
         } catch (FilesystemExceptionInterface $e) {
             throw new RuntimeException('Generating the file path failed.', previous: $e);
-        } finally {
-            if (!isset($fileBase)) {
-                $fileBase = null;
-            }
         }
 
-        if ('' === $tempPath) {
-            throw new RuntimeException('An empty file path was generated.');
-        }
+        assert('' !== $tempPath, 'An empty file path was generated.');
 
         // Ensure the base directory is absolute
         if (false === is_empty($fileBase, false)) {
