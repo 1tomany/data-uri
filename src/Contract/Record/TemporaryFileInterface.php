@@ -62,7 +62,7 @@ interface TemporaryFileInterface extends \Stringable
     public function isEqual(self $file): bool;
 
     /**
-     * Determines if two instances refer to the same file.
+     * Determines if two instances have identical hashes and paths.
      */
     public function isSame(self $file): bool;
 

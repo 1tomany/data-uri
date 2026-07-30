@@ -159,9 +159,11 @@ final class TemporaryFileTest extends TestCase
 
     public function testAreSameWhenFilesHaveIdenticalHashesAndPaths(): void
     {
-        $file = $this->decodeFile('php-logo.png');
+        $file1 = $this->decodeFile('php-logo.png');
+        $file2 = clone $file1;
 
-        $this->assertTrue($file->isSame($file));
+        $this->assertTrue($file1->isSame($file2));
+        $this->assertTrue($file2->isSame($file1));
     }
 
     public function testReadingFileRequiresFileToExist(): void
