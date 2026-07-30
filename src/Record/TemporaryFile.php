@@ -7,17 +7,15 @@ use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionI
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
-use Override;
 use Symfony\Component\Filesystem\Path;
 
-use function assert;
+use function array_push;
 use function file_exists;
 use function file_get_contents;
 use function hash_file;
 use function implode;
 use function is_dir;
 use function is_link;
-use function is_string;
 use function rmdir;
 use function sprintf;
 use function strlen;
@@ -61,6 +59,12 @@ class TemporaryFile implements TemporaryFileInterface
 
     private bool $isManaged = false;
 
+    /**
+     * @throws InvalidArgumentException when the path is empty
+     * @throws InvalidArgumentException when the path is a directory or a link
+     * @throws InvalidArgumentException when the name is empty
+     * @throws InvalidArgumentException when the size is negative
+     */
     public function __construct(
         string $path,
         ?string $base,
@@ -101,7 +105,7 @@ class TemporaryFile implements TemporaryFileInterface
 
         $this->key = $this->generateKey(...[
             'hash' => $this->getHash(),
-            'root' => $this->getBase(),
+            'base' => $this->getBase(),
             'name' => $this->getName(),
         ]);
 
@@ -116,6 +120,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function __toString(): string
     {
         return $this->getPath();
@@ -124,6 +129,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getPath(): string
     {
         return $this->path;
@@ -132,6 +138,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getBase(): ?string
     {
         return $this->base;
@@ -140,6 +147,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getName(): string
     {
         return $this->name;
@@ -148,6 +156,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getSize(): int
     {
         return $this->size;
@@ -156,6 +165,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getType(): Type
     {
         return $this->type;
@@ -172,6 +182,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getFormat(): string
     {
         return $this->type->getFormat();
@@ -180,6 +191,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getHash(): string
     {
         return $this->hash;
@@ -188,6 +200,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function getKey(): string
     {
         return $this->key;
@@ -214,6 +227,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function exists(): bool
     {
         return file_exists($this->getPath());
@@ -222,6 +236,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function read(): string
     {
         if (false === $contents = @file_get_contents($this->getPath())) {
@@ -234,18 +249,20 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function toBase64(): string
     {
         try {
             return base64_encode($this->read());
         } catch (DataUriExceptionInterface $e) {
-            throw new RuntimeException(sprintf('Encoding the file "%s" failed.', $this->getPath()), previous: $e);
+            throw new RuntimeException(sprintf('Encoding the file "%s" as a base64 formatted string failed.', $this->getPath()), previous: $e);
         }
     }
 
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function toDataUri(): string
     {
         try {
@@ -258,6 +275,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function delete(): void
     {
         $this->cleanup(true);
@@ -266,6 +284,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function detach(): string
     {
         $this->isManaged = false;
@@ -276,6 +295,7 @@ class TemporaryFile implements TemporaryFileInterface
     /**
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
+    #[\Override]
     public function isManaged(): bool
     {
         return $this->isManaged;
@@ -294,7 +314,7 @@ class TemporaryFile implements TemporaryFileInterface
         }
 
         if (strlen($hash) < TemporaryFileInterface::MINIMUM_HASH_LENGTH) {
-            throw new RuntimeException(sprintf('The hash "%s" must be %d or more characters.', $hash, TemporaryFileInterface::MINIMUM_HASH_LENGTH));
+            throw new RuntimeException(sprintf('The length of the hash "%s" must be %d characters or more.', $hash, TemporaryFileInterface::MINIMUM_HASH_LENGTH));
         }
 
         return $hash;
@@ -302,25 +322,28 @@ class TemporaryFile implements TemporaryFileInterface
 
     /**
      * @param non-empty-lowercase-string $hash
-     * @param ?non-empty-string $root
+     * @param ?non-empty-string $base
      * @param non-empty-string $name
      *
      * @return non-empty-string
+     *
+     * @throws InvalidArgumentException when the length of the hash is too short
      */
-    private function generateKey(string $hash, ?string $root, string $name): string
+    private function generateKey(string $hash, ?string $base, string $name): string
     {
-        assert(strlen($hash) >= TemporaryFileInterface::MINIMUM_HASH_LENGTH);
+        if (strlen($hash) < TemporaryFileInterface::MINIMUM_HASH_LENGTH) {
+            throw new InvalidArgumentException(sprintf('The length of the hash "%s" must be %d characters or more to generate a key.', $hash, TemporaryFileInterface::MINIMUM_HASH_LENGTH));
+        }
 
-        $keyBits = [
-            substr($hash, 0, 2),
-            substr($hash, 2, 2),
-        ];
+        $keyBits = [substr($hash, 0, 2)];
 
-        if (is_string($root)) {
-            $root = basename($root);
+        if ($bit2 = substr($hash, 2, 2)) {
+            array_push($keyBits, $bit2);
+        }
 
-            if ('' !== $root) {
-                $keyBits[] = $root;
+        if ($base = trim((string) $base)) {
+            if ($base = basename($base)) {
+                array_push($keyBits, $base);
             }
         }
 

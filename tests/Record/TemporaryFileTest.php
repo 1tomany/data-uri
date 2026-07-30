@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
+use function base64_encode;
 use function basename;
 use function dirname;
 use function realpath;
@@ -97,6 +98,19 @@ final class TemporaryFileTest extends TestCase
         new TemporaryFile($path, null, 'missing.pdf', 10391, Type::Pdf);
     }
 
+    public function testConstructorGeneratesKeyWithoutBaseWhenBaseIsEmpty(): void
+    {
+        $file = new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', 10289, Type::Png);
+
+        $this->assertNull($file->getBase());
+        $this->assertNotEmpty($file->getKey());
+    }
+
+    public function testConstructorGeneratesKeyWithBaseWhenBaseIsNotNull(): void
+    {
+
+    }
+
     public function testDestructorDeletesTemporaryFile(): void
     {
         $file = $this->decodeFile('php-logo.png');
@@ -157,13 +171,15 @@ final class TemporaryFileTest extends TestCase
         $this->assertSame($file1->getHash(), $file2->getHash());
     }
 
-    public function testAreSameWhenFilesHaveIdenticalHashesAndPaths(): void
+    public function testIsSameWhenFilesHaveIdenticalHashesAndPaths(): void
     {
         $file1 = $this->decodeFile('php-logo.png');
         $file2 = clone $file1;
 
         $this->assertTrue($file1->isSame($file2));
         $this->assertTrue($file2->isSame($file1));
+        $this->assertSame($file1->getPath(), $file2->getPath());
+        $this->assertSame($file1->getHash(), $file2->getHash());
     }
 
     public function testReadingFileRequiresFileToExist(): void
@@ -178,6 +194,43 @@ final class TemporaryFileTest extends TestCase
         $this->expectExceptionMessageIs('Reading the file "'.$file->getPath().'" failed.');
 
         $file->read();
+    }
+
+    public function testToBase64RequiresFileToExist(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+        $this->assertFileExists($file->getPath());
+
+        new Filesystem()->remove($file->getPath());
+        $this->assertFileDoesNotExist($file->getPath());
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIs('Encoding the file "'.$file->getPath().'" as a base64 formatted string failed.');
+
+        $file->toBase64();
+    }
+
+    public function testToBase64(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+        $this->assertFileExists($file->getPath());
+
+        $encodedFile = base64_encode($file->read());
+        $this->assertSame($file->toBase64(), $encodedFile);
+    }
+
+    public function testToDataUriRequiresFileToExist(): void
+    {
+        $file = $this->decodeFile('php-logo.png');
+        $this->assertFileExists($file->getPath());
+
+        new Filesystem()->remove($file->getPath());
+        $this->assertFileDoesNotExist($file->getPath());
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIs('Encoding the file "'.$file->getPath().'" as a data URI failed.');
+
+        $file->toDataUri();
     }
 
     /**
