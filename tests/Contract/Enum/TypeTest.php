@@ -132,7 +132,7 @@ final class TypeTest extends TestCase
             [Type::Json, 'JSON'],
             [Type::Jsonl, 'JSONL'],
             [Type::M4a, 'M4A'],
-            [Type::Markdown, 'Markdown'],
+            [Type::Markdown, 'MD'],
             [Type::Mov, 'MOV'],
             [Type::Mp3, 'MP3'],
             [Type::Mp4, 'MP4'],

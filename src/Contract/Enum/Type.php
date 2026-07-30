@@ -155,7 +155,7 @@ enum Type
     public function getName(): string
     {
         if ($this->isMarkdown()) {
-            return $this->name;
+            return 'MD';
         }
 
         if ($this->isOther()) {
