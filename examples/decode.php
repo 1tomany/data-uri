@@ -32,8 +32,8 @@ $command = function (
         $tempFiles[] = $dataDecoder->decode('data:application/pdf;base64,JVBERi0xLg10cmFpbGVyPDwvUm9vdDw8L1BhZ2VzPDwvS2lkc1s8PC9NZWRpYUJveFswIDAgMyAzXT4+XT4+Pj4+Pg==');
     }
 
-        // Decode an existing file
-        $tempFiles[] = $dataDecoder->decode(__DIR__.'/../config/files/ao-smith-label.jpeg');
+    // Decode an existing file
+    $tempFiles[] = $dataDecoder->decode(__DIR__.'/../config/files/ao-smith-label.jpeg');
 
     if (false) {
         // Decode base64 encoded data with a known format
