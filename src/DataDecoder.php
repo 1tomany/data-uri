@@ -197,8 +197,8 @@ final class DataDecoder
         }
 
         if (null !== $extension = $fileType->getExtension()) {
-            if ($extension !== Path::getExtension($tempPath, true)) {
-                $filePath = sprintf('%s.%s', \rtrim($tempPath, '.'), $extension);
+            if (!Path::hasExtension($tempPath, $extension, true)) {
+                $filePath = sprintf('%s.%s', $tempPath, $extension);
 
                 try {
                     $this->filesystem->rename($tempPath, $filePath, true);
