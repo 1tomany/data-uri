@@ -18,21 +18,17 @@ use function assert;
 use function ctype_print;
 use function dirname;
 use function fclose;
-use function file_exists;
 use function filesize;
 use function filter_var;
 use function fopen;
 use function implode;
 use function is_dir;
 use function is_file;
-use function is_link;
 use function is_object;
 use function is_readable;
 use function is_string;
 use function is_writable;
-use function OneToMany\IsEmpty\is_empty;
 use function parse_url;
-use function rmdir;
 use function rtrim;
 use function sprintf;
 use function stream_get_contents;
@@ -40,7 +36,6 @@ use function stream_get_wrappers;
 use function strlen;
 use function sys_get_temp_dir;
 use function trim;
-use function unlink;
 
 use const FILTER_VALIDATE_URL;
 use const PHP_MAXPATHLEN;
@@ -151,11 +146,9 @@ final class DataDecoder
 
         assert('' !== $tempPath, 'An empty file path was generated.');
 
-        // Ensure the base directory is absolute
-        if (false === is_empty($fileBase, false)) {
-            $fileBase = Path::getDirectory(...[
-                'path' => trim($tempPath),
-            ]);
+        // Generate the base directory
+        if (true === isset($fileBase)) {
+            $fileBase = dirname($fileBase);
         }
 
         if ($dataIsFile || $dataIsUrl) {
@@ -264,24 +257,17 @@ final class DataDecoder
         }
     }
 
-    private function rollback(string $ownedDirectory, ?string ...$paths): void
+    private function rollback(string ...$paths): void
     {
-        $ownedDirectory = Path::canonicalize($ownedDirectory);
-
-        if (Path::canonicalize($this->rootDirectory) !== dirname($ownedDirectory)) {
-            return;
-        }
-
         foreach ($paths as $path) {
-            if (null === $path || $ownedDirectory !== dirname(Path::canonicalize($path))) {
-                continue;
-            }
+            try {
+                $path = Path::canonicalize($path);
 
-            if ((file_exists($path) || is_link($path)) && (!is_dir($path) || is_link($path))) {
-                @unlink($path);
+                if ($this->filesystem->exists($path)) {
+                    $this->filesystem->remove($path);
+                }
+            } catch (FilesystemExceptionInterface) {
             }
         }
-
-        @rmdir($ownedDirectory);
     }
 }
