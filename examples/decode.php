@@ -19,8 +19,6 @@ print_r($file2);
 $file3 = $dataDecoder->decode(__DIR__.'/.data/label.jpeg');
 print_r($file3);
 
-exit;
-
 // Decode base64 encoded data with a known format
 $file4 = $dataDecoder->decodeBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQImWNgAAIAAAUAAWJVMogAAAAASUVORK5CYII=', 'image/png', '1x1.png');
 print_r($file4);
