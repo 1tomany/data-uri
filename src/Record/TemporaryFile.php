@@ -82,9 +82,7 @@ class TemporaryFile implements TemporaryFileInterface
             throw new InvalidArgumentException(sprintf('The path "%s" cannot be a directory or link.', $this->path));
         }
 
-        $this->base = $this->validateBase(
-            $this->getPath(), base: $base,
-        );
+        $this->base = $this->validateBase($this->getPath(), $base);
 
         if ('' === $name = trim($name)) {
             throw new InvalidArgumentException('The name cannot be empty.');
@@ -306,6 +304,35 @@ class TemporaryFile implements TemporaryFileInterface
     }
 
     /**
+     * @param non-empty-string $path
+     *
+     * @return ?non-empty-string
+     *
+     * @throws InvalidArgumentException when the base directory is not an absolute path
+     * @throws InvalidArgumentException when the path is not a direct child of the base directory
+     */
+    private function validateBase(string $path, ?string $base): ?string
+    {
+        if (null === $base) {
+            return null;
+        }
+
+        if ('' !== $base = trim($base)) {
+            if (!Path::isAbsolute($base)) {
+                throw new InvalidArgumentException(sprintf('The base directory "%s" must be an absolute path.', $base));
+            }
+
+            $base = Path::canonicalize($base);
+
+            if ($base !== Path::getDirectory($path)) {
+                throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the base directory "%s".', $path, $base));
+            }
+        }
+
+        return '' === $base ? null : $base;
+    }
+
+    /**
      * @return non-empty-lowercase-string
      *
      * @throws RuntimeException when generating a hash of the file fails
@@ -352,36 +379,6 @@ class TemporaryFile implements TemporaryFileInterface
         }
 
         return implode('/', [...$keyBits, ...[$name]]);
-    }
-
-    /**
-     * @param non-empty-string $path
-     * @param ?non-empty-string $base
-     *
-     * @return ?non-empty-string
-     *
-     * @throws InvalidArgumentException when the base directory is not an absolute path
-     * @throws InvalidArgumentException when the path is not a direct child of the base directory
-     */
-    private function validateBase(string $path, ?string $base): ?string
-    {
-        if (null === $base) {
-            return null;
-        }
-
-        if ('' !== $base = trim($base)) {
-            if (!Path::isAbsolute($base)) {
-                throw new InvalidArgumentException(sprintf('The base directory "%s" must be an absolute path.', $base));
-            }
-
-            $base = Path::canonicalize($base);
-
-            if ($base !== Path::getDirectory($path)) {
-                throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the base directory "%s".', $path, $base));
-            }
-        }
-
-        return '' === $base ? null : $base;
     }
 
     /**
