@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Tests\Contract\Enum;
 
-use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Enum\FileType;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -13,9 +13,9 @@ use PHPUnit\Framework\TestCase;
 final class TypeTest extends TestCase
 {
     #[DataProvider('providerMimeTypeAndType')]
-    public function testCreatingFromType(?string $format, Type $type): void
+    public function testCreatingFromType(?string $format, FileType $type): void
     {
-        $this->assertSame($type, Type::createFromType($format));
+        $this->assertSame($type, FileType::createFromType($format));
     }
 
     /**
@@ -24,65 +24,65 @@ final class TypeTest extends TestCase
     public static function providerMimeTypeAndType(): array
     {
         $provider = [
-            [null, Type::Other],
-            ['', Type::Other],
-            [' ', Type::Other],
-            ['audio/aac', Type::Aac],
-            ['audio/aiff', Type::Aiff],
-            ['application/octet-stream', Type::Bin],
-            ['Application/Octet-Stream', Type::Bin],
-            ['APPLICATION/OCTET-STREAM', Type::Bin],
-            ['image/bmp', Type::Bmp],
-            ['text/css', Type::Css],
-            ['text/csv', Type::Csv],
-            ['application/msword', Type::Doc],
-            ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', Type::Docx],
-            ['audio/flac', Type::Flac],
-            ['image/gif', Type::Gif],
-            ['image/heic', Type::Heic],
-            ['image/heic-sequence', Type::Heics],
-            ['image/heif', Type::Heif],
-            ['image/heif-sequence', Type::Heifs],
-            ['text/html', Type::Html],
-            ['image/jpg', Type::Jpg],
-            ['image/jpeg', Type::Jpeg],
-            ['text/javascript', Type::Js],
-            ['application/json', Type::Json],
-            ['application/jsonl', Type::Jsonl],
-            ['audio/x-m4a', Type::M4a],
-            ['audio/mp4', Type::M4a],
-            ['text/markdown', Type::Markdown],
-            ['video/quicktime', Type::Mov],
-            ['audio/mpeg', Type::Mp3],
-            ['video/mp4', Type::Mp4],
-            ['audio/ogg', Type::Oga],
-            ['application/pdf', Type::Pdf],
-            ['text/x-php', Type::Php],
-            ['image/png', Type::Png],
-            ['image/tiff', Type::Tiff],
-            ['application/x-empty', Type::Txt],
-            ['text/plain', Type::Txt],
-            ['audio/wav', Type::Wav],
-            ['image/webp', Type::Webp],
-            ['application/msexcel', Type::Xls],
-            ['application/vnd.ms-excel', Type::Xls],
-            ['application/x-excel', Type::Xls],
-            ['application/x-msexcel', Type::Xls],
-            ['application/x-ms-excel', Type::Xls],
-            ['application/xls', Type::Xls],
-            ['application/x-xls', Type::Xls],
-            ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', Type::Xlsx],
-            ['application/xml', Type::Xml],
-            ['application/zip', Type::Zip],
+            [null, FileType::Other],
+            ['', FileType::Other],
+            [' ', FileType::Other],
+            ['audio/aac', FileType::Aac],
+            ['audio/aiff', FileType::Aiff],
+            ['application/octet-stream', FileType::Bin],
+            ['Application/Octet-Stream', FileType::Bin],
+            ['APPLICATION/OCTET-STREAM', FileType::Bin],
+            ['image/bmp', FileType::Bmp],
+            ['text/css', FileType::Css],
+            ['text/csv', FileType::Csv],
+            ['application/msword', FileType::Doc],
+            ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', FileType::Docx],
+            ['audio/flac', FileType::Flac],
+            ['image/gif', FileType::Gif],
+            ['image/heic', FileType::Heic],
+            ['image/heic-sequence', FileType::Heics],
+            ['image/heif', FileType::Heif],
+            ['image/heif-sequence', FileType::Heifs],
+            ['text/html', FileType::Html],
+            ['image/jpg', FileType::Jpg],
+            ['image/jpeg', FileType::Jpeg],
+            ['text/javascript', FileType::Js],
+            ['application/json', FileType::Json],
+            ['application/jsonl', FileType::Jsonl],
+            ['audio/x-m4a', FileType::M4a],
+            ['audio/mp4', FileType::M4a],
+            ['text/markdown', FileType::Markdown],
+            ['video/quicktime', FileType::Mov],
+            ['audio/mpeg', FileType::Mp3],
+            ['video/mp4', FileType::Mp4],
+            ['audio/ogg', FileType::Oga],
+            ['application/pdf', FileType::Pdf],
+            ['text/x-php', FileType::Php],
+            ['image/png', FileType::Png],
+            ['image/tiff', FileType::Tiff],
+            ['application/x-empty', FileType::Txt],
+            ['text/plain', FileType::Txt],
+            ['audio/wav', FileType::Wav],
+            ['image/webp', FileType::Webp],
+            ['application/msexcel', FileType::Xls],
+            ['application/vnd.ms-excel', FileType::Xls],
+            ['application/x-excel', FileType::Xls],
+            ['application/x-msexcel', FileType::Xls],
+            ['application/x-ms-excel', FileType::Xls],
+            ['application/xls', FileType::Xls],
+            ['application/x-xls', FileType::Xls],
+            ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', FileType::Xlsx],
+            ['application/xml', FileType::Xml],
+            ['application/zip', FileType::Zip],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerPathWithLegacyExtensionAndType')]
-    public function testCreatingFromPathUsingLegacyExtension(string $path, Type $type): void
+    public function testCreatingFromPathUsingLegacyExtension(string $path, FileType $type): void
     {
-        $this->assertSame($type, Type::createFromPath($path));
+        $this->assertSame($type, FileType::createFromPath($path));
     }
 
     /**
@@ -91,15 +91,15 @@ final class TypeTest extends TestCase
     public static function providerPathWithLegacyExtensionAndType(): array
     {
         $provider = [
-            ['index.htm', Type::Htm],
-            ['label.jpg', Type::Jpg],
+            ['index.htm', FileType::Htm],
+            ['label.jpg', FileType::Jpg],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerTypeAndName')]
-    public function testGettingName(Type $type, string $name): void
+    public function testGettingName(FileType $type, string $name): void
     {
         $this->assertEquals($name, $type->getName());
     }
@@ -110,45 +110,45 @@ final class TypeTest extends TestCase
     public static function providerTypeAndName(): array
     {
         $provider = [
-            [Type::Aac, 'AAC'],
-            [Type::Aiff, 'AIFF'],
-            [Type::Bin, 'BIN'],
-            [Type::Bmp, 'BMP'],
-            [Type::Css, 'CSS'],
-            [Type::Csv, 'CSV'],
-            [Type::Doc, 'DOC'],
-            [Type::Docx, 'DOCX'],
-            [Type::Flac, 'FLAC'],
-            [Type::Gif, 'GIF'],
-            [Type::Heic, 'HEIC'],
-            [Type::Heics, 'HEICS'],
-            [Type::Heif, 'HEIF'],
-            [Type::Heifs, 'HEIFS'],
-            [Type::Htm, 'HTM'],
-            [Type::Html, 'HTML'],
-            [Type::Jpeg, 'JPEG'],
-            [Type::Jpg, 'JPG'],
-            [Type::Js, 'JS'],
-            [Type::Json, 'JSON'],
-            [Type::Jsonl, 'JSONL'],
-            [Type::M4a, 'M4A'],
-            [Type::Markdown, 'MD'],
-            [Type::Mov, 'MOV'],
-            [Type::Mp3, 'MP3'],
-            [Type::Mp4, 'MP4'],
-            [Type::Oga, 'OGA'],
-            [Type::Pdf, 'PDF'],
-            [Type::Php, 'PHP'],
-            [Type::Png, 'PNG'],
-            [Type::Tiff, 'TIFF'],
-            [Type::Txt, 'TXT'],
-            [Type::Wav, 'WAV'],
-            [Type::Webp, 'WEBP'],
-            [Type::Xls, 'XLS'],
-            [Type::Xlsx, 'XLSX'],
-            [Type::Xml, 'XML'],
-            [Type::Zip, 'ZIP'],
-            [Type::Other, 'Other'],
+            [FileType::Aac, 'AAC'],
+            [FileType::Aiff, 'AIFF'],
+            [FileType::Bin, 'BIN'],
+            [FileType::Bmp, 'BMP'],
+            [FileType::Css, 'CSS'],
+            [FileType::Csv, 'CSV'],
+            [FileType::Doc, 'DOC'],
+            [FileType::Docx, 'DOCX'],
+            [FileType::Flac, 'FLAC'],
+            [FileType::Gif, 'GIF'],
+            [FileType::Heic, 'HEIC'],
+            [FileType::Heics, 'HEICS'],
+            [FileType::Heif, 'HEIF'],
+            [FileType::Heifs, 'HEIFS'],
+            [FileType::Htm, 'HTM'],
+            [FileType::Html, 'HTML'],
+            [FileType::Jpeg, 'JPEG'],
+            [FileType::Jpg, 'JPG'],
+            [FileType::Js, 'JS'],
+            [FileType::Json, 'JSON'],
+            [FileType::Jsonl, 'JSONL'],
+            [FileType::M4a, 'M4A'],
+            [FileType::Markdown, 'MD'],
+            [FileType::Mov, 'MOV'],
+            [FileType::Mp3, 'MP3'],
+            [FileType::Mp4, 'MP4'],
+            [FileType::Oga, 'OGA'],
+            [FileType::Pdf, 'PDF'],
+            [FileType::Php, 'PHP'],
+            [FileType::Png, 'PNG'],
+            [FileType::Tiff, 'TIFF'],
+            [FileType::Txt, 'TXT'],
+            [FileType::Wav, 'WAV'],
+            [FileType::Webp, 'WEBP'],
+            [FileType::Xls, 'XLS'],
+            [FileType::Xlsx, 'XLSX'],
+            [FileType::Xml, 'XML'],
+            [FileType::Zip, 'ZIP'],
+            [FileType::Other, 'Other'],
         ];
 
         return $provider;
@@ -158,7 +158,7 @@ final class TypeTest extends TestCase
      * @param ?non-empty-lowercase-string $extension
      */
     #[DataProvider('providerTypeAndExtension')]
-    public function testGettingExtension(Type $type, ?string $extension): void
+    public function testGettingExtension(FileType $type, ?string $extension): void
     {
         $this->assertEquals($extension, $type->getExtension());
     }
@@ -169,45 +169,45 @@ final class TypeTest extends TestCase
     public static function providerTypeAndExtension(): array
     {
         $provider = [
-            [Type::Aac, 'aac'],
-            [Type::Aiff, 'aiff'],
-            [Type::Bin, 'bin'],
-            [Type::Bmp, 'bmp'],
-            [Type::Css, 'css'],
-            [Type::Csv, 'csv'],
-            [Type::Doc, 'doc'],
-            [Type::Docx, 'docx'],
-            [Type::Flac, 'flac'],
-            [Type::Gif, 'gif'],
-            [Type::Heic, 'heic'],
-            [Type::Heics, 'heics'],
-            [Type::Heif, 'heif'],
-            [Type::Heifs, 'heifs'],
-            [Type::Htm, 'htm'],
-            [Type::Html, 'html'],
-            [Type::Jpeg, 'jpeg'],
-            [Type::Jpg, 'jpg'],
-            [Type::Js, 'js'],
-            [Type::Json, 'json'],
-            [Type::Jsonl, 'jsonl'],
-            [Type::M4a, 'm4a'],
-            [Type::Markdown, 'md'],
-            [Type::Mov, 'mov'],
-            [Type::Mp3, 'mp3'],
-            [Type::Mp4, 'mp4'],
-            [Type::Oga, 'oga'],
-            [Type::Pdf, 'pdf'],
-            [Type::Php, 'php'],
-            [Type::Png, 'png'],
-            [Type::Tiff, 'tiff'],
-            [Type::Txt, 'txt'],
-            [Type::Wav, 'wav'],
-            [Type::Webp, 'webp'],
-            [Type::Xls, 'xls'],
-            [Type::Xlsx, 'xlsx'],
-            [Type::Xml, 'xml'],
-            [Type::Zip, 'zip'],
-            [Type::Other, null],
+            [FileType::Aac, 'aac'],
+            [FileType::Aiff, 'aiff'],
+            [FileType::Bin, 'bin'],
+            [FileType::Bmp, 'bmp'],
+            [FileType::Css, 'css'],
+            [FileType::Csv, 'csv'],
+            [FileType::Doc, 'doc'],
+            [FileType::Docx, 'docx'],
+            [FileType::Flac, 'flac'],
+            [FileType::Gif, 'gif'],
+            [FileType::Heic, 'heic'],
+            [FileType::Heics, 'heics'],
+            [FileType::Heif, 'heif'],
+            [FileType::Heifs, 'heifs'],
+            [FileType::Htm, 'htm'],
+            [FileType::Html, 'html'],
+            [FileType::Jpeg, 'jpeg'],
+            [FileType::Jpg, 'jpg'],
+            [FileType::Js, 'js'],
+            [FileType::Json, 'json'],
+            [FileType::Jsonl, 'jsonl'],
+            [FileType::M4a, 'm4a'],
+            [FileType::Markdown, 'md'],
+            [FileType::Mov, 'mov'],
+            [FileType::Mp3, 'mp3'],
+            [FileType::Mp4, 'mp4'],
+            [FileType::Oga, 'oga'],
+            [FileType::Pdf, 'pdf'],
+            [FileType::Php, 'php'],
+            [FileType::Png, 'png'],
+            [FileType::Tiff, 'tiff'],
+            [FileType::Txt, 'txt'],
+            [FileType::Wav, 'wav'],
+            [FileType::Webp, 'webp'],
+            [FileType::Xls, 'xls'],
+            [FileType::Xlsx, 'xlsx'],
+            [FileType::Xml, 'xml'],
+            [FileType::Zip, 'zip'],
+            [FileType::Other, null],
         ];
 
         return $provider;
@@ -217,7 +217,7 @@ final class TypeTest extends TestCase
      * @param non-empty-lowercase-string $format
      */
     #[DataProvider('providerTypeAndFormat')]
-    public function testGettingFormat(Type $type, string $format): void
+    public function testGettingFormat(FileType $type, string $format): void
     {
         $this->assertEquals($format, $type->getFormat());
     }
@@ -228,52 +228,52 @@ final class TypeTest extends TestCase
     public static function providerTypeAndFormat(): array
     {
         $provider = [
-            [Type::Aac, 'audio/aac'],
-            [Type::Aiff, 'audio/aiff'],
-            [Type::Bmp, 'image/bmp'],
-            [Type::Css, 'text/css'],
-            [Type::Csv, 'text/csv'],
-            [Type::Doc, 'application/msword'],
-            [Type::Docx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-            [Type::Docx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-            [Type::Flac, 'audio/flac'],
-            [Type::Gif, 'image/gif'],
-            [Type::Heic, 'image/heic'],
-            [Type::Heics, 'image/heic-sequence'],
-            [Type::Heif, 'image/heif'],
-            [Type::Heifs, 'image/heif-sequence'],
-            [Type::Htm, 'text/html'],
-            [Type::Html, 'text/html'],
-            [Type::Jpeg, 'image/jpeg'],
-            [Type::Jpg, 'image/jpeg'],
-            [Type::Js, 'text/javascript'],
-            [Type::Json, 'application/json'],
-            [Type::Jsonl, 'application/jsonl'],
-            [Type::M4a, 'audio/x-m4a'],
-            [Type::Markdown, 'text/markdown'],
-            [Type::Mov, 'video/quicktime'],
-            [Type::Mp3, 'audio/mpeg'],
-            [Type::Mp4, 'video/mp4'],
-            [Type::Oga, 'audio/ogg'],
-            [Type::Pdf, 'application/pdf'],
-            [Type::Php, 'text/x-php'],
-            [Type::Png, 'image/png'],
-            [Type::Txt, 'text/plain'],
-            [Type::Tiff, 'image/tiff'],
-            [Type::Wav, 'audio/wav'],
-            [Type::Webp, 'image/webp'],
-            [Type::Xls, 'application/vnd.ms-excel'],
-            [Type::Xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-            [Type::Xml, 'application/xml'],
-            [Type::Zip, 'application/zip'],
-            [Type::Other, 'application/octet-stream'],
+            [FileType::Aac, 'audio/aac'],
+            [FileType::Aiff, 'audio/aiff'],
+            [FileType::Bmp, 'image/bmp'],
+            [FileType::Css, 'text/css'],
+            [FileType::Csv, 'text/csv'],
+            [FileType::Doc, 'application/msword'],
+            [FileType::Docx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            [FileType::Docx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            [FileType::Flac, 'audio/flac'],
+            [FileType::Gif, 'image/gif'],
+            [FileType::Heic, 'image/heic'],
+            [FileType::Heics, 'image/heic-sequence'],
+            [FileType::Heif, 'image/heif'],
+            [FileType::Heifs, 'image/heif-sequence'],
+            [FileType::Htm, 'text/html'],
+            [FileType::Html, 'text/html'],
+            [FileType::Jpeg, 'image/jpeg'],
+            [FileType::Jpg, 'image/jpeg'],
+            [FileType::Js, 'text/javascript'],
+            [FileType::Json, 'application/json'],
+            [FileType::Jsonl, 'application/jsonl'],
+            [FileType::M4a, 'audio/x-m4a'],
+            [FileType::Markdown, 'text/markdown'],
+            [FileType::Mov, 'video/quicktime'],
+            [FileType::Mp3, 'audio/mpeg'],
+            [FileType::Mp4, 'video/mp4'],
+            [FileType::Oga, 'audio/ogg'],
+            [FileType::Pdf, 'application/pdf'],
+            [FileType::Php, 'text/x-php'],
+            [FileType::Png, 'image/png'],
+            [FileType::Txt, 'text/plain'],
+            [FileType::Tiff, 'image/tiff'],
+            [FileType::Wav, 'audio/wav'],
+            [FileType::Webp, 'image/webp'],
+            [FileType::Xls, 'application/vnd.ms-excel'],
+            [FileType::Xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+            [FileType::Xml, 'application/xml'],
+            [FileType::Zip, 'application/zip'],
+            [FileType::Other, 'application/octet-stream'],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerTypeAndIsAudio')]
-    public function testIsAudio(Type $fileType, bool $isAudio): void
+    public function testIsAudio(FileType $fileType, bool $isAudio): void
     {
         $this->assertSame($isAudio, $fileType->isAudio());
     }
@@ -284,52 +284,52 @@ final class TypeTest extends TestCase
     public static function providerTypeAndIsAudio(): array
     {
         $provider = [
-            [Type::Aac, true],
-            [Type::Aiff, true],
-            [Type::Bin, false],
-            [Type::Bmp, false],
-            [Type::Css, false],
-            [Type::Csv, false],
-            [Type::Doc, false],
-            [Type::Docx, false],
-            [Type::Flac, true],
-            [Type::Gif, false],
-            [Type::Heic, false],
-            [Type::Heics, false],
-            [Type::Heif, false],
-            [Type::Heifs, false],
-            [Type::Htm, false],
-            [Type::Html, false],
-            [Type::Jpeg, false],
-            [Type::Jpg, false],
-            [Type::Js, false],
-            [Type::Json, false],
-            [Type::Jsonl, false],
-            [Type::M4a, true],
-            [Type::Markdown, false],
-            [Type::Mov, false],
-            [Type::Mp3, true],
-            [Type::Mp4, false],
-            [Type::Oga, true],
-            [Type::Pdf, false],
-            [Type::Php, false],
-            [Type::Png, false],
-            [Type::Tiff, false],
-            [Type::Txt, false],
-            [Type::Wav, true],
-            [Type::Webp, false],
-            [Type::Xls, false],
-            [Type::Xlsx, false],
-            [Type::Xml, false],
-            [Type::Zip, false],
-            [Type::Other, false],
+            [FileType::Aac, true],
+            [FileType::Aiff, true],
+            [FileType::Bin, false],
+            [FileType::Bmp, false],
+            [FileType::Css, false],
+            [FileType::Csv, false],
+            [FileType::Doc, false],
+            [FileType::Docx, false],
+            [FileType::Flac, true],
+            [FileType::Gif, false],
+            [FileType::Heic, false],
+            [FileType::Heics, false],
+            [FileType::Heif, false],
+            [FileType::Heifs, false],
+            [FileType::Htm, false],
+            [FileType::Html, false],
+            [FileType::Jpeg, false],
+            [FileType::Jpg, false],
+            [FileType::Js, false],
+            [FileType::Json, false],
+            [FileType::Jsonl, false],
+            [FileType::M4a, true],
+            [FileType::Markdown, false],
+            [FileType::Mov, false],
+            [FileType::Mp3, true],
+            [FileType::Mp4, false],
+            [FileType::Oga, true],
+            [FileType::Pdf, false],
+            [FileType::Php, false],
+            [FileType::Png, false],
+            [FileType::Tiff, false],
+            [FileType::Txt, false],
+            [FileType::Wav, true],
+            [FileType::Webp, false],
+            [FileType::Xls, false],
+            [FileType::Xlsx, false],
+            [FileType::Xml, false],
+            [FileType::Zip, false],
+            [FileType::Other, false],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerTypeAndIsBinary')]
-    public function testIsBinary(Type $fileType, bool $isBinary): void
+    public function testIsBinary(FileType $fileType, bool $isBinary): void
     {
         $this->assertSame($isBinary, $fileType->isBinary());
     }
@@ -340,52 +340,52 @@ final class TypeTest extends TestCase
     public static function providerTypeAndIsBinary(): array
     {
         $provider = [
-            [Type::Aac, true],
-            [Type::Aiff, true],
-            [Type::Bin, true],
-            [Type::Bmp, true],
-            [Type::Css, false],
-            [Type::Csv, false],
-            [Type::Doc, true],
-            [Type::Docx, true],
-            [Type::Flac, true],
-            [Type::Gif, true],
-            [Type::Heic, true],
-            [Type::Heics, true],
-            [Type::Heif, true],
-            [Type::Heifs, true],
-            [Type::Htm, false],
-            [Type::Html, false],
-            [Type::Jpeg, true],
-            [Type::Jpg, true],
-            [Type::Js, false],
-            [Type::Json, false],
-            [Type::Jsonl, false],
-            [Type::M4a, true],
-            [Type::Markdown, false],
-            [Type::Mov, true],
-            [Type::Mp3, true],
-            [Type::Mp4, true],
-            [Type::Oga, true],
-            [Type::Pdf, true],
-            [Type::Php, false],
-            [Type::Png, true],
-            [Type::Tiff, true],
-            [Type::Txt, false],
-            [Type::Wav, true],
-            [Type::Webp, true],
-            [Type::Xls, true],
-            [Type::Xlsx, true],
-            [Type::Xml, false],
-            [Type::Zip, true],
-            [Type::Other, false],
+            [FileType::Aac, true],
+            [FileType::Aiff, true],
+            [FileType::Bin, true],
+            [FileType::Bmp, true],
+            [FileType::Css, false],
+            [FileType::Csv, false],
+            [FileType::Doc, true],
+            [FileType::Docx, true],
+            [FileType::Flac, true],
+            [FileType::Gif, true],
+            [FileType::Heic, true],
+            [FileType::Heics, true],
+            [FileType::Heif, true],
+            [FileType::Heifs, true],
+            [FileType::Htm, false],
+            [FileType::Html, false],
+            [FileType::Jpeg, true],
+            [FileType::Jpg, true],
+            [FileType::Js, false],
+            [FileType::Json, false],
+            [FileType::Jsonl, false],
+            [FileType::M4a, true],
+            [FileType::Markdown, false],
+            [FileType::Mov, true],
+            [FileType::Mp3, true],
+            [FileType::Mp4, true],
+            [FileType::Oga, true],
+            [FileType::Pdf, true],
+            [FileType::Php, false],
+            [FileType::Png, true],
+            [FileType::Tiff, true],
+            [FileType::Txt, false],
+            [FileType::Wav, true],
+            [FileType::Webp, true],
+            [FileType::Xls, true],
+            [FileType::Xlsx, true],
+            [FileType::Xml, false],
+            [FileType::Zip, true],
+            [FileType::Other, false],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerTypeAndIsDocument')]
-    public function testIsDocument(Type $type, bool $isDocument): void
+    public function testIsDocument(FileType $type, bool $isDocument): void
     {
         $this->assertSame($isDocument, $type->isDocument());
     }
@@ -396,52 +396,52 @@ final class TypeTest extends TestCase
     public static function providerTypeAndIsDocument(): array
     {
         $provider = [
-            [Type::Aac, false],
-            [Type::Aiff, false],
-            [Type::Bin, false],
-            [Type::Bmp, false],
-            [Type::Css, true],
-            [Type::Csv, true],
-            [Type::Doc, true],
-            [Type::Docx, true],
-            [Type::Flac, false],
-            [Type::Gif, false],
-            [Type::Heic, false],
-            [Type::Heics, false],
-            [Type::Heif, false],
-            [Type::Heifs, false],
-            [Type::Htm, true],
-            [Type::Html, true],
-            [Type::Jpeg, false],
-            [Type::Jpg, false],
-            [Type::Js, true],
-            [Type::Json, true],
-            [Type::Jsonl, true],
-            [Type::M4a, false],
-            [Type::Markdown, true],
-            [Type::Mov, false],
-            [Type::Mp3, false],
-            [Type::Mp4, false],
-            [Type::Oga, false],
-            [Type::Pdf, true],
-            [Type::Php, true],
-            [Type::Png, false],
-            [Type::Tiff, false],
-            [Type::Txt, true],
-            [Type::Wav, false],
-            [Type::Webp, false],
-            [Type::Xls, true],
-            [Type::Xlsx, true],
-            [Type::Xml, true],
-            [Type::Zip, false],
-            [Type::Other, false],
+            [FileType::Aac, false],
+            [FileType::Aiff, false],
+            [FileType::Bin, false],
+            [FileType::Bmp, false],
+            [FileType::Css, true],
+            [FileType::Csv, true],
+            [FileType::Doc, true],
+            [FileType::Docx, true],
+            [FileType::Flac, false],
+            [FileType::Gif, false],
+            [FileType::Heic, false],
+            [FileType::Heics, false],
+            [FileType::Heif, false],
+            [FileType::Heifs, false],
+            [FileType::Htm, true],
+            [FileType::Html, true],
+            [FileType::Jpeg, false],
+            [FileType::Jpg, false],
+            [FileType::Js, true],
+            [FileType::Json, true],
+            [FileType::Jsonl, true],
+            [FileType::M4a, false],
+            [FileType::Markdown, true],
+            [FileType::Mov, false],
+            [FileType::Mp3, false],
+            [FileType::Mp4, false],
+            [FileType::Oga, false],
+            [FileType::Pdf, true],
+            [FileType::Php, true],
+            [FileType::Png, false],
+            [FileType::Tiff, false],
+            [FileType::Txt, true],
+            [FileType::Wav, false],
+            [FileType::Webp, false],
+            [FileType::Xls, true],
+            [FileType::Xlsx, true],
+            [FileType::Xml, true],
+            [FileType::Zip, false],
+            [FileType::Other, false],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerFileAndIsImage')]
-    public function testIsImage(Type $type, bool $isImage): void
+    public function testIsImage(FileType $type, bool $isImage): void
     {
         $this->assertSame($isImage, $type->isImage());
     }
@@ -452,52 +452,52 @@ final class TypeTest extends TestCase
     public static function providerFileAndIsImage(): array
     {
         $provider = [
-            [Type::Aac, false],
-            [Type::Aiff, false],
-            [Type::Bin, false],
-            [Type::Bmp, true],
-            [Type::Css, false],
-            [Type::Csv, false],
-            [Type::Doc, false],
-            [Type::Docx, false],
-            [Type::Flac, false],
-            [Type::Gif, true],
-            [Type::Heic, true],
-            [Type::Heics, true],
-            [Type::Heif, true],
-            [Type::Heifs, true],
-            [Type::Htm, false],
-            [Type::Html, false],
-            [Type::Jpeg, true],
-            [Type::Jpg, true],
-            [Type::Js, false],
-            [Type::Json, false],
-            [Type::Jsonl, false],
-            [Type::M4a, false],
-            [Type::Markdown, false],
-            [Type::Mov, false],
-            [Type::Mp3, false],
-            [Type::Mp4, false],
-            [Type::Oga, false],
-            [Type::Pdf, false],
-            [Type::Php, false],
-            [Type::Png, true],
-            [Type::Tiff, true],
-            [Type::Txt, false],
-            [Type::Wav, false],
-            [Type::Webp, true],
-            [Type::Xls, false],
-            [Type::Xlsx, false],
-            [Type::Xml, false],
-            [Type::Zip, false],
-            [Type::Other, false],
+            [FileType::Aac, false],
+            [FileType::Aiff, false],
+            [FileType::Bin, false],
+            [FileType::Bmp, true],
+            [FileType::Css, false],
+            [FileType::Csv, false],
+            [FileType::Doc, false],
+            [FileType::Docx, false],
+            [FileType::Flac, false],
+            [FileType::Gif, true],
+            [FileType::Heic, true],
+            [FileType::Heics, true],
+            [FileType::Heif, true],
+            [FileType::Heifs, true],
+            [FileType::Htm, false],
+            [FileType::Html, false],
+            [FileType::Jpeg, true],
+            [FileType::Jpg, true],
+            [FileType::Js, false],
+            [FileType::Json, false],
+            [FileType::Jsonl, false],
+            [FileType::M4a, false],
+            [FileType::Markdown, false],
+            [FileType::Mov, false],
+            [FileType::Mp3, false],
+            [FileType::Mp4, false],
+            [FileType::Oga, false],
+            [FileType::Pdf, false],
+            [FileType::Php, false],
+            [FileType::Png, true],
+            [FileType::Tiff, true],
+            [FileType::Txt, false],
+            [FileType::Wav, false],
+            [FileType::Webp, true],
+            [FileType::Xls, false],
+            [FileType::Xlsx, false],
+            [FileType::Xml, false],
+            [FileType::Zip, false],
+            [FileType::Other, false],
         ];
 
         return $provider;
     }
 
     #[DataProvider('providerTypeAndIsText')]
-    public function testIsText(Type $file, bool $isText): void
+    public function testIsText(FileType $file, bool $isText): void
     {
         $this->assertSame($isText, $file->isText());
     }
@@ -508,45 +508,45 @@ final class TypeTest extends TestCase
     public static function providerTypeAndIsText(): array
     {
         $provider = [
-            [Type::Aac, false],
-            [Type::Aiff, false],
-            [Type::Bin, false],
-            [Type::Bmp, false],
-            [Type::Css, true],
-            [Type::Csv, true],
-            [Type::Doc, false],
-            [Type::Docx, false],
-            [Type::Flac, false],
-            [Type::Gif, false],
-            [Type::Heic, false],
-            [Type::Heics, false],
-            [Type::Heif, false],
-            [Type::Heifs, false],
-            [Type::Htm, true],
-            [Type::Html, true],
-            [Type::Jpeg, false],
-            [Type::Jpg, false],
-            [Type::Js, true],
-            [Type::Json, true],
-            [Type::Jsonl, true],
-            [Type::M4a, false],
-            [Type::Markdown, true],
-            [Type::Mov, false],
-            [Type::Mp3, false],
-            [Type::Mp4, false],
-            [Type::Oga, false],
-            [Type::Pdf, false],
-            [Type::Php, true],
-            [Type::Png, false],
-            [Type::Tiff, false],
-            [Type::Txt, true],
-            [Type::Wav, false],
-            [Type::Webp, false],
-            [Type::Xls, false],
-            [Type::Xlsx, false],
-            [Type::Xml, true],
-            [Type::Zip, false],
-            [Type::Other, false],
+            [FileType::Aac, false],
+            [FileType::Aiff, false],
+            [FileType::Bin, false],
+            [FileType::Bmp, false],
+            [FileType::Css, true],
+            [FileType::Csv, true],
+            [FileType::Doc, false],
+            [FileType::Docx, false],
+            [FileType::Flac, false],
+            [FileType::Gif, false],
+            [FileType::Heic, false],
+            [FileType::Heics, false],
+            [FileType::Heif, false],
+            [FileType::Heifs, false],
+            [FileType::Htm, true],
+            [FileType::Html, true],
+            [FileType::Jpeg, false],
+            [FileType::Jpg, false],
+            [FileType::Js, true],
+            [FileType::Json, true],
+            [FileType::Jsonl, true],
+            [FileType::M4a, false],
+            [FileType::Markdown, true],
+            [FileType::Mov, false],
+            [FileType::Mp3, false],
+            [FileType::Mp4, false],
+            [FileType::Oga, false],
+            [FileType::Pdf, false],
+            [FileType::Php, true],
+            [FileType::Png, false],
+            [FileType::Tiff, false],
+            [FileType::Txt, true],
+            [FileType::Wav, false],
+            [FileType::Webp, false],
+            [FileType::Xls, false],
+            [FileType::Xlsx, false],
+            [FileType::Xml, true],
+            [FileType::Zip, false],
+            [FileType::Other, false],
         ];
 
         return $provider;
@@ -554,196 +554,196 @@ final class TypeTest extends TestCase
 
     public function testIsAac(): void
     {
-        $this->assertTrue(Type::Aac->isAac()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Aac->isAac()); // @phpstan-ignore-line
     }
 
     public function testIsAiff(): void
     {
-        $this->assertTrue(Type::Aiff->isAiff()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Aiff->isAiff()); // @phpstan-ignore-line
     }
 
     public function testIsBin(): void
     {
-        $this->assertTrue(Type::Bin->isBin()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Bin->isBin()); // @phpstan-ignore-line
     }
 
     public function testIsBmp(): void
     {
-        $this->assertTrue(Type::Bmp->isBmp()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Bmp->isBmp()); // @phpstan-ignore-line
     }
 
     public function testIsCss(): void
     {
-        $this->assertTrue(Type::Css->isCss()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Css->isCss()); // @phpstan-ignore-line
     }
 
     public function testIsCsv(): void
     {
-        $this->assertTrue(Type::Csv->isCsv()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Csv->isCsv()); // @phpstan-ignore-line
     }
 
     public function testIsDoc(): void
     {
-        $this->assertTrue(Type::Doc->isDoc()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Doc->isDoc()); // @phpstan-ignore-line
     }
 
     public function testIsDocx(): void
     {
-        $this->assertTrue(Type::Docx->isDocx()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Docx->isDocx()); // @phpstan-ignore-line
     }
 
     public function testIsFlac(): void
     {
-        $this->assertTrue(Type::Flac->isFlac()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Flac->isFlac()); // @phpstan-ignore-line
     }
 
     public function testIsGif(): void
     {
-        $this->assertTrue(Type::Gif->isGif()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Gif->isGif()); // @phpstan-ignore-line
     }
 
     public function testIsHeic(): void
     {
-        $this->assertTrue(Type::Heic->isHeic()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Heic->isHeic()); // @phpstan-ignore-line
     }
 
     public function testIsHeics(): void
     {
-        $this->assertTrue(Type::Heics->isHeics()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Heics->isHeics()); // @phpstan-ignore-line
     }
 
     public function testIsHeif(): void
     {
-        $this->assertTrue(Type::Heif->isHeif()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Heif->isHeif()); // @phpstan-ignore-line
     }
 
     public function testIsHeifs(): void
     {
-        $this->assertTrue(Type::Heifs->isHeifs()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Heifs->isHeifs()); // @phpstan-ignore-line
     }
 
     public function testIsHtm(): void
     {
-        $this->assertTrue(Type::Htm->isHtm()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Htm->isHtm()); // @phpstan-ignore-line
     }
 
     public function testIsHtml(): void
     {
-        $this->assertTrue(Type::Html->isHtml()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Html->isHtml()); // @phpstan-ignore-line
     }
 
     public function testIsJpeg(): void
     {
-        $this->assertTrue(Type::Jpeg->isJpeg()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Jpeg->isJpeg()); // @phpstan-ignore-line
     }
 
     public function testIsJpg(): void
     {
-        $this->assertTrue(Type::Jpg->isJpg()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Jpg->isJpg()); // @phpstan-ignore-line
     }
 
     public function testIsJs(): void
     {
-        $this->assertTrue(Type::Js->isJs()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Js->isJs()); // @phpstan-ignore-line
     }
 
     public function testIsJson(): void
     {
-        $this->assertTrue(Type::Json->isJson()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Json->isJson()); // @phpstan-ignore-line
     }
 
     public function testIsJsonl(): void
     {
-        $this->assertTrue(Type::Jsonl->isJsonl()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Jsonl->isJsonl()); // @phpstan-ignore-line
     }
 
     public function testIsM4a(): void
     {
-        $this->assertTrue(Type::M4a->isM4a()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::M4a->isM4a()); // @phpstan-ignore-line
     }
 
     public function testIsMarkdown(): void
     {
-        $this->assertTrue(Type::Markdown->isMarkdown()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Markdown->isMarkdown()); // @phpstan-ignore-line
     }
 
     public function testIsMov(): void
     {
-        $this->assertTrue(Type::Mov->isMov()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Mov->isMov()); // @phpstan-ignore-line
     }
 
     public function testIsMp3(): void
     {
-        $this->assertTrue(Type::Mp3->isMp3()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Mp3->isMp3()); // @phpstan-ignore-line
     }
 
     public function testIsMp4(): void
     {
-        $this->assertTrue(Type::Mp4->isMp4()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Mp4->isMp4()); // @phpstan-ignore-line
     }
 
     public function testIsOga(): void
     {
-        $this->assertTrue(Type::Oga->isOga()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Oga->isOga()); // @phpstan-ignore-line
     }
 
     public function testIsPdf(): void
     {
-        $this->assertTrue(Type::Pdf->isPdf()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Pdf->isPdf()); // @phpstan-ignore-line
     }
 
     public function testIsPhp(): void
     {
-        $this->assertTrue(Type::Php->isPhp()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Php->isPhp()); // @phpstan-ignore-line
     }
 
     public function testIsPng(): void
     {
-        $this->assertTrue(Type::Png->isPng()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Png->isPng()); // @phpstan-ignore-line
     }
 
     public function testIsTiff(): void
     {
-        $this->assertTrue(Type::Tiff->isTiff()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Tiff->isTiff()); // @phpstan-ignore-line
     }
 
     public function testIsTxt(): void
     {
-        $this->assertTrue(Type::Txt->isTxt()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Txt->isTxt()); // @phpstan-ignore-line
     }
 
     public function testIsWav(): void
     {
-        $this->assertTrue(Type::Wav->isWav()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Wav->isWav()); // @phpstan-ignore-line
     }
 
     public function testIsWebp(): void
     {
-        $this->assertTrue(Type::Webp->isWebp()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Webp->isWebp()); // @phpstan-ignore-line
     }
 
     public function testIsXls(): void
     {
-        $this->assertTrue(Type::Xls->isXls()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Xls->isXls()); // @phpstan-ignore-line
     }
 
     public function testIsXlsx(): void
     {
-        $this->assertTrue(Type::Xlsx->isXlsx()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Xlsx->isXlsx()); // @phpstan-ignore-line
     }
 
     public function testIsXml(): void
     {
-        $this->assertTrue(Type::Xml->isXml()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Xml->isXml()); // @phpstan-ignore-line
     }
 
     public function testIsZip(): void
     {
-        $this->assertTrue(Type::Zip->isZip()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Zip->isZip()); // @phpstan-ignore-line
     }
 
     public function testIsOther(): void
     {
-        $this->assertTrue(Type::Other->isOther()); // @phpstan-ignore-line
+        $this->assertTrue(FileType::Other->isOther()); // @phpstan-ignore-line
     }
 }

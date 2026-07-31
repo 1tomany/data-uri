@@ -13,7 +13,7 @@ use function strtolower;
 use function strtoupper;
 use function trim;
 
-enum Type
+enum FileType
 {
     case Aac;
     case Aiff;
@@ -61,16 +61,16 @@ enum Type
             return $type;
         }
 
-        $default = self::Other;
+        $fileType = self::Other;
 
         if (null === $type) {
-            return $default;
+            return $fileType;
         }
 
         $type = strtolower($type);
 
         if ($type = trim($type)) {
-            return match ($type) {
+            $fileType = match ($type) {
                 'audio/aac' => self::Aac,
                 'audio/aiff' => self::Aiff,
                 'application/octet-stream' => self::Bin,
@@ -116,11 +116,11 @@ enum Type
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => self::Xlsx,
                 'application/xml' => self::Xml,
                 'application/zip' => self::Zip,
-                default => $default,
+                default => $fileType,
             };
         }
 
-        return $default;
+        return $fileType;
     }
 
     public static function createFromPath(string $path): self

@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Contract\Record;
 
-use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Exception\RuntimeException;
 
 interface TemporaryFileInterface extends \Stringable
@@ -34,7 +34,7 @@ interface TemporaryFileInterface extends \Stringable
      */
     public function getSize(): int;
 
-    public function getType(): Type;
+    public function getType(): FileType;
 
     /**
      * @return ?non-empty-lowercase-string

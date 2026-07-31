@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Tests;
 
-use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\DataDecoder;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -99,7 +99,7 @@ final class DataDecoderTest extends TestCase
     {
         $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', 'text/markdown', 'Hello_World.md');
 
-        $this->assertSame(Type::Markdown, $file->getType());
+        $this->assertSame(FileType::Markdown, $file->getType());
     }
 
     public function testDecodingFileWithoutNameUsesFileName(): void
@@ -227,7 +227,7 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingTextDataRequiresTextType(): void
     {
-        $types = Type::cases();
+        $types = FileType::cases();
 
         while (true) {
             $type = $types[array_rand($types, 1)];
@@ -266,7 +266,7 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingTextDataWithTypeOtherThanTxt(): void
     {
-        $types = Type::cases();
+        $types = FileType::cases();
 
         while (true) {
             $type = $types[array_rand($types, 1)];

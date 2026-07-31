@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Tests\Record;
 
-use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\DataDecoder;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
@@ -25,7 +25,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The path cannot be empty.');
 
-        new TemporaryFile('', null, 'php-logo.png', 10289, Type::Png);
+        new TemporaryFile('', null, 'php-logo.png', 10289, FileType::Png);
     }
 
     public function testConstructorRequiresPathToNotBeDirectory(): void
@@ -38,7 +38,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The path "'.$path.'" cannot be a directory or link.');
 
-        new TemporaryFile($path, null, 'php-logo.png', 10289, Type::Png);
+        new TemporaryFile($path, null, 'php-logo.png', 10289, FileType::Png);
     }
 
     public function testConstructorRequiresBaseToBeAbsolutePath(): void
@@ -49,7 +49,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The base directory "'.$base.'" must be an absolute path.');
 
-        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', $base, 'php-logo.png', 10289, Type::Png);
+        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', $base, 'php-logo.png', 10289, FileType::Png);
     }
 
     public function testConstructorRequiresPathToBeChildOfBase(): void
@@ -68,7 +68,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The path "'.$path.'" must be a direct child of the base directory "'.$base.'".');
 
-        new TemporaryFile($path, $base, 'php-logo.png', 10289, Type::Png);
+        new TemporaryFile($path, $base, 'php-logo.png', 10289, FileType::Png);
     }
 
     public function testConstructorRequiresNonEmptyName(): void
@@ -76,7 +76,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The name cannot be empty.');
 
-        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, '', 10289, Type::Png);
+        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, '', 10289, FileType::Png);
     }
 
     public function testConstructorRequiresNonNegativeSize(): void
@@ -84,7 +84,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The size cannot be negative.');
 
-        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', -1, Type::Png);
+        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', -1, FileType::Png);
     }
 
     public function testConstructorRequiresHashToBeGenerated(): void
@@ -95,12 +95,12 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('Generating a hash of the file "'.$path.'" failed.');
 
-        new TemporaryFile($path, null, 'missing.pdf', 10391, Type::Pdf);
+        new TemporaryFile($path, null, 'missing.pdf', 10391, FileType::Pdf);
     }
 
     public function testConstructorGeneratesKeyWithoutBaseWhenBaseIsEmpty(): void
     {
-        $file = new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', 10289, Type::Png)->detach();
+        $file = new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', 10289, FileType::Png)->detach();
 
         $this->assertEquals('c6/dd/php-logo.png', $file->getKey());
     }
