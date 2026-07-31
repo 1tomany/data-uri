@@ -10,18 +10,18 @@ use PHPUnit\Framework\TestCase;
 #[Group('UnitTests')]
 #[Group('ContractTests')]
 #[Group('EnumTests')]
-final class TypeTest extends TestCase
+final class FileTypeTest extends TestCase
 {
-    #[DataProvider('providerMimeTypeAndType')]
-    public function testCreatingFromType(?string $format, FileType $type): void
+    #[DataProvider('providerTypeAndFileType')]
+    public function testCreatingFromType(?string $type, FileType $fileType): void
     {
-        $this->assertSame($type, FileType::createFromType($format));
+        $this->assertSame($fileType, FileType::createFromType($type));
     }
 
     /**
-     * @return non-empty-list<array{string|null, Type}>
+     * @return non-empty-list<array{string|null, FileType}>
      */
-    public static function providerMimeTypeAndType(): array
+    public static function providerTypeAndFileType(): array
     {
         $provider = [
             [null, FileType::Other],
@@ -79,16 +79,16 @@ final class TypeTest extends TestCase
         return $provider;
     }
 
-    #[DataProvider('providerPathWithLegacyExtensionAndType')]
-    public function testCreatingFromPathUsingLegacyExtension(string $path, FileType $type): void
+    #[DataProvider('providerPathWithShortExtensionAndFileType')]
+    public function testCreatingFromPathWithShortExtension(string $path, FileType $fileType): void
     {
-        $this->assertSame($type, FileType::createFromPath($path));
+        $this->assertSame($fileType, FileType::createFromPath($path));
     }
 
     /**
-     * @return non-empty-list<array{non-empty-string, Type}>
+     * @return non-empty-list<array{non-empty-string, FileType}>
      */
-    public static function providerPathWithLegacyExtensionAndType(): array
+    public static function providerPathWithShortExtensionAndFileType(): array
     {
         $provider = [
             ['index.htm', FileType::Htm],
@@ -98,16 +98,16 @@ final class TypeTest extends TestCase
         return $provider;
     }
 
-    #[DataProvider('providerTypeAndName')]
-    public function testGettingName(FileType $type, string $name): void
+    #[DataProvider('providerFileTypeAndName')]
+    public function testGettingName(FileType $fileType, string $name): void
     {
-        $this->assertEquals($name, $type->getName());
+        $this->assertEquals($name, $fileType->getName());
     }
 
     /**
-     * @return non-empty-list<array{Type, non-empty-string}>
+     * @return non-empty-list<array{FileType, non-empty-string}>
      */
-    public static function providerTypeAndName(): array
+    public static function providerFileTypeAndName(): array
     {
         $provider = [
             [FileType::Aac, 'AAC'],
@@ -157,16 +157,16 @@ final class TypeTest extends TestCase
     /**
      * @param ?non-empty-lowercase-string $extension
      */
-    #[DataProvider('providerTypeAndExtension')]
-    public function testGettingExtension(FileType $type, ?string $extension): void
+    #[DataProvider('providerFileTypeAndExtension')]
+    public function testGettingExtension(FileType $fileType, ?string $extension): void
     {
-        $this->assertEquals($extension, $type->getExtension());
+        $this->assertEquals($extension, $fileType->getExtension());
     }
 
     /**
-     * @return non-empty-list<array{Type, non-empty-lowercase-string|null}>
+     * @return non-empty-list<array{FileType, non-empty-lowercase-string|null}>
      */
-    public static function providerTypeAndExtension(): array
+    public static function providerFileTypeAndExtension(): array
     {
         $provider = [
             [FileType::Aac, 'aac'],
@@ -216,16 +216,16 @@ final class TypeTest extends TestCase
     /**
      * @param non-empty-lowercase-string $format
      */
-    #[DataProvider('providerTypeAndFormat')]
-    public function testGettingFormat(FileType $type, string $format): void
+    #[DataProvider('providerFileTypeAndFormat')]
+    public function testGettingFormat(FileType $fileType, string $format): void
     {
-        $this->assertEquals($format, $type->getFormat());
+        $this->assertEquals($format, $fileType->getFormat());
     }
 
     /**
-     * @return non-empty-list<array{Type, non-empty-lowercase-string}>
+     * @return non-empty-list<array{FileType, non-empty-lowercase-string}>
      */
-    public static function providerTypeAndFormat(): array
+    public static function providerFileTypeAndFormat(): array
     {
         $provider = [
             [FileType::Aac, 'audio/aac'],
