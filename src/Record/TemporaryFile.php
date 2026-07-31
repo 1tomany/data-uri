@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Record;
 
-use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
@@ -45,7 +45,7 @@ class TemporaryFile implements TemporaryFileInterface
      */
     private readonly int $size;
 
-    private readonly Type $type;
+    private readonly FileType $type;
 
     /**
      * @var non-empty-lowercase-string
@@ -72,7 +72,7 @@ class TemporaryFile implements TemporaryFileInterface
         ?string $base,
         string $name,
         int $size,
-        Type $type,
+        FileType $type,
         private bool $isManaged = true,
     ) {
         if ('' === $path = Path::canonicalize(trim($path))) {
@@ -168,7 +168,7 @@ class TemporaryFile implements TemporaryFileInterface
      * @see OneToMany\DataUri\Contract\Record\TemporaryFileInterface
      */
     #[\Override]
-    public function getType(): Type
+    public function getType(): FileType
     {
         return $this->type;
     }

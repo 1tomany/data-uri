@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri;
 
-use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
@@ -76,7 +76,7 @@ final class DataDecoder
 
     public function decode(
         mixed $data,
-        string|Type|null $type = null,
+        string|FileType|null $type = null,
         ?string $name = null,
     ): TemporaryFileInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
@@ -187,9 +187,9 @@ final class DataDecoder
         }
 
         if (is_string($type) || is_object($type)) {
-            $fileType = Type::createFromType($type);
+            $fileType = FileType::createFromType($type);
         } else {
-            $fileType = Type::createFromPath(...[
+            $fileType = FileType::createFromPath(...[
                 'path' => trim($tempPath),
             ]);
         }
@@ -228,19 +228,19 @@ final class DataDecoder
 
     public function decodeBase64(
         string $data,
-        string|Type $type,
+        string|FileType $type,
         ?string $name = null,
     ): TemporaryFileInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof Type ? $type->getFormat() : $type, $data), $type, $name);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof FileType ? $type->getFormat() : $type, $data), $type, $name);
     }
 
     public function decodeText(
         string $text,
-        string|Type $type = Type::Txt,
+        string|FileType $type = FileType::Txt,
         ?string $name = null,
     ): TemporaryFileInterface {
-        if (!$type instanceof Type) {
-            $type = Type::createFromType($type);
+        if (!$type instanceof FileType) {
+            $type = FileType::createFromType($type);
         }
 
         if (!$type->isText()) {

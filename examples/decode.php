@@ -3,7 +3,7 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-use OneToMany\DataUri\Contract\Enum\Type;
+use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\DataDecoder;
 use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
@@ -40,7 +40,7 @@ $command = function (
     $tempFiles[] = $dataDecoder->decodeText('Hello, world!', name: 'hello_world.txt');
 
     // Decode Markdown and use "hello_world.md" as the display name
-    $tempFiles[] = $dataDecoder->decodeText('**Hello, world!**', Type::Markdown, 'hello_world.md');
+    $tempFiles[] = $dataDecoder->decodeText('**Hello, world!**', FileType::Markdown, 'hello_world.md');
 
     // Decode from a URL
     if (true === $all) {
