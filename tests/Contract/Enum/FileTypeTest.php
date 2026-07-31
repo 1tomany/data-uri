@@ -272,16 +272,16 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
-    #[DataProvider('providerTypeAndIsAudio')]
+    #[DataProvider('providerFileTypeAndIsAudio')]
     public function testIsAudio(FileType $fileType, bool $isAudio): void
     {
         $this->assertSame($isAudio, $fileType->isAudio());
     }
 
     /**
-     * @return non-empty-list<array{Type, bool}>
+     * @return non-empty-list<array{FileType, bool}>
      */
-    public static function providerTypeAndIsAudio(): array
+    public static function providerFileTypeAndIsAudio(): array
     {
         $provider = [
             [FileType::Aac, true],
@@ -328,16 +328,16 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
-    #[DataProvider('providerTypeAndIsBinary')]
+    #[DataProvider('providerFileTypeAndIsBinary')]
     public function testIsBinary(FileType $fileType, bool $isBinary): void
     {
         $this->assertSame($isBinary, $fileType->isBinary());
     }
 
     /**
-     * @return non-empty-list<array{Type, bool}>
+     * @return non-empty-list<array{FileType, bool}>
      */
-    public static function providerTypeAndIsBinary(): array
+    public static function providerFileTypeAndIsBinary(): array
     {
         $provider = [
             [FileType::Aac, true],
@@ -384,16 +384,16 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
-    #[DataProvider('providerTypeAndIsDocument')]
-    public function testIsDocument(FileType $type, bool $isDocument): void
+    #[DataProvider('providerFileTypeAndIsDocument')]
+    public function testIsDocument(FileType $fileType, bool $isDocument): void
     {
-        $this->assertSame($isDocument, $type->isDocument());
+        $this->assertSame($isDocument, $fileType->isDocument());
     }
 
     /**
-     * @return non-empty-list<array{Type, bool}>
+     * @return non-empty-list<array{FileType, bool}>
      */
-    public static function providerTypeAndIsDocument(): array
+    public static function providerFileTypeAndIsDocument(): array
     {
         $provider = [
             [FileType::Aac, false],
@@ -440,16 +440,16 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
-    #[DataProvider('providerFileAndIsImage')]
-    public function testIsImage(FileType $type, bool $isImage): void
+    #[DataProvider('providerFileTypeAndIsImage')]
+    public function testIsImage(FileType $fileType, bool $isImage): void
     {
-        $this->assertSame($isImage, $type->isImage());
+        $this->assertSame($isImage, $fileType->isImage());
     }
 
     /**
-     * @return non-empty-list<array{Type, bool}>
+     * @return non-empty-list<array{FileType, bool}>
      */
-    public static function providerFileAndIsImage(): array
+    public static function providerFileTypeAndIsImage(): array
     {
         $provider = [
             [FileType::Aac, false],
@@ -496,16 +496,16 @@ final class FileTypeTest extends TestCase
         return $provider;
     }
 
-    #[DataProvider('providerTypeAndIsText')]
-    public function testIsText(FileType $file, bool $isText): void
+    #[DataProvider('providerFileTypeAndIsText')]
+    public function testIsText(FileType $fileType, bool $isText): void
     {
-        $this->assertSame($isText, $file->isText());
+        $this->assertSame($isText, $fileType->isText());
     }
 
     /**
-     * @return non-empty-list<array{Type, bool}>
+     * @return non-empty-list<array{FileType, bool}>
      */
-    public static function providerTypeAndIsText(): array
+    public static function providerFileTypeAndIsText(): array
     {
         $provider = [
             [FileType::Aac, false],
