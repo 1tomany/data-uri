@@ -67,9 +67,9 @@ enum FileType
             return $fileType;
         }
 
-        $type = strtolower($type);
+        if ('' !== $type = trim($type)) {
+            $type = strtolower($type);
 
-        if ($type = trim($type)) {
             $fileType = match ($type) {
                 'audio/aac' => self::Aac,
                 'audio/aiff' => self::Aiff,
