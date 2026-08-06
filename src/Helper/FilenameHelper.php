@@ -122,7 +122,7 @@ final readonly class FilenameHelper
                 throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
             }
 
-            return $filename;
+            return '' === $filename ? null : $filename;
         }
 
         return null;
