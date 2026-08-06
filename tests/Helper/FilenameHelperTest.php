@@ -94,6 +94,7 @@ final class FilenameHelperTest extends TestCase
             ['code🐘-.php', 'code.php'],
             ['code🐘--.php', 'code.php'],
             ['🐘-code.php', 'code.php'],
+            ['Ëxclaim.txt', 'xclaim.txt'],
             ['h..e..llo.txt', 'h.e.llo.txt'],
             ['hello    .txt', 'hello.txt'],
             ['h_e_l_l_o_.txt', 'h-e-l-l-o.txt'],

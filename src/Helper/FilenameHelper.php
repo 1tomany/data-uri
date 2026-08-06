@@ -85,7 +85,7 @@ final readonly class FilenameHelper
         }
 
         // Replace "spacers" with spaces so they can be removed in a single pass
-        $filename = trim(str_replace(['-', '_', ',', ':', '#'], ' ', $filename));
+        // $filename = trim(str_replace(['-', '_', ',', ':', '#'], ' ', $filename));
 
         // Replace two or more periods with a single one
         $filename = preg_replace('/\.{2,}/', '.', $filename);
@@ -95,13 +95,16 @@ final readonly class FilenameHelper
         }
 
         // Remove non-alphanumeric and non-period characters
-        $bitCleaner = static function (string $bit): ?string {
-            return preg_replace('/[^A-Za-z0-9.]+/', '', $bit);
-        };
+        // $bitCleaner = static function (string $bit): ?string {
+        //     return preg_replace('/[^A-Za-z0-9.]+/', '', $bit);
+        // };
 
-        // Because all "spacers" were converted to spaces, we only need
-        // a single map to remove them and any other unwanted characters
-        $filenameBits = array_map($bitCleaner, explode(' ', $filename));
+        // Split on all unwanted characters so they can removed
+        $filenameBits = preg_split('/[^A-Za-z0-9.]+/', $filename);
+
+        if (!$filenameBits) {
+            return null;
+        }
 
         // Remove NULL or empty placeholders
         $bitFilter = static function (?string $bit): bool {
@@ -111,7 +114,7 @@ final readonly class FilenameHelper
         $filenameBits = array_filter($filenameBits, $bitFilter);
 
         // Compile the filename with hyphens as the spacer
-        $filename = trim(implode('-', $filenameBits), '-');
+        $filename = implode('-', \array_values($filenameBits));
 
         // The normalized filename must be more than just an
         // extension, even if it is technically a valid name
