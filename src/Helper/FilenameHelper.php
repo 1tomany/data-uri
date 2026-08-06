@@ -22,6 +22,7 @@ use function str_replace;
 use function strlen;
 use function trim;
 
+use const PATHINFO_FILENAME;
 use const PHP_MAXPATHLEN;
 
 final readonly class FilenameHelper
@@ -104,16 +105,16 @@ final readonly class FilenameHelper
             return null;
         }
 
-        $pathinfo = pathinfo($filename);
+        // The normalized filename must be more than just an
+        // extension, even if it is technically a valid name
+        if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
+            if (strlen($filename) > PHP_MAXPATHLEN) {
+                throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
+            }
 
-        if ('' === $pathinfo['filename']) {
-            return null;
+            return $filename;
         }
 
-        if (strlen($filename) > PHP_MAXPATHLEN) {
-            throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
-        }
-
-        return $filename;
+        return null;
     }
 }
