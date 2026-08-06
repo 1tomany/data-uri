@@ -78,6 +78,8 @@ final readonly class FilenameHelper
             return null;
         }
 
+        $fileName = str_replace('_', ' ', $fileName);
+
         // Remove all non-alphanumeric and non-period characters
         $mapper = static function (string $nameBit): ?string {
             return preg_replace('/[^A-Za-z0-9.]+/', '', $nameBit);

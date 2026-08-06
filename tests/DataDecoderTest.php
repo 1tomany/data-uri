@@ -92,7 +92,7 @@ final class DataDecoderTest extends TestCase
     {
         $file = new DataDecoder()->decode('data:text/plain,Hello%2C%20world%21', name: 'Hello_World.txt');
 
-        $this->assertEquals('Hello_World.txt', $file->getName());
+        $this->assertEquals('Hello-World.txt', $file->getName());
     }
 
     public function testDecodingDataCanOverrideSetType(): void
