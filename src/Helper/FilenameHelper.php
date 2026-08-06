@@ -8,8 +8,12 @@ use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
 
+use function array_filter;
+use function array_map;
 use function assert;
 use function basename;
+use function explode;
+use function implode;
 use function preg_replace;
 use function sprintf;
 use function str_replace;
@@ -67,31 +71,35 @@ final readonly class FilenameHelper
             return $fileName;
         }
 
-        // Basic cleanup to ensure we're working with a single file
+        // Normalize the filename if a complete path was passed
         $fileName = basename(str_replace('\\', '/', trim($fileName)));
 
         if ('' === $fileName) {
             return null;
         }
 
-        if (null === $sanitized = preg_replace('/[^\pL\pN\pZs.-]+/u', '-', $fileName)) {
-            $sanitized = preg_replace('/[^A-Za-z0-9._-]+/', '-', $fileName);
-        }
+        // Remove all non-alphanumeric and non-period characters
+        $mapper = static function (string $nameBit): ?string {
+            return preg_replace('/[^A-Za-z0-9.]+/', '', $nameBit);
+        };
 
-        if (null === $sanitized) {
-            return $sanitized;
-        }
+        $nameBits = array_map($mapper, explode(' ', $fileName));
 
-        $sanitized = trim($sanitized, '.');
+        // Remove empty or NULL placeholders
+        $nameBits = array_filter($nameBits, static function (?string $v): bool {
+            return null !== $v && '' !== trim($v);
+        });
 
-        if ('' === $sanitized) {
+        $fileName = trim(implode('-', $nameBits));
+
+        if ('' === $fileName) {
             return null;
         }
 
-        if (strlen($sanitized) > self::MAXIMUM_FILENAME_LENGTH) {
-            $sanitized = substr($sanitized, -self::MAXIMUM_FILENAME_LENGTH);
+        if (strlen($fileName) > self::MAXIMUM_FILENAME_LENGTH) {
+            $fileName = substr($fileName, -self::MAXIMUM_FILENAME_LENGTH);
         }
 
-        return $sanitized;
+        return $fileName;
     }
 }
