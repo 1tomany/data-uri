@@ -54,6 +54,9 @@ final class FilenameHelperTest extends TestCase
         $this->assertSame($normalizedFilename, FilenameHelper::normalize($filename));
     }
 
+    /**
+     * @return non-empty-list<array{?string, ?non-empty-string}>
+     */
     public static function providerFilenameAndNormalizedFilename(): array
     {
         $provider = [

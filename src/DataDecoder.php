@@ -128,7 +128,7 @@ final class DataDecoder
         }
 
         $fileName = FilenameHelper::normalize(...[
-            'fileName' => trim($fileName),
+            'filename' => trim($fileName),
         ]);
 
         // Generate a base directory if a name was found to avoid collisions
