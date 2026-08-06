@@ -15,7 +15,6 @@ use function basename;
 use function implode;
 use function pathinfo;
 use function sprintf;
-use function str_contains;
 use function str_replace;
 use function strlen;
 use function trim;
