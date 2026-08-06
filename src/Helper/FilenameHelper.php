@@ -71,11 +71,11 @@ final readonly class FilenameHelper
      */
     public static function normalize(?string $filename): ?string
     {
-        $filename = trim((string) $filename);
-
-        if ('' === $filename) {
-            return $filename;
+        if (null === $filename) {
+            return null;
         }
+
+        $filename = trim($filename);
 
         // Normalize the filename if a complete path was passed
         $filename = basename(str_replace('\\', '/', $filename));
