@@ -7,7 +7,6 @@ use OneToMany\DataUri\Exception\RuntimeException;
 use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
-use Symfony\Component\Filesystem\Path;
 
 use function array_filter;
 use function array_values;
@@ -15,7 +14,6 @@ use function assert;
 use function basename;
 use function implode;
 use function pathinfo;
-use function preg_replace;
 use function sprintf;
 use function str_replace;
 use function strlen;
@@ -83,34 +81,39 @@ final readonly class FilenameHelper
             return null;
         }
 
-        // Replace two or more periods with a single one
-        $filename = preg_replace('/\.{2,}/', '.', $filename);
+        // Split on all characters that we want to remove
+        $nameBits = preg_split('/[^A-Za-z0-9.]+/', $filename);
 
-        if (null === $filename) {
-            return null;
-        }
-
-        // Split on all unwanted characters so they can removed
-        $filenameBits = preg_split('/[^A-Za-z0-9.]+/', $filename);
-
-        if (!$filenameBits) {
+        if (!$nameBits) {
             return null;
         }
 
         // Remove NULL or empty placeholders
-        $bitFilter = static function (?string $bit): bool {
+        $bitFilter = function (?string $bit): bool {
             return null !== $bit && '' !== trim($bit);
         };
 
-        $filenameBits = array_filter($filenameBits, $bitFilter);
+        $nameBits = array_filter($nameBits, $bitFilter);
 
         // Compile the filename with hyphens as the spacer
-        $filename = implode('-', array_values($filenameBits));
+        $filename = implode('-', array_values($nameBits));
 
         // The normalized filename must be more than just an
         // extension, even if it is technically a valid name
         if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
-            $filename = str_replace(['-.'], '.', $filename);
+            // Final cleanup: hyphens that are next to
+            // a period and multiple successive periods
+            $nameBits = explode('.', trim($filename));
+
+            foreach ($nameBits as $idx => $bit) {
+                $nameBits[$idx] = trim($bit, '-');
+
+                if ('' === $nameBits[$idx]) {
+                    unset($nameBits[$idx]);
+                }
+            }
+
+            $filename = trim(implode('.', $nameBits));
 
             if (strlen($filename) > PHP_MAXPATHLEN) {
                 throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));

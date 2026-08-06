@@ -101,6 +101,8 @@ final class FilenameHelperTest extends TestCase
             ['hello_world.txt', 'hello-world.txt'],
             ['hello__world.txt', 'hello-world.txt'],
             ['hello-.world.txt', 'hello.world.txt'],
+            ['hello_._world.txt', 'hello.world.txt'],
+            ['hello_._._world.txt', 'hello.world.txt'],
             ['Invoice--OWN3086.pdf', 'Invoice-OWN3086.pdf'],
             ['Heating - 2024-11 - Invoice.pdf', 'Heating-2024-11-Invoice.pdf'],
         ];
