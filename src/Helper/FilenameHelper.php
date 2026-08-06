@@ -98,16 +98,23 @@ final readonly class FilenameHelper
 
         $nameBits = array_filter($nameBits, $filter);
 
-        // Compile the final filename with hyphens
-        $filename = trim(implode('-', $nameBits));
+        // Rebuild the filename with hyphens
+        $filename = implode('-', $nameBits);
 
-        if ('' === $filename) {
-            return null;
-        }
+        // $mapper = static function (string $nameBit): string {
+        //     return trim(trim($nameBit), '-');
+        // };
+
+        // $nameBits = array_map($mapper, explode('.', $filename));
+
+        // $nameBits = array_filter($nameBits, $filter);
+        // $filename = implode('.', $nameBits);
 
         // The normalized filename must be more than just an
         // extension, even if it is technically a valid name
         if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
+            $filename = str_replace('-.', '.', $filename);
+
             if (strlen($filename) > PHP_MAXPATHLEN) {
                 throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
             }
