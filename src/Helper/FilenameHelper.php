@@ -71,38 +71,44 @@ final readonly class FilenameHelper
      */
     public static function normalize(?string $filename): ?string
     {
-        if (null === $filename) {
+        $filename = trim((string) $filename);
+
+        if ('' === $filename) {
             return $filename;
         }
 
         // Normalize the filename if a complete path was passed
-        $filename = basename(str_replace('\\', '/', trim($filename)));
+        $filename = basename(str_replace('\\', '/', $filename));
 
         if ('' === $filename) {
             return null;
         }
 
         // Replace "spacers" with spaces so they can be removed in a single pass
-        $filename = str_replace(['-', '_', ',', ':', '#'], ' ', trim($filename));
+        $filename = trim(str_replace(['-', '_', ',', ':', '#'], ' ', $filename));
 
-        // Replace two or more successive periods with a single one
-        $filename = preg_replace('/\.{2,}/', '.', trim($filename));
+        // Replace two or more periods with a single one
+        $filename = preg_replace('/\.{2,}/', '.', $filename);
+
+        if (null === $filename) {
+            return null;
+        }
 
         // Remove non-alphanumeric and non-period characters
-        $cleaner = static function (string $nameBit): ?string {
-            return preg_replace('/[^A-Za-z0-9.]+/', '', $nameBit);
+        $bitCleaner = static function (string $bit): ?string {
+            return preg_replace('/[^A-Za-z0-9.]+/', '', $bit);
         };
 
         // Because all "spacers" were converted to spaces, we only need
         // a single map to remove them and any other unwanted characters
-        $filenameBits = array_map($cleaner, explode(' ', $filename));
+        $filenameBits = array_map($bitCleaner, explode(' ', $filename));
 
         // Remove NULL or empty placeholders
-        $filter = static function (?string $v): bool {
-            return null !== $v && '' !== trim($v);
+        $bitFilter = static function (?string $bit): bool {
+            return null !== $bit && '' !== trim($bit);
         };
 
-        $filenameBits = array_filter($filenameBits, $filter);
+        $filenameBits = array_filter($filenameBits, $bitFilter);
 
         // Compile the filename with hyphens as the spacer
         $filename = trim(implode('-', $filenameBits), '-');
