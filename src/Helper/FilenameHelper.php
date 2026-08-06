@@ -7,6 +7,7 @@ use OneToMany\DataUri\Exception\RuntimeException;
 use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
+use Symfony\Component\Filesystem\Path;
 
 use function array_filter;
 use function array_map;
@@ -14,21 +15,23 @@ use function assert;
 use function basename;
 use function explode;
 use function implode;
+use function pathinfo;
 use function preg_replace;
 use function sprintf;
 use function str_replace;
 use function strlen;
-use function substr;
 use function trim;
+
+use const PHP_MAXPATHLEN;
 
 final readonly class FilenameHelper
 {
     /**
-     * Maximum length a filename (including extension) can be.
+     * Maximum length a randomly generated name can be.
      *
      * @var positive-int
      */
-    private const int MAXIMUM_FILENAME_LENGTH = 128;
+    public const int MAXIMUM_GENERATED_LENGTH = 128;
 
     private function __construct()
     {
@@ -47,61 +50,70 @@ final readonly class FilenameHelper
             throw new InvalidArgumentException('The length must be positive.');
         }
 
-        if ($length > self::MAXIMUM_FILENAME_LENGTH) {
-            throw new InvalidArgumentException(sprintf('The length must be less than or equal to %d.', self::MAXIMUM_FILENAME_LENGTH));
+        if ($length > self::MAXIMUM_GENERATED_LENGTH) {
+            throw new InvalidArgumentException(sprintf('The length must be less than or equal to %d.', self::MAXIMUM_GENERATED_LENGTH));
         }
 
         try {
-            $fileName = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
+            $filename = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
         } catch (RandomException|RandomError $e) {
             throw new RuntimeException('Generating a sufficiently random filename failed.', previous: $e);
         }
 
-        assert('' !== $fileName, 'An empty filename was generated.');
+        assert('' !== $filename, 'An empty filename was generated.');
 
-        return $fileName;
+        return $filename;
     }
 
     /**
      * @return ?non-empty-string
      */
-    public static function normalize(?string $fileName): ?string
+    public static function normalize(?string $filename): ?string
     {
-        if (null === $fileName) {
-            return $fileName;
+        if (null === $filename) {
+            return $filename;
         }
 
         // Normalize the filename if a complete path was passed
-        $fileName = basename(str_replace('\\', '/', trim($fileName)));
+        $filename = basename(str_replace('\\', '/', trim($filename)));
 
-        if ('' === $fileName) {
+        if ('' === $filename) {
             return null;
         }
 
-        $fileName = str_replace('_', ' ', $fileName);
+        $filename = str_replace(['-', '_'], ' ', $filename);
 
-        // Remove all non-alphanumeric and non-period characters
+        // Remove non-alphanumeric and non-period characters
         $mapper = static function (string $nameBit): ?string {
             return preg_replace('/[^A-Za-z0-9.]+/', '', $nameBit);
         };
 
-        $nameBits = array_map($mapper, explode(' ', $fileName));
+        $nameBits = array_map($mapper, explode(' ', $filename));
 
-        // Remove empty or NULL placeholders
-        $nameBits = array_filter($nameBits, static function (?string $v): bool {
+        // Remove NULL or empty string placeholders
+        $filter = static function (?string $v): bool {
             return null !== $v && '' !== trim($v);
-        });
+        };
 
-        $fileName = trim(implode('-', $nameBits));
+        $nameBits = array_filter($nameBits, $filter);
 
-        if ('' === $fileName) {
+        // Compile the final filename with hyphens
+        $filename = trim(implode('-', $nameBits));
+
+        if ('' === $filename) {
             return null;
         }
 
-        if (strlen($fileName) > self::MAXIMUM_FILENAME_LENGTH) {
-            $fileName = substr($fileName, -self::MAXIMUM_FILENAME_LENGTH);
+        $pathinfo = pathinfo($filename);
+
+        if ('' === $pathinfo['filename']) {
+            return null;
         }
 
-        return $fileName;
+        if (strlen($filename) > PHP_MAXPATHLEN) {
+            throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
+        }
+
+        return $filename;
     }
 }
