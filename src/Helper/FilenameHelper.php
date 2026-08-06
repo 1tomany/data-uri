@@ -82,38 +82,35 @@ final readonly class FilenameHelper
             return null;
         }
 
-        $filename = str_replace(['-', '_'], ' ', $filename);
+        // Replace "spacers" with spaces so they can be removed in a single pass
+        $filename = str_replace(['-', '_', ',', ':', '#'], ' ', trim($filename));
+
+        // Replace two or more successive periods with a single one
+        $filename = preg_replace('/\.{2,}/', '.', trim($filename));
 
         // Remove non-alphanumeric and non-period characters
-        $mapper = static function (string $nameBit): ?string {
+        $cleaner = static function (string $nameBit): ?string {
             return preg_replace('/[^A-Za-z0-9.]+/', '', $nameBit);
         };
 
-        $nameBits = array_map($mapper, explode(' ', $filename));
+        // Because all "spacers" were converted to spaces, we only need
+        // a single map to remove them and any other unwanted characters
+        $filenameBits = array_map($cleaner, explode(' ', $filename));
 
-        // Remove NULL or empty string placeholders
+        // Remove NULL or empty placeholders
         $filter = static function (?string $v): bool {
             return null !== $v && '' !== trim($v);
         };
 
-        $nameBits = array_filter($nameBits, $filter);
+        $filenameBits = array_filter($filenameBits, $filter);
 
-        // Rebuild the filename with hyphens
-        $filename = implode('-', $nameBits);
-
-        // $mapper = static function (string $nameBit): string {
-        //     return trim(trim($nameBit), '-');
-        // };
-
-        // $nameBits = array_map($mapper, explode('.', $filename));
-
-        // $nameBits = array_filter($nameBits, $filter);
-        // $filename = implode('.', $nameBits);
+        // Compile the filename with hyphens as the spacer
+        $filename = trim(implode('-', $filenameBits), '-');
 
         // The normalized filename must be more than just an
         // extension, even if it is technically a valid name
         if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
-            $filename = str_replace('-.', '.', $filename);
+            $filename = str_replace(['-.'], '.', $filename);
 
             if (strlen($filename) > PHP_MAXPATHLEN) {
                 throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
