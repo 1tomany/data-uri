@@ -15,6 +15,7 @@ use function basename;
 use function implode;
 use function pathinfo;
 use function sprintf;
+use function str_contains;
 use function str_replace;
 use function strlen;
 use function trim;
@@ -98,11 +99,16 @@ final readonly class FilenameHelper
         // Compile the filename with hyphens as the spacer
         $filename = implode('-', array_values($nameBits));
 
-        // The normalized filename must be more than just an
-        // extension, even if it is technically a valid name
-        if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
-            // Final cleanup: hyphens that are next to
-            // a period and multiple successive periods
+        // The normalized filename must be more than just
+        // an extension, even if it is technically valid
+        $name = pathinfo($filename, PATHINFO_FILENAME);
+
+        if ('' === $name) {
+            return null;
+        }
+
+        // Normalize hyphens and periods in the name
+        if (true === str_contains($filename, '.')) {
             $nameBits = explode('.', trim($filename));
 
             foreach ($nameBits as $idx => $bit) {
@@ -114,14 +120,12 @@ final readonly class FilenameHelper
             }
 
             $filename = trim(implode('.', $nameBits));
-
-            if (strlen($filename) > PHP_MAXPATHLEN) {
-                throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
-            }
-
-            return '' === $filename ? null : $filename;
         }
 
-        return null;
+        if (strlen($filename) > PHP_MAXPATHLEN) {
+            throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
+        }
+
+        return '' === $filename ? null : $filename;
     }
 }
