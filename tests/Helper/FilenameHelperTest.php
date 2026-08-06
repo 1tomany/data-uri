@@ -81,6 +81,8 @@ final class FilenameHelperTest extends TestCase
             ['a/a.jpeg', 'a.jpeg'],
             ['~/a.jpeg', 'a.jpeg'],
             ['/tmp/data.txt', 'data.txt'],
+            ['file🐘.php', 'file.php'],
+            ['file🐘-.php', 'file.php'],
             ['Heating - 2024-11 - Invoice OWN3086.pdf', 'Heating-2024-11-Invoice-OWN3086.pdf'],
         ];
 
