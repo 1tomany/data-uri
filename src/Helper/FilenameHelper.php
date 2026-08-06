@@ -48,34 +48,34 @@ final readonly class FilenameHelper
         }
 
         try {
-            $filename = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
+            $fileName = new Randomizer()->getBytesFromString('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', $length);
         } catch (RandomException|RandomError $e) {
             throw new RuntimeException('Generating a sufficiently random filename failed.', previous: $e);
         }
 
-        assert('' !== $filename, 'An empty filename was generated.');
+        assert('' !== $fileName, 'An empty filename was generated.');
 
-        return $filename;
+        return $fileName;
     }
 
     /**
      * @return ?non-empty-string
      */
-    public static function sanitize(?string $filename): ?string
+    public static function normalize(?string $fileName): ?string
     {
-        if (null === $filename) {
-            return $filename;
+        if (null === $fileName) {
+            return $fileName;
         }
 
         // Basic cleanup to ensure we're working with a single file
-        $filename = basename(str_replace('\\', '/', trim($filename)));
+        $fileName = basename(str_replace('\\', '/', trim($fileName)));
 
-        if ('' === $filename) {
+        if ('' === $fileName) {
             return null;
         }
 
-        if (null === $sanitized = preg_replace('/[^\pL\pN\pZs.-]+/u', '-', $filename)) {
-            $sanitized = preg_replace('/[^A-Za-z0-9._-]+/', '-', $filename);
+        if (null === $sanitized = preg_replace('/[^\pL\pN\pZs.-]+/u', '-', $fileName)) {
+            $sanitized = preg_replace('/[^A-Za-z0-9._-]+/', '-', $fileName);
         }
 
         if (null === $sanitized) {
