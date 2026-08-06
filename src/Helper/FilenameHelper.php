@@ -8,23 +8,28 @@ use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
 
+use function array_filter;
+use function array_values;
 use function assert;
 use function basename;
-use function preg_replace;
+use function implode;
+use function pathinfo;
 use function sprintf;
 use function str_replace;
 use function strlen;
-use function substr;
 use function trim;
+
+use const PATHINFO_FILENAME;
+use const PHP_MAXPATHLEN;
 
 final readonly class FilenameHelper
 {
     /**
-     * Maximum length a filename (including extension) can be.
+     * Maximum length a randomly generated name can be.
      *
      * @var positive-int
      */
-    private const int MAXIMUM_FILENAME_LENGTH = 128;
+    public const int MAXIMUM_GENERATED_LENGTH = 128;
 
     private function __construct()
     {
@@ -43,8 +48,8 @@ final readonly class FilenameHelper
             throw new InvalidArgumentException('The length must be positive.');
         }
 
-        if ($length > self::MAXIMUM_FILENAME_LENGTH) {
-            throw new InvalidArgumentException(sprintf('The length must be less than or equal to %d.', self::MAXIMUM_FILENAME_LENGTH));
+        if ($length > self::MAXIMUM_GENERATED_LENGTH) {
+            throw new InvalidArgumentException(sprintf('The length must be less than or equal to %d.', self::MAXIMUM_GENERATED_LENGTH));
         }
 
         try {
@@ -61,37 +66,61 @@ final readonly class FilenameHelper
     /**
      * @return ?non-empty-string
      */
-    public static function sanitize(?string $filename): ?string
+    public static function normalize(?string $filename): ?string
     {
         if (null === $filename) {
-            return $filename;
+            return null;
         }
 
-        // Basic cleanup to ensure we're working with a single file
-        $filename = basename(str_replace('\\', '/', trim($filename)));
+        $filename = trim($filename);
+
+        // Normalize the filename if a complete path was passed
+        $filename = basename(str_replace('\\', '/', $filename));
 
         if ('' === $filename) {
             return null;
         }
 
-        if (null === $sanitized = preg_replace('/[^\pL\pN._-]+/u', '_', $filename)) {
-            $sanitized = preg_replace('/[^A-Za-z0-9._-]+/', '_', $filename);
-        }
+        // Split on all characters that we want to remove
+        $nameBits = preg_split('/[^A-Za-z0-9.]+/', $filename);
 
-        if (null === $sanitized) {
-            return $sanitized;
-        }
-
-        $sanitized = trim($sanitized, '.');
-
-        if ('' === $sanitized) {
+        if (!$nameBits) {
             return null;
         }
 
-        if (strlen($sanitized) > self::MAXIMUM_FILENAME_LENGTH) {
-            $sanitized = substr($sanitized, -self::MAXIMUM_FILENAME_LENGTH);
+        // Remove NULL or empty placeholders
+        $bitFilter = function (?string $bit): bool {
+            return null !== $bit && '' !== trim($bit);
+        };
+
+        $nameBits = array_filter($nameBits, $bitFilter);
+
+        // Compile the filename with hyphens as the spacer
+        $filename = implode('-', array_values($nameBits));
+
+        // The normalized filename must be more than just
+        // an extension, even if that is technically valid
+        if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
+            // Normalize hyphens and periods in the filename
+            $nameBits = explode('.', trim($filename, '.-'));
+
+            foreach ($nameBits as $idx => $bit) {
+                $nameBits[$idx] = trim($bit, '-');
+
+                if ('' === $nameBits[$idx]) {
+                    unset($nameBits[$idx]);
+                }
+            }
+
+            $filename = trim(implode('.', $nameBits));
+
+            if (strlen($filename) > PHP_MAXPATHLEN) {
+                throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
+            }
+
+            return '' === $filename ? null : $filename;
         }
 
-        return $sanitized;
+        return null;
     }
 }

@@ -8,6 +8,7 @@ use OneToMany\DataUri\DataDecoder;
 use OneToMany\DataUri\Exception\InvalidArgumentException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Record\TemporaryFile;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
@@ -18,6 +19,8 @@ use function dirname;
 use function realpath;
 use function sys_get_temp_dir;
 
+#[Group('UnitTests')]
+#[Group('RecordTests')]
 final class TemporaryFileTest extends TestCase
 {
     public function testConstructorRequiresNonEmptyPath(): void

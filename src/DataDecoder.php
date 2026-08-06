@@ -127,7 +127,7 @@ final class DataDecoder
             }
         }
 
-        $fileName = FilenameHelper::sanitize(...[
+        $fileName = FilenameHelper::normalize(...[
             'filename' => trim($fileName),
         ]);
 
