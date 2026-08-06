@@ -10,10 +10,9 @@ use Random\Randomizer;
 use Symfony\Component\Filesystem\Path;
 
 use function array_filter;
-use function array_map;
+use function array_values;
 use function assert;
 use function basename;
-use function explode;
 use function implode;
 use function pathinfo;
 use function preg_replace;
@@ -84,20 +83,12 @@ final readonly class FilenameHelper
             return null;
         }
 
-        // Replace "spacers" with spaces so they can be removed in a single pass
-        // $filename = trim(str_replace(['-', '_', ',', ':', '#'], ' ', $filename));
-
         // Replace two or more periods with a single one
         $filename = preg_replace('/\.{2,}/', '.', $filename);
 
         if (null === $filename) {
             return null;
         }
-
-        // Remove non-alphanumeric and non-period characters
-        // $bitCleaner = static function (string $bit): ?string {
-        //     return preg_replace('/[^A-Za-z0-9.]+/', '', $bit);
-        // };
 
         // Split on all unwanted characters so they can removed
         $filenameBits = preg_split('/[^A-Za-z0-9.]+/', $filename);
@@ -114,7 +105,7 @@ final readonly class FilenameHelper
         $filenameBits = array_filter($filenameBits, $bitFilter);
 
         // Compile the filename with hyphens as the spacer
-        $filename = implode('-', \array_values($filenameBits));
+        $filename = implode('-', array_values($filenameBits));
 
         // The normalized filename must be more than just an
         // extension, even if it is technically a valid name
