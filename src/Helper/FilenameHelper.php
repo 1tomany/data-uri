@@ -74,8 +74,8 @@ final readonly class FilenameHelper
             return null;
         }
 
-        if (null === $sanitized = preg_replace('/[^\pL\pN._-]+/u', '_', $filename)) {
-            $sanitized = preg_replace('/[^A-Za-z0-9._-]+/', '_', $filename);
+        if (null === $sanitized = preg_replace('/[^\pL\pN\pZs.-]+/u', '-', $filename)) {
+            $sanitized = preg_replace('/[^A-Za-z0-9._-]+/', '-', $filename);
         }
 
         if (null === $sanitized) {
