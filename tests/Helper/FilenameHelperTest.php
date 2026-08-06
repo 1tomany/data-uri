@@ -67,6 +67,8 @@ final class FilenameHelperTest extends TestCase
             ['-', null],
             ['_', null],
             ['\\', null],
+            ['.', null],
+            ['..', null],
             ['a', 'a'],
             ['A', 'A'],
             ['z', 'z'],

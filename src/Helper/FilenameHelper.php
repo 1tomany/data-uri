@@ -102,20 +102,18 @@ final readonly class FilenameHelper
         // The normalized filename must be more than just
         // an extension, even if that is technically valid
         if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
-            // Normalize hyphens and periods in the name
-            if (true === str_contains($filename, '.')) {
-                $nameBits = explode('.', trim($filename));
+            // Normalize hyphens and periods in the filename
+            $nameBits = explode('.', trim($filename, '.-'));
 
-                foreach ($nameBits as $idx => $bit) {
-                    $nameBits[$idx] = trim($bit, '-');
+            foreach ($nameBits as $idx => $bit) {
+                $nameBits[$idx] = trim($bit, '-');
 
-                    if ('' === $nameBits[$idx]) {
-                        unset($nameBits[$idx]);
-                    }
+                if ('' === $nameBits[$idx]) {
+                    unset($nameBits[$idx]);
                 }
-
-                $filename = trim(implode('.', $nameBits));
             }
+
+            $filename = trim(implode('.', $nameBits));
 
             if (strlen($filename) > PHP_MAXPATHLEN) {
                 throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
