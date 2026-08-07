@@ -7,6 +7,7 @@ use OneToMany\DataUri\Exception\RuntimeException;
 use Random\RandomError;
 use Random\RandomException;
 use Random\Randomizer;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 use function array_filter;
 use function array_values;
@@ -17,6 +18,7 @@ use function pathinfo;
 use function sprintf;
 use function str_replace;
 use function strlen;
+use function Symfony\Component\String\u;
 use function trim;
 
 use const PATHINFO_FILENAME;
@@ -81,46 +83,14 @@ final readonly class FilenameHelper
             return null;
         }
 
-        // Split on all characters that we want to remove
-        $nameBits = preg_split('/[^A-Za-z0-9.]+/', $filename);
+        $slugger = new AsciiSlugger('en');
 
-        if (!$nameBits) {
-            return null;
+        $nameBits = u($filename)->split('.');
+
+        foreach ($nameBits as $idx => $nameBit) {
+            $nameBits[$idx] = $slugger->slug($nameBit->trim()->trim('-_')->toString());
         }
 
-        // Remove NULL or empty placeholders
-        $bitFilter = function (?string $bit): bool {
-            return null !== $bit && '' !== trim($bit);
-        };
-
-        $nameBits = array_filter($nameBits, $bitFilter);
-
-        // Compile the filename with hyphens as the spacer
-        $filename = implode('-', array_values($nameBits));
-
-        // The normalized filename must be more than just
-        // an extension, even if that is technically valid
-        if ('' !== pathinfo($filename, PATHINFO_FILENAME)) {
-            // Normalize hyphens and periods in the filename
-            $nameBits = explode('.', trim($filename, '.-'));
-
-            foreach ($nameBits as $idx => $bit) {
-                $nameBits[$idx] = trim($bit, '-');
-
-                if ('' === $nameBits[$idx]) {
-                    unset($nameBits[$idx]);
-                }
-            }
-
-            $filename = trim(implode('.', $nameBits));
-
-            if (strlen($filename) > PHP_MAXPATHLEN) {
-                throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
-            }
-
-            return '' === $filename ? null : $filename;
-        }
-
-        return null;
+        return u('.')->join($nameBits)->toString();
     }
 }
