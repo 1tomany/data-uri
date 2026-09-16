@@ -1,6 +1,6 @@
 # Data URI Parser for PHP
 
-This simple library allows you to easily convert a wide variety of data into a temporary file represented by a lightweight immutable value object.
+This simple library allows you to easily convert a wide variety of data into a temporary file represented by a lightweight immutable value object. It also includes Symfony bundle integration for autowiring, serialization, and console usage.
 
 ## Installation
 
@@ -55,6 +55,31 @@ The `DataDecoder::decodeText()` method has the following arguments:
 - `string $text` The plaintext string.
 - `string|FileType $type = FileType::Txt` The MIME type of the text.
 - `string|null $name = null` See `DataDecoder::decode()`.
+
+## Symfony Integration
+
+The package includes `OneToMany\DataUri\DataUriBundle`. Symfony Flex enables it automatically after installation, and `OneToMany\DataUri\DataDecoder` can then be autowired without additional service configuration:
+
+```php
+<?php
+
+use OneToMany\DataUri\DataDecoder;
+
+final readonly class DecodeData
+{
+    public function __construct(
+        private DataDecoder $dataDecoder,
+    ) {
+    }
+}
+```
+
+No bundle configuration is necessary. The bundle also:
+
+- registers `OneToMany\DataUri\Serializer\TemporaryFileNormalizer` with Symfony's Serializer component;
+- provides the `onetomany:data-uri:encode-file` console command for converting a file to a base64-encoded data URI.
+
+The framework-independent API remains available by constructing `DataDecoder` directly.
 
 ## Examples
 

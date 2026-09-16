@@ -5,6 +5,7 @@ parameters:
         - examples/
         - src/
         - tests/
+        - translations/
 
     tmpDir: var/phpstan/
     treatPhpDocTypesAsCertain: false
