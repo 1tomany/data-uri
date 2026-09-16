@@ -76,8 +76,8 @@ final readonly class DecodeData
 
 No bundle configuration is necessary. The bundle also:
 
-- registers `OneToMany\DataUri\Serializer\TemporaryFileNormalizer` with Symfony's Serializer component;
-- provides the `onetomany:data-uri:encode-file` console command for converting a file to a base64-encoded data URI.
+- registers `OneToMany\DataUri\Serializer\TemporaryFileNormalizer` with Symfony's Serializer component
+- provides the `onetomany:data-uri:encode-file` console command for converting a file to a base64-encoded data URI
 
 The framework-independent API remains available by constructing `DataDecoder` directly.
 
