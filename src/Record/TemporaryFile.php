@@ -5,7 +5,7 @@ namespace OneToMany\DataUri\Record;
 use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Exception\ExceptionInterface as DataUriExceptionInterface;
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Symfony\Component\Filesystem\Path;
 
@@ -58,14 +58,10 @@ class TemporaryFile implements TemporaryFileInterface
     private readonly string $key;
 
     /**
-     * @see OneToMany\DataUri\Record\TemporaryFile::validateBase()
-     * @see OneToMany\DataUri\Record\TemporaryFile::generateHash()
-     * @see OneToMany\DataUri\Record\TemporaryFile::generateKey()
-     *
-     * @throws InvalidArgumentException when the path is empty
-     * @throws InvalidArgumentException when the path is a directory or a link
-     * @throws InvalidArgumentException when the name is empty
-     * @throws InvalidArgumentException when the size is negative
+     * @throws DomainException when the path is empty
+     * @throws DomainException when the path is a directory or a link
+     * @throws DomainException when the name is empty
+     * @throws DomainException when the size is negative
      */
     public function __construct(
         string $path,
@@ -76,25 +72,25 @@ class TemporaryFile implements TemporaryFileInterface
         private bool $isManaged = true,
     ) {
         if ('' === $path = Path::canonicalize(trim($path))) {
-            throw new InvalidArgumentException('The path cannot be empty.');
+            throw new DomainException('The path cannot be empty.');
         }
 
         $this->path = $path;
 
         if (is_dir($this->path) || is_link($this->path)) {
-            throw new InvalidArgumentException(sprintf('The path "%s" cannot be a directory or link.', $this->path));
+            throw new DomainException(sprintf('The path "%s" cannot be a directory or link.', $this->path));
         }
 
         $this->base = $this->validateBase($this->getPath(), $base);
 
         if ('' === $name = trim($name)) {
-            throw new InvalidArgumentException('The name cannot be empty.');
+            throw new DomainException('The name cannot be empty.');
         }
 
         $this->name = $name;
 
         if ($size < 0) {
-            throw new InvalidArgumentException('The size cannot be negative.');
+            throw new DomainException('The size cannot be negative.');
         }
 
         $this->size = $size;
@@ -309,8 +305,8 @@ class TemporaryFile implements TemporaryFileInterface
      *
      * @return ?non-empty-string
      *
-     * @throws InvalidArgumentException when the base directory is not an absolute path
-     * @throws InvalidArgumentException when the path is not a direct child of the base directory
+     * @throws DomainException when the base directory is not an absolute path
+     * @throws DomainException when the path is not a direct child of the base directory
      */
     private function validateBase(string $path, ?string $base): ?string
     {
@@ -320,13 +316,13 @@ class TemporaryFile implements TemporaryFileInterface
 
         if ('' !== $base = trim($base)) {
             if (!Path::isAbsolute($base)) {
-                throw new InvalidArgumentException(sprintf('The base directory "%s" must be an absolute path.', $base));
+                throw new DomainException(sprintf('The base directory "%s" must be an absolute path.', $base));
             }
 
             $base = Path::canonicalize($base);
 
             if ($base !== Path::getDirectory($path)) {
-                throw new InvalidArgumentException(sprintf('The path "%s" must be a direct child of the base directory "%s".', $path, $base));
+                throw new DomainException(sprintf('The path "%s" must be a direct child of the base directory "%s".', $path, $base));
             }
         }
 
@@ -359,12 +355,12 @@ class TemporaryFile implements TemporaryFileInterface
      *
      * @return non-empty-string
      *
-     * @throws InvalidArgumentException when the length of the hash is too short
+     * @throws DomainException when the length of the hash is too short
      */
     private function generateKey(string $hash, ?string $base, string $name): string
     {
         if (strlen($hash) < TemporaryFileInterface::MINIMUM_HASH_LENGTH) {
-            throw new InvalidArgumentException(sprintf('The length of the hash "%s" must be %d characters or more to generate a key.', $hash, TemporaryFileInterface::MINIMUM_HASH_LENGTH));
+            throw new DomainException(sprintf('The length of the hash "%s" must be %d characters or more to generate a key.', $hash, TemporaryFileInterface::MINIMUM_HASH_LENGTH));
         }
 
         $keyBits = [substr($hash, 0, 2)];

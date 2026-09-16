@@ -2,7 +2,7 @@
     "name": "1tomany/data-uri",
     "description": "A simple, low dependency library to parse and decode data URIs defined in RFC 2397",
     "license": "MIT",
-    "type": "library",
+    "type": "symfony-bundle",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "keywords": [
@@ -11,21 +11,29 @@
         "data-uri",
         "2397",
         "rfc2397",
-        "rfc 2397"
+        "rfc 2397",
+        "symfony"
     ],
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.5",
         "ext-ctype": "*",
         "ext-fileinfo": "*",
         "ext-mbstring": "*",
-        "symfony/filesystem": "^7.2|^8.0|^8.1"
+        "symfony/config": "^7.2|^8.0|^8.1",
+        "symfony/console": "^7.2|^8.0|^8.1",
+        "symfony/dependency-injection": "^7.2|^8.0|^8.1",
+        "symfony/filesystem": "^7.2|^8.0|^8.1",
+        "symfony/http-kernel": "^7.2|^8.0|^8.1",
+        "symfony/serializer": "^7.2|^8.0|^8.1"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.93",
         "mikey179/vfsstream": "^1.6",
         "phpstan/phpstan": "^2.1.55",
-        "phpunit/phpunit": "^13.1.11",
-        "symfony/console": "^8.1"
+        "phpunit/phpunit": "^13.1.11"
+    },
+    "replace": {
+        "1tomany/data-uri-bundle": "*"
     },
     "autoload": {
         "psr-4": {

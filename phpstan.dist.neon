@@ -2,8 +2,10 @@ parameters:
     level: max
 
     paths:
-        - ./examples/
-        - ./src/
-        - ./tests/
+        - examples/
+        - src/
+        - tests/
+        - translations/
 
-    tmpDir: ./.build/phpstan.cache
+    tmpDir: var/phpstan/
+    treatPhpDocTypesAsCertain: false

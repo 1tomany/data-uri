@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Tests\Helper;
 
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use OneToMany\DataUri\Helper\FilenameHelper;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -18,7 +18,7 @@ final class FilenameHelperTest extends TestCase
 {
     public function testGeneratingFilenameRequiresNonZeroLength(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The length must be positive.');
 
         FilenameHelper::generate(0);
@@ -29,7 +29,7 @@ final class FilenameHelperTest extends TestCase
         $fileNameLength = -random_int(0, 128);
         $this->assertLessThan(1, $fileNameLength);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The length must be positive.');
 
         FilenameHelper::generate($fileNameLength);
@@ -42,7 +42,7 @@ final class FilenameHelperTest extends TestCase
         $filenameLength = random_int($maximumLength + 1, PHP_INT_MAX);
         $this->assertGreaterThan($maximumLength, $filenameLength);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The length must be less than or equal to '.$maximumLength.'.');
 
         FilenameHelper::generate($filenameLength);
