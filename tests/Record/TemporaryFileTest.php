@@ -5,7 +5,7 @@ namespace OneToMany\DataUri\Tests\Record;
 use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\DataDecoder;
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Record\TemporaryFile;
 use PHPUnit\Framework\Attributes\Group;
@@ -25,7 +25,7 @@ final class TemporaryFileTest extends TestCase
 {
     public function testConstructorRequiresNonEmptyPath(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The path cannot be empty.');
 
         new TemporaryFile('', null, 'php-logo.png', 10289, FileType::Png);
@@ -38,7 +38,7 @@ final class TemporaryFileTest extends TestCase
         $this->assertIsString($path);
         $this->assertDirectoryExists($path);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The path "'.$path.'" cannot be a directory or link.');
 
         new TemporaryFile($path, null, 'php-logo.png', 10289, FileType::Png);
@@ -49,7 +49,7 @@ final class TemporaryFileTest extends TestCase
         $base = basename(__DIR__);
         $this->assertFalse(Path::isAbsolute($base));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The base directory "'.$base.'" must be an absolute path.');
 
         new TemporaryFile(__DIR__.'/../../data/files/php-logo.png', $base, 'php-logo.png', 10289, FileType::Png);
@@ -68,7 +68,7 @@ final class TemporaryFileTest extends TestCase
         $this->assertDirectoryExists($base);
         $this->assertNotEquals($root, $base);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The path "'.$path.'" must be a direct child of the base directory "'.$base.'".');
 
         new TemporaryFile($path, $base, 'php-logo.png', 10289, FileType::Png);
@@ -76,7 +76,7 @@ final class TemporaryFileTest extends TestCase
 
     public function testConstructorRequiresNonEmptyName(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The name cannot be empty.');
 
         new TemporaryFile(__DIR__.'/../../data/files/php-logo.png', null, '', 10289, FileType::Png);
@@ -84,7 +84,7 @@ final class TemporaryFileTest extends TestCase
 
     public function testConstructorRequiresNonNegativeSize(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The size cannot be negative.');
 
         new TemporaryFile(__DIR__.'/../../data/files/php-logo.png', null, 'php-logo.png', -1, FileType::Png);

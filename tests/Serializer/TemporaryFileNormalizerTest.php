@@ -3,7 +3,7 @@
 namespace OneToMany\DataUri\Tests\Serializer;
 
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use OneToMany\DataUri\Serializer\TemporaryFileNormalizer;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +21,7 @@ final class TemporaryFileNormalizerTest extends TestCase
 {
     public function testDenormalizingUploadedFileRequiresItToBeValid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The file "photo.jpeg" was only partially uploaded.');
 
         new TemporaryFileNormalizer()->denormalize(new UploadedFile('/path/to/photo.jpeg', 'photo.jpeg', 'image/jpeg', UPLOAD_ERR_PARTIAL, true), TemporaryFileInterface::class);
@@ -45,7 +45,7 @@ final class TemporaryFileNormalizerTest extends TestCase
     {
         $data = new \DateTimeImmutable();
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('Expected data of type "string", "'.get_debug_type($data).'" given.');
 
         new TemporaryFileNormalizer()->denormalize($data, TemporaryFileInterface::class); // @phpstan-ignore argument.type

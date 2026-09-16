@@ -4,7 +4,7 @@ namespace OneToMany\DataUri\Serializer;
 
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
 use OneToMany\DataUri\DataDecoder;
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -33,8 +33,8 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
      *
      * @param string|\Stringable|File $data
      *
-     * @throws InvalidArgumentException when the data is an invalid file {@see Symfony\Component\HttpFoundation\File\UploadedFile}
-     * @throws InvalidArgumentException when the data is an unexpected type
+     * @throws DomainException when the data is an invalid file {@see Symfony\Component\HttpFoundation\File\UploadedFile}
+     * @throws DomainException when the data is an unexpected type
      */
     #[\Override]
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): TemporaryFileInterface
@@ -42,7 +42,7 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
         if ($data instanceof File) {
             if ($data instanceof UploadedFile) {
                 if (!$data->isValid()) {
-                    throw new InvalidArgumentException($data->getErrorMessage());
+                    throw new DomainException($data->getErrorMessage());
                 }
 
                 $name = $data->getClientOriginalName();
@@ -56,7 +56,7 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
         }
 
         if (!is_string($data)) {
-            throw new InvalidArgumentException(sprintf('Expected data of type "%s", "%s" given.', 'string', get_debug_type($data)));
+            throw new DomainException(sprintf('Expected data of type "%s", "%s" given.', 'string', get_debug_type($data)));
         }
 
         // The data is not a URL or an encoded URI,
@@ -79,13 +79,13 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
      *   format: non-empty-lowercase-string,
      * }
      *
-     * @throws InvalidArgumentException when the data is an unexpected type {@see OneToMany\DataUri\Contract\Record\TemporaryFileInterface}
+     * @throws DomainException when the data is an unexpected type {@see OneToMany\DataUri\Contract\Record\TemporaryFileInterface}
      */
     #[\Override]
     public function normalize(mixed $data, ?string $format = null, array $context = []): array
     {
         if (!$data instanceof TemporaryFileInterface) {
-            throw new InvalidArgumentException(sprintf('Expected data of type "%s", "%s" given.', TemporaryFileInterface::class, get_debug_type($data)));
+            throw new DomainException(sprintf('Expected data of type "%s", "%s" given.', TemporaryFileInterface::class, get_debug_type($data)));
         }
 
         return [

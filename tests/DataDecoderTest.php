@@ -4,7 +4,7 @@ namespace OneToMany\DataUri\Tests;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\DataDecoder;
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,7 +24,7 @@ final class DataDecoderTest extends TestCase
 {
     public function testDecodingDataRequiresStringableData(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIsOrContains('The data must be a non-NULL string or implement the "\Stringable" interface.');
 
         new DataDecoder()->decode(null);
@@ -32,7 +32,7 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingDataRequiresNonEmptyData(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIsOrContains('The data cannot be empty.');
 
         new DataDecoder()->decode(' ');
@@ -40,7 +40,7 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingDataRequiresDataToNotBeDirectory(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIsOrContains('The data cannot be a directory.');
 
         new DataDecoder()->decode(__DIR__);
@@ -48,7 +48,7 @@ final class DataDecoderTest extends TestCase
 
     public function testDecodingDataRequiresDataToNotContainNonPrintableBytes(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIsOrContains('The data cannot contain non-printable, control, or NULL-terminated characters.');
 
         new DataDecoder()->decode(random_bytes(1024));
@@ -62,7 +62,7 @@ final class DataDecoderTest extends TestCase
 
         vfsStream::setup(structure: [$file]);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIsOrContains('The file "'.$file->url().'" is not readable.');
 
         $this->assertFileIsNotReadable($file->url());
@@ -237,7 +237,7 @@ final class DataDecoderTest extends TestCase
             }
         }
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessageIsOrContains('The type "'.$type->getName().'" is not text.');
 
         new DataDecoder()->decodeText('Hello, world!', $type);

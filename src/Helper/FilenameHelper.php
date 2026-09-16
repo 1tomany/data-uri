@@ -2,7 +2,7 @@
 
 namespace OneToMany\DataUri\Helper;
 
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use Random\RandomError;
 use Random\RandomException;
@@ -38,18 +38,18 @@ final readonly class FilenameHelper
     /**
      * @return non-empty-string
      *
-     * @throws InvalidArgumentException when the length is not positive
-     * @throws InvalidArgumentException when the length is too long
+     * @throws DomainException when the length is not positive
+     * @throws DomainException when the length is too long
      * @throws RuntimeException when generating a sufficiently random name fails
      */
     public static function generate(int $length): string
     {
         if ($length < 1) {
-            throw new InvalidArgumentException('The length must be positive.');
+            throw new DomainException('The length must be positive.');
         }
 
         if ($length > self::MAXIMUM_GENERATED_LENGTH) {
-            throw new InvalidArgumentException(sprintf('The length must be less than or equal to %d.', self::MAXIMUM_GENERATED_LENGTH));
+            throw new DomainException(sprintf('The length must be less than or equal to %d.', self::MAXIMUM_GENERATED_LENGTH));
         }
 
         try {
@@ -65,6 +65,8 @@ final readonly class FilenameHelper
 
     /**
      * @return ?non-empty-string
+     *
+     * @throws DomainException when the normalized filename is greater than PHP_MAXPATHLEN characters
      */
     public static function normalize(?string $filename): ?string
     {
@@ -115,7 +117,7 @@ final readonly class FilenameHelper
             $filename = trim(implode('.', $nameBits));
 
             if (strlen($filename) > PHP_MAXPATHLEN) {
-                throw new InvalidArgumentException(sprintf('The normalized filename length must be less than or equal to %d characters.', PHP_MAXPATHLEN));
+                throw new DomainException(sprintf('The normalized filename cannot be greater than %d characters.', PHP_MAXPATHLEN));
             }
 
             return '' === $filename ? null : $filename;

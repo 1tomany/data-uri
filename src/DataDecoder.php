@@ -4,7 +4,7 @@ namespace OneToMany\DataUri;
 
 use OneToMany\DataUri\Contract\Enum\FileType;
 use OneToMany\DataUri\Contract\Record\TemporaryFileInterface;
-use OneToMany\DataUri\Exception\InvalidArgumentException;
+use OneToMany\DataUri\Exception\DomainException;
 use OneToMany\DataUri\Exception\RuntimeException;
 use OneToMany\DataUri\Helper\FilenameHelper;
 use OneToMany\DataUri\Record\TemporaryFile;
@@ -64,11 +64,11 @@ final class DataDecoder
         }
 
         if (!is_writable($rootDirectory)) {
-            throw new InvalidArgumentException(sprintf('The root directory "%s" is not writable.', $rootDirectory));
+            throw new DomainException(sprintf('The root directory "%s" is not writable.', $rootDirectory));
         }
 
         if (!Path::isAbsolute($rootDirectory)) {
-            throw new InvalidArgumentException(sprintf('The root directory "%s" is not an absolute path.', $rootDirectory));
+            throw new DomainException(sprintf('The root directory "%s" is not an absolute path.', $rootDirectory));
         }
 
         $this->rootDirectory = $rootDirectory;
@@ -80,11 +80,11 @@ final class DataDecoder
         ?string $name = null,
     ): TemporaryFileInterface {
         if (!is_string($data) && !$data instanceof \Stringable) {
-            throw new InvalidArgumentException('The data must be a non-NULL string or implement the "\Stringable" interface.');
+            throw new DomainException('The data must be a non-NULL string or implement the "\Stringable" interface.');
         }
 
         if ('' === $data = trim($data)) {
-            throw new InvalidArgumentException('The data cannot be empty.');
+            throw new DomainException('The data cannot be empty.');
         }
 
         $dataIsUrl = $dataIsFile = false;
@@ -98,15 +98,15 @@ final class DataDecoder
         }
 
         if (!$dataIsFile && is_dir($data)) {
-            throw new InvalidArgumentException('The data cannot be a directory.');
+            throw new DomainException('The data cannot be a directory.');
         }
 
         if (!ctype_print($data)) {
-            throw new InvalidArgumentException('The data cannot contain non-printable, control, or NULL-terminated characters.');
+            throw new DomainException('The data cannot contain non-printable, control, or NULL-terminated characters.');
         }
 
         if ($dataIsFile && !is_readable($data)) {
-            throw new InvalidArgumentException(sprintf('The file "%s" is not readable.', $data));
+            throw new DomainException(sprintf('The file "%s" is not readable.', $data));
         }
 
         // Determine the file name
@@ -244,7 +244,7 @@ final class DataDecoder
         }
 
         if (!$type->isText()) {
-            throw new InvalidArgumentException(sprintf('The type "%s" is not text.', $type->getName()));
+            throw new DomainException(sprintf('The type "%s" is not text.', $type->getName()));
         }
 
         return $this->decodeBase64(base64_encode($text), $type, $name);
