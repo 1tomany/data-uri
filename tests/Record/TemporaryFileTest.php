@@ -33,7 +33,7 @@ final class TemporaryFileTest extends TestCase
 
     public function testConstructorRequiresPathToNotBeDirectory(): void
     {
-        $path = realpath(__DIR__.'/../../config/files/');
+        $path = realpath(__DIR__.'/../../data/files/');
 
         $this->assertIsString($path);
         $this->assertDirectoryExists($path);
@@ -52,12 +52,12 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The base directory "'.$base.'" must be an absolute path.');
 
-        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', $base, 'php-logo.png', 10289, FileType::Png);
+        new TemporaryFile(__DIR__.'/../../data/files/php-logo.png', $base, 'php-logo.png', 10289, FileType::Png);
     }
 
     public function testConstructorRequiresPathToBeChildOfBase(): void
     {
-        $path = realpath(__DIR__.'/../../config/files/php-logo.png');
+        $path = realpath(__DIR__.'/../../data/files/php-logo.png');
 
         $this->assertIsString($path);
         $this->assertFileExists($path);
@@ -79,7 +79,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The name cannot be empty.');
 
-        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, '', 10289, FileType::Png);
+        new TemporaryFile(__DIR__.'/../../data/files/php-logo.png', null, '', 10289, FileType::Png);
     }
 
     public function testConstructorRequiresNonNegativeSize(): void
@@ -87,7 +87,7 @@ final class TemporaryFileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The size cannot be negative.');
 
-        new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', -1, FileType::Png);
+        new TemporaryFile(__DIR__.'/../../data/files/php-logo.png', null, 'php-logo.png', -1, FileType::Png);
     }
 
     public function testConstructorRequiresHashToBeGenerated(): void
@@ -103,7 +103,7 @@ final class TemporaryFileTest extends TestCase
 
     public function testConstructorGeneratesKeyWithoutBaseWhenBaseIsEmpty(): void
     {
-        $file = new TemporaryFile(__DIR__.'/../../config/files/php-logo.png', null, 'php-logo.png', 10289, FileType::Png)->detach();
+        $file = new TemporaryFile(__DIR__.'/../../data/files/php-logo.png', null, 'php-logo.png', 10289, FileType::Png)->detach();
 
         $this->assertEquals('c6/dd/php-logo.png', $file->getKey());
     }
@@ -290,7 +290,7 @@ final class TemporaryFileTest extends TestCase
     private function decodeFile(string $name): TemporaryFile
     {
         /** @var TemporaryFile&TemporaryFileInterface $file */
-        $file = new DataDecoder()->decode(__DIR__.'/../../config/files/'.$name);
+        $file = new DataDecoder()->decode(__DIR__.'/../../data/files/'.$name);
 
         return $file;
     }
