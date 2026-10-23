@@ -24,7 +24,6 @@ use function implode;
 use function is_dir;
 use function is_file;
 use function is_int;
-use function is_object;
 use function is_readable;
 use function is_string;
 use function is_writable;
@@ -33,6 +32,7 @@ use function sprintf;
 use function stream_get_contents;
 use function stream_get_wrappers;
 use function strlen;
+use function strtolower;
 use function sys_get_temp_dir;
 use function trim;
 
@@ -56,11 +56,21 @@ final class DataDecoder
      */
     private const string FILE_DIRECTORY = '1tomany-data-uri';
 
+    /**
+     * @throws DomainException when the root directory is an empty string
+     * @throws DomainException when the root directory is not writable
+     * @throws DomainException when the root directory is not an absolute path
+     */
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
+        ?string $rootDirectory = null,
     ) {
-        if ('' === $rootDirectory = sys_get_temp_dir()) {
-            throw new RuntimeException('The root directory cannot be empty.');
+        if (null === $rootDirectory) {
+            $rootDirectory = sys_get_temp_dir();
+        }
+
+        if ('' === $rootDirectory = trim($rootDirectory)) {
+            throw new DomainException('The root directory cannot be empty.');
         }
 
         if (!is_writable($rootDirectory)) {
@@ -186,13 +196,9 @@ final class DataDecoder
             }
         }
 
-        if (is_string($type) || is_object($type)) {
-            $fileType = FileType::createFromType($type);
-        } else {
-            $fileType = FileType::createFromPath(...[
-                'path' => trim($tempPath),
-            ]);
-        }
+        $fileType = null !== $type ?
+            FileType::createFromType($type) :
+            FileType::createFromPath($tempPath);
 
         if (null !== $extension = $fileType->getExtension()) {
             if (!Path::hasExtension($tempPath, $extension, true)) {
@@ -227,15 +233,15 @@ final class DataDecoder
     }
 
     public function decodeBase64(
-        string $data,
+        ?string $data,
         string|FileType $type,
         ?string $name = null,
     ): TemporaryFileInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof FileType ? $type->getFormat() : $type, $data), $type, $name);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof FileType ? $type->getFormat() : strtolower($type), (string) $data), $type, $name);
     }
 
     public function decodeText(
-        string $text,
+        ?string $text,
         string|FileType $type = FileType::Txt,
         ?string $name = null,
     ): TemporaryFileInterface {
@@ -247,7 +253,14 @@ final class DataDecoder
             throw new DomainException(sprintf('The type "%s" is not text.', $type->getName()));
         }
 
-        return $this->decodeBase64(base64_encode($text), $type, $name);
+        return $this->decodeBase64(base64_encode((string) $text), $type, $name);
+    }
+
+    public function fromMarkdown(
+        ?string $markdown,
+        ?string $name = null,
+    ): TemporaryFileInterface {
+        return $this->decodeText(trim((string) $markdown), FileType::Markdown, $name);
     }
 
     /**

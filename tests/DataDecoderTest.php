@@ -22,6 +22,41 @@ use function sys_get_temp_dir;
 #[Group('UnitTests')]
 final class DataDecoderTest extends TestCase
 {
+    public function testConstructorRequiresNonEmptyRootDirectory(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageIs('The root directory cannot be empty.');
+
+        new DataDecoder(rootDirectory: ' ');
+    }
+
+    public function testConstructorRequiresWritableRootDirectory(): void
+    {
+        $rootDirectory = Path::getRoot('/');
+
+        $this->assertDirectoryExists($rootDirectory);
+        $this->assertDirectoryIsNotWritable($rootDirectory);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageIs('The root directory "'.$rootDirectory.'" is not writable.');
+
+        new DataDecoder(rootDirectory: $rootDirectory);
+    }
+
+    public function testConstructorRequiresRootDirectoryBeAbsolutePath(): void
+    {
+        $rootDirectory = '../';
+
+        $this->assertDirectoryExists($rootDirectory);
+        $this->assertDirectoryIsWritable($rootDirectory);
+        $this->assertTrue(Path::isRelative($rootDirectory));
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageIs('The root directory "'.$rootDirectory.'" is not an absolute path.');
+
+        new DataDecoder(rootDirectory: $rootDirectory);
+    }
+
     public function testDecodingDataRequiresStringableData(): void
     {
         $this->expectException(DomainException::class);
@@ -248,7 +283,7 @@ final class DataDecoderTest extends TestCase
         $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', name: '')->getName());
     }
 
-    public function testDecodingTextDataAppendsTxtExtensionIfNameProvidedWithoutOne(): void
+    public function testDecodingTextDataAppendsTextExtensionIfNameProvidedWithoutOne(): void
     {
         $file = new DataDecoder()->decodeText('Hello, world!', name: 'example.test');
 
@@ -285,5 +320,33 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertNotNull($type->getExtension());
         $this->assertStringEndsWith($type->getExtension(), $file->getName());
+    }
+
+    /**
+     * @param non-empty-string $name
+     * @param non-empty-string $nameWithExtension
+     */
+    #[DataProvider('providerMarkdownNameAndNameWithExtension')]
+    public function testFromMarkdownAppendsExtensionIfNeeded(
+        string $name,
+        string $nameWithExtension,
+    ): void {
+        $file = new DataDecoder()->fromMarkdown('# Example', name: $name);
+
+        $this->assertEquals($nameWithExtension, $file->getName());
+    }
+
+    /**
+     * @return list<array{0: non-empty-string, 1: non-empty-string}>
+     */
+    public static function providerMarkdownNameAndNameWithExtension(): array
+    {
+        $provider = [
+            ['example', 'example.md'],
+            ['example.txt', 'example.txt.md'],
+            ['example.MD', 'example.MD'],
+        ];
+
+        return $provider;
     }
 }
