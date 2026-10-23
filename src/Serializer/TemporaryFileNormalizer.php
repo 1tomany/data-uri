@@ -42,8 +42,7 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
         string $type,
         ?string $format = null,
         array $context = [],
-    ): TemporaryFileInterface
-    {
+    ): TemporaryFileInterface {
         if ($data instanceof File) {
             if ($data instanceof UploadedFile) {
                 if (!$data->isValid()) {
@@ -91,8 +90,7 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
         mixed $data,
         ?string $format = null,
         array $context = [],
-    ): array
-    {
+    ): array {
         if (!$data instanceof TemporaryFileInterface) {
             throw new DomainException(sprintf('Expected data of type "%s", "%s" given.', TemporaryFileInterface::class, get_debug_type($data)));
         }
@@ -116,8 +114,7 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
         string $type,
         ?string $format = null,
         array $context = [],
-    ): bool
-    {
+    ): bool {
         $supportsDenormalization = false;
 
         if (!is_a($type, TemporaryFileInterface::class, true)) {
@@ -161,8 +158,7 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
         mixed $data,
         ?string $format = null,
         array $context = [],
-    ): bool
-    {
+    ): bool {
         return $data instanceof TemporaryFileInterface;
     }
 
