@@ -35,7 +35,8 @@ The `DataDecoder::decode()` method has the following arguments:
     If empty, the type will be determined using either the file's extension or the `mime_content_type()` function. You may want to explicitly provide this argument when the file can be multiple types. For example, `mime_content_type()` may return `text/plain` for Markdown files, which is correct, however, you may wish to use the more specific MIME type `text/markdown`.
 
 - `string|null $name = null` The name for the temporary file
-  This is useful for handling file uploads where the original filename is preferred over the random one PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved.
+
+    This is useful for handling file uploads where the original filename is preferred over the random one PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved.
 
 #### Inside `DataDecoder::decode()`
 
