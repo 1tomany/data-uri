@@ -49,7 +49,7 @@ final class DataDecoderTest extends TestCase
 
         $this->assertDirectoryExists($rootDirectory);
         $this->assertDirectoryIsWritable($rootDirectory);
-        $this->assertFalse(Path::isAbsolute($rootDirectory));
+        $this->assertTrue(Path::isRelative($rootDirectory));
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessageIs('The root directory "'.$rootDirectory.'" is not an absolute path.');
