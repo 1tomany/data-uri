@@ -253,8 +253,7 @@ final class DataDecoder
     public function fromMarkdown(
         string $text,
         ?string $name = null,
-    ): TemporaryFileInterface
-    {
+    ): TemporaryFileInterface {
         return $this->decodeText($text, FileType::Markdown, $name);
     }
 
