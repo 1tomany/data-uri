@@ -57,6 +57,11 @@ final class DataDecoder
      */
     private const string FILE_DIRECTORY = '1tomany-data-uri';
 
+    /**
+     * @throws DomainException when the root directory is an empty string
+     * @throws DomainException when the root directory is not writable
+     * @throws DomainException when the root directory is not an absolute path
+     */
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
         ?string $rootDirectory = null,
@@ -64,7 +69,7 @@ final class DataDecoder
         $rootDirectory = '' !== ($rootDirectory = trim((string) $rootDirectory)) ? $rootDirectory : sys_get_temp_dir();
 
         if ('' === $rootDirectory) {
-            throw new RuntimeException('The root directory cannot be empty.');
+            throw new DomainException('The root directory cannot be empty.');
         }
 
         if (!is_writable($rootDirectory)) {
