@@ -331,7 +331,7 @@ final class DataDecoderTest extends TestCase
         string $name,
         string $nameWithExtension,
     ): void {
-        $file = new DataDecoder()->fromMarkdown('Hello, world!', name: $name);
+        $file = new DataDecoder()->fromMarkdown('# Example', name: $name);
 
         $this->assertEquals($nameWithExtension, $file->getName());
     }
@@ -344,7 +344,7 @@ final class DataDecoderTest extends TestCase
         $provider = [
             ['example', 'example.md'],
             ['example.txt', 'example.txt.md'],
-            ['example.MD', 'example.md'],
+            ['example.MD', 'example.MD'],
         ];
 
         return $provider;
