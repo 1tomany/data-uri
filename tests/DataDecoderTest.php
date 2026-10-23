@@ -22,6 +22,41 @@ use function sys_get_temp_dir;
 #[Group('UnitTests')]
 final class DataDecoderTest extends TestCase
 {
+    public function testConstructorRequiresNonEmptyRootDirectory(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageIs('The root directory cannot be empty.');
+
+        new DataDecoder(rootDirectory: ' ');
+    }
+
+    public function testConstructorRequiresWritableRootDirectory(): void
+    {
+        $rootDirectory = Path::getRoot('/');
+
+        $this->assertDirectoryExists($rootDirectory);
+        $this->assertDirectoryIsNotWritable($rootDirectory);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageIs('The root directory "'.$rootDirectory.'" is not writable.');
+
+        new DataDecoder(rootDirectory: $rootDirectory);
+    }
+
+    public function testConstructorRequiresRootDirectoryBeAbsolutePath(): void
+    {
+        $rootDirectory = '../';
+
+        $this->assertDirectoryExists($rootDirectory);
+        $this->assertDirectoryIsWritable($rootDirectory);
+        $this->assertFalse(Path::isAbsolute($rootDirectory));
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageIs('The root directory "'.$rootDirectory.'" is not an absolute path.');
+
+        new DataDecoder(rootDirectory: $rootDirectory);
+    }
+
     public function testDecodingDataRequiresStringableData(): void
     {
         $this->expectException(DomainException::class);
