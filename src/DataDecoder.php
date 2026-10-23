@@ -61,16 +61,7 @@ final class DataDecoder
         private readonly Filesystem $filesystem = new Filesystem(),
         ?string $rootDirectory = null,
     ) {
-        if (true === is_string($rootDirectory)) {
-            $rootDirectory = trim($rootDirectory);
-        }
-
-        if (
-            null === $rootDirectory
-            || '' === $rootDirectory
-        ) {
-            $rootDirectory = sys_get_temp_dir();
-        }
+        $rootDirectory = '' !== ($rootDirectory = trim((string) $rootDirectory)) ? $rootDirectory : sys_get_temp_dir();
 
         if ('' === $rootDirectory) {
             throw new RuntimeException('The root directory cannot be empty.');
