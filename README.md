@@ -68,7 +68,7 @@ This method is to be used when the data is known to be Markdown.
 
 The `DataDecoder::fromMarkdown()` method has the following arguments:
 
-- `?string $markdown` The Markdown text
+- `?string $markdown` The Markdown string
 - `?string $name = null` See `DataDecoder::decode()`
 
 ## Symfony Integration
