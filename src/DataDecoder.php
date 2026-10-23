@@ -59,8 +59,20 @@ final class DataDecoder
 
     public function __construct(
         private readonly Filesystem $filesystem = new Filesystem(),
+        ?string $rootDirectory = null,
     ) {
-        if ('' === $rootDirectory = sys_get_temp_dir()) {
+        if (true === is_string($rootDirectory)) {
+            $rootDirectory = trim($rootDirectory);
+        }
+
+        if (
+            null === $rootDirectory
+            || '' === $rootDirectory
+        ) {
+            $rootDirectory = sys_get_temp_dir();
+        }
+
+        if ('' === $rootDirectory) {
             throw new RuntimeException('The root directory cannot be empty.');
         }
 
@@ -232,7 +244,7 @@ final class DataDecoder
         string|FileType $type,
         ?string $name = null,
     ): TemporaryFileInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof FileType ? $type->getFormat() : strtolower($type), $data), $type, $name);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof FileType ? $type->getFormat() : strtolower($type), (string) $data), $type, $name);
     }
 
     public function decodeText(
