@@ -84,7 +84,7 @@ final readonly class FilenameHelper
         }
 
         // Split on all characters that we want to remove
-        $nameBits = preg_split('/[^A-Za-z0-9.]+/', $filename);
+        $nameBits = preg_split('/[^A-Za-z0-9@.]+/', $filename);
 
         if (!$nameBits) {
             return null;
