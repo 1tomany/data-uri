@@ -24,7 +24,6 @@ use function implode;
 use function is_dir;
 use function is_file;
 use function is_int;
-use function is_object;
 use function is_readable;
 use function is_string;
 use function is_writable;
@@ -197,13 +196,9 @@ final class DataDecoder
             }
         }
 
-        if (is_string($type) || is_object($type)) {
-            $fileType = FileType::createFromType($type);
-        } else {
-            $fileType = FileType::createFromPath(...[
-                'path' => trim($tempPath),
-            ]);
-        }
+        $fileType = null !== $type ?
+            FileType::createFromType($type) :
+            FileType::createFromPath($tempPath);
 
         if (null !== $extension = $fileType->getExtension()) {
             if (!Path::hasExtension($tempPath, $extension, true)) {
@@ -261,7 +256,7 @@ final class DataDecoder
         return $this->decodeBase64(base64_encode((string) $text), $type, $name);
     }
 
-    public function asMarkdown(
+    public function fromMarkdown(
         ?string $text,
         ?string $name = null,
     ): TemporaryFileInterface {

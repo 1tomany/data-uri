@@ -322,17 +322,31 @@ final class DataDecoderTest extends TestCase
         $this->assertStringEndsWith($type->getExtension(), $file->getName());
     }
 
-    public function testAsMarkdownAppendsMarkdownExtensionIfNameProvidedWithoutOne(): void
-    {
-        $file = new DataDecoder()->asMarkdown('Hello, world!', name: 'example.test');
+    /**
+     * @param non-empty-string $name
+     * @param non-empty-string $nameWithExtension
+     */
+    #[DataProvider('providerMarkdownNameAndNameWithExtension')]
+    public function testFromMarkdownAppendsExtensionIfNeeded(
+        string $name,
+        string $nameWithExtension,
+    ): void {
+        $file = new DataDecoder()->fromMarkdown('Hello, world!', name: $name);
 
-        $this->assertEquals('example.test.md', $file->getName());
+        $this->assertEquals($nameWithExtension, $file->getName());
     }
 
-    public function testAsMarkdownDoesNotAppendMarkdownExtensionIfNamedProvidedWithOne(): void
+    /**
+     * @return list<array{0: non-empty-string, 1: non-empty-string}>
+     */
+    public static function providerMarkdownNameAndNameWithExtension(): array
     {
-        $file = new DataDecoder()->asMarkdown('Hello, world!', name: 'document.md');
+        $provider = [
+            ['example', 'example.md'],
+            ['example.txt', 'example.txt.md'],
+            ['example.MD', 'example.md'],
+        ];
 
-        $this->assertEquals('document.md', $file->getName());
+        return $provider;
     }
 }
