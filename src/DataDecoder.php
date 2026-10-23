@@ -250,6 +250,14 @@ final class DataDecoder
         return $this->decodeBase64(base64_encode($text), $type, $name);
     }
 
+    public function fromMarkdown(
+        string $text,
+        ?string $name = null,
+    ): TemporaryFileInterface
+    {
+        return $this->decodeText($text, FileType::Markdown, $name);
+    }
+
     /**
      * @param non-empty-list<non-empty-lowercase-string> $streams
      *
