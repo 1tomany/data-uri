@@ -37,8 +37,12 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
      * @throws DomainException when the data is an unexpected type
      */
     #[\Override]
-    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): TemporaryFileInterface
-    {
+    public function denormalize(
+        mixed $data,
+        string $type,
+        ?string $format = null,
+        array $context = [],
+    ): TemporaryFileInterface {
         if ($data instanceof File) {
             if ($data instanceof UploadedFile) {
                 if (!$data->isValid()) {
@@ -82,8 +86,11 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
      * @throws DomainException when the data is an unexpected type {@see OneToMany\DataUri\Contract\Record\TemporaryFileInterface}
      */
     #[\Override]
-    public function normalize(mixed $data, ?string $format = null, array $context = []): array
-    {
+    public function normalize(
+        mixed $data,
+        ?string $format = null,
+        array $context = [],
+    ): array {
         if (!$data instanceof TemporaryFileInterface) {
             throw new DomainException(sprintf('Expected data of type "%s", "%s" given.', TemporaryFileInterface::class, get_debug_type($data)));
         }
@@ -102,8 +109,12 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
      * @param class-string<TemporaryFileInterface> $type
      */
     #[\Override]
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
-    {
+    public function supportsDenormalization(
+        mixed $data,
+        string $type,
+        ?string $format = null,
+        array $context = [],
+    ): bool {
         $supportsDenormalization = false;
 
         if (!is_a($type, TemporaryFileInterface::class, true)) {
@@ -143,8 +154,11 @@ final readonly class TemporaryFileNormalizer implements DenormalizerInterface, N
      * @see Symfony\Component\Serializer\Normalizer\NormalizerInterface
      */
     #[\Override]
-    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
-    {
+    public function supportsNormalization(
+        mixed $data,
+        ?string $format = null,
+        array $context = [],
+    ): bool {
         return $data instanceof TemporaryFileInterface;
     }
 

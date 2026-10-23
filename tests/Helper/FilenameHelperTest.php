@@ -87,6 +87,7 @@ final class FilenameHelperTest extends TestCase
             ['🐘.php', null],
             ['C:\\tmp', 'tmp'],
             ['/tmp/.txt', null],
+            ['@.txt', '@.txt'],
             ['a.jpeg', 'a.jpeg'],
             ['a..jpeg', 'a.jpeg'],
             ['/a.jpeg', 'a.jpeg'],
@@ -102,6 +103,7 @@ final class FilenameHelperTest extends TestCase
             ['Ëxclaim.txt', 'xclaim.txt'],
             ['h..e..llo.txt', 'h.e.llo.txt'],
             ['hello    .txt', 'hello.txt'],
+            ['hello  @ .txt', 'hello-@.txt'],
             ['h_e_l_l_o_.txt', 'h-e-l-l-o.txt'],
             ['hello_world.txt', 'hello-world.txt'],
             ['hello__world.txt', 'hello-world.txt'],
@@ -109,6 +111,7 @@ final class FilenameHelperTest extends TestCase
             ['hello_._world.txt', 'hello.world.txt'],
             ['hello_._._world.txt', 'hello.world.txt'],
             ['Invoice--OWN3086.pdf', 'Invoice-OWN3086.pdf'],
+            ['preview-2-96x96@70.jpeg', 'preview-2-96x96@70.jpeg'],
             ['Heating - 2024-11 - Invoice.pdf', 'Heating-2024-11-Invoice.pdf'],
         ];
 
