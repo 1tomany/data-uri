@@ -33,6 +33,7 @@ use function sprintf;
 use function stream_get_contents;
 use function stream_get_wrappers;
 use function strlen;
+use function strtolower;
 use function sys_get_temp_dir;
 use function trim;
 
@@ -227,15 +228,15 @@ final class DataDecoder
     }
 
     public function decodeBase64(
-        string $data,
+        ?string $data,
         string|FileType $type,
         ?string $name = null,
     ): TemporaryFileInterface {
-        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof FileType ? $type->getFormat() : $type, $data), $type, $name);
+        return $this->decode(sprintf('data:%s;base64,%s', $type instanceof FileType ? $type->getFormat() : strtolower($type), $data), $type, $name);
     }
 
     public function decodeText(
-        string $text,
+        ?string $text,
         string|FileType $type = FileType::Txt,
         ?string $name = null,
     ): TemporaryFileInterface {
@@ -247,11 +248,11 @@ final class DataDecoder
             throw new DomainException(sprintf('The type "%s" is not text.', $type->getName()));
         }
 
-        return $this->decodeBase64(base64_encode($text), $type, $name);
+        return $this->decodeBase64(base64_encode((string) $text), $type, $name);
     }
 
     public function fromMarkdown(
-        string $text,
+        ?string $text,
         ?string $name = null,
     ): TemporaryFileInterface {
         return $this->decodeText($text, FileType::Markdown, $name);
