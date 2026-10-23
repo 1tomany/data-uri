@@ -261,7 +261,7 @@ final class DataDecoder
         return $this->decodeBase64(base64_encode((string) $text), $type, $name);
     }
 
-    public function fromMarkdown(
+    public function asMarkdown(
         ?string $text,
         ?string $name = null,
     ): TemporaryFileInterface {

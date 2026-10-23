@@ -283,7 +283,7 @@ final class DataDecoderTest extends TestCase
         $this->assertNotEmpty(new DataDecoder()->decodeText('Hello, world!', name: '')->getName());
     }
 
-    public function testDecodingTextDataAppendsTxtExtensionIfNameProvidedWithoutOne(): void
+    public function testDecodingTextDataAppendsTextExtensionIfNameProvidedWithoutOne(): void
     {
         $file = new DataDecoder()->decodeText('Hello, world!', name: 'example.test');
 
@@ -320,5 +320,19 @@ final class DataDecoderTest extends TestCase
         $this->assertFileExists($file->getPath());
         $this->assertNotNull($type->getExtension());
         $this->assertStringEndsWith($type->getExtension(), $file->getName());
+    }
+
+    public function testAsMarkdownAppendsMarkdownExtensionIfNameProvidedWithoutOne(): void
+    {
+        $file = new DataDecoder()->asMarkdown('Hello, world!', name: 'example.test');
+
+        $this->assertEquals('example.test.md', $file->getName());
+    }
+
+    public function testAsMarkdownDoesNotAppendMarkdownExtensionIfNamedProvidedWithOne(): void
+    {
+        $file = new DataDecoder()->asMarkdown('Hello, world!', name: 'document.md');
+
+        $this->assertEquals('document.md', $file->getName());
     }
 }
