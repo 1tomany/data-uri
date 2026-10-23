@@ -10,11 +10,12 @@ composer require 1tomany/data-uri
 
 ## API Overview
 
-The three methods exposed by this library are:
+The four methods exposed by this library are:
 
 - `OneToMany\DataUri\DataDecoder::decode()`
 - `OneToMany\DataUri\DataDecoder::decodeBase64()`
 - `OneToMany\DataUri\DataDecoder::decodeText()`
+- `OneToMany\DataUri\DataDecoder::fromMarkdown()`
 
 Each method returns a `OneToMany\DataUri\Record\TemporaryFile` value object which implements the interface `OneToMany\DataUri\Contract\Record\TemporaryFileInterface`. By default, the `TemporaryFile` object will delete any filesystem resources it knows about when it is explicitly destructed or garbage collected.
 
@@ -28,9 +29,11 @@ The `DataDecoder::decode()` method is the most versatile as it allows for a wide
 
 The `DataDecoder::decode()` method has the following arguments:
 
-- `mixed $data` The data, file, or URL to decode.
-- `string|FileType|null $type = null` The MIME type of the temporary file. If empty, the type will be determined using either the file's extension or the `mime_content_type()` function. You may want to explicitly provide this argument when the file can be multiple types. For example, `mime_content_type()` may return `text/plain` for Markdown files, which is correct, however, you may wish to use the more specific MIME type `text/markdown`.
-- `string|null $name = null` The name for the temporary file. This is useful for handling file uploads where the original filename is preferred over the random one PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved.
+- `mixed $data` The data, file, or URL to decode
+- `string|FileType|null $type = null` The MIME type of the temporary file
+  If empty, the type will be determined using either the file's extension or the `mime_content_type()` function. You may want to explicitly provide this argument when the file can be multiple types. For example, `mime_content_type()` may return `text/plain` for Markdown files, which is correct, however, you may wish to use the more specific MIME type `text/markdown`.
+- `string|null $name = null` The name for the temporary file
+  This is useful for handling file uploads where the original filename is preferred over the random one PHP assigns. A randomly generated name will be used if this is empty and a name cannot be resolved.
 
 #### Inside `DataDecoder::decode()`
 
@@ -42,9 +45,9 @@ This method is to be used when the data is known to be base64 encoded but NOT en
 
 The `DataDecoder::decodeBase64()` method has the following parameters:
 
-- `string $data` The base64 encoded string.
-- `string|FileType $type` The MIME type of the data.
-- `string|null $name = null` See `DataDecoder::decode()`.
+- `?string $data` The base64 encoded string
+- `string|FileType $type` The MIME type of the data
+- `?string $name = null` See `DataDecoder::decode()`
 
 ### `DataDecoder::decodeText()`
 
@@ -52,9 +55,18 @@ This method is to be used when the data is known to be plaintext.
 
 The `DataDecoder::decodeText()` method has the following arguments:
 
-- `string $text` The plaintext string.
-- `string|FileType $type = FileType::Txt` The MIME type of the text.
-- `string|null $name = null` See `DataDecoder::decode()`.
+- `?string $text` The plaintext string
+- `string|FileType $type = FileType::Txt` The MIME type of the text
+- `?string $name = null` See `DataDecoder::decode()`
+
+### `DataDecoder::fromMarkdown()`
+
+This method is to be used when the data is known to be Markdown.
+
+The `DataDecoder::fromMarkdown()` method has the following arguments:
+
+- `?string $markdown` The Markdown text
+- `?string $name = null` See `DataDecoder::decode()`
 
 ## Symfony Integration
 
